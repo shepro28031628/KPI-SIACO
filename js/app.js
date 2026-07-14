@@ -162,7 +162,10 @@ const LocalDB = {
         req.onsuccess = () => resolve();
         req.onerror = () => reject(req.error);
       });
-    } catch (e) { console.error('IndexedDB save error', e); }
+    } catch (e) { 
+      console.error('IndexedDB save error', e); 
+      showNotification('Error al guardar sesión local: ' + e.message, 'error');
+    }
   },
   async load(key) {
     try {
@@ -174,7 +177,11 @@ const LocalDB = {
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
       });
-    } catch (e) { console.error('IndexedDB load error', e); return null; }
+    } catch (e) { 
+      console.error('IndexedDB load error', e); 
+      showNotification('Error al cargar sesión local: ' + e.message, 'error');
+      return null; 
+    }
   },
   async clear() {
     try {
@@ -186,7 +193,10 @@ const LocalDB = {
         req.onsuccess = () => resolve();
         req.onerror = () => reject(req.error);
       });
-    } catch (e) { console.error('IndexedDB clear error', e); }
+    } catch (e) { 
+      console.error('IndexedDB clear error', e); 
+      showNotification('Error al limpiar sesión local: ' + e.message, 'error');
+    }
   }
 };
 
@@ -413,29 +423,40 @@ function parseIndicadoresGrouped(wb) {
   const rows = XLSX.utils.sheet_to_json(wb.Sheets[actual], { header: 1, defval: null, raw: true });
   if (rows.length < 2) return [];
 
-  // Determine if we need to skip a header row
+  // Build dynamic header map to avoid breaking if columns shift
+  const headerMap = {};
+  const headerRow = rows[0] || [];
+  headerRow.forEach((h, i) => {
+    if (h !== null && h !== undefined) {
+      const norm = normalizeKey(String(h));
+      if (norm) headerMap[norm] = i;
+    }
+  });
+
+  const resolveIdx = (possibleKeys, fallbackIdx) => {
+    for (let k of possibleKeys) {
+      const normKey = normalizeKey(k);
+      if (headerMap[normKey] !== undefined) return headerMap[normKey];
+    }
+    return fallbackIdx;
+  };
+
   // Usually the first row is headers. We'll skip it.
   const dataRows = rows.slice(1);
 
   return dataRows.map((r, idx) => {
-    // If the row doesn't have at least the minimum columns, return empty to be filtered
     if (!r || r.length < 9) return null;
 
     const out = {};
 
-    // Helper for robust parsing of dates
     const getDate = (idx) => parseExcelDateSafe(r[idx]);
-    // Helper for robust string parsing
     const getStr = (idx) => (r[idx] !== null && r[idx] !== undefined) ? String(r[idx]).trim() : null;
-    // Helper for robust numeric parsing
     const getNum = (idx) => {
       if (r[idx] === null || r[idx] === undefined || String(r[idx]).trim() === '') return null;
       let strVal = String(r[idx]).trim();
-      // Handle Spanish decimals by replacing comma with dot
       if (strVal.includes(',') && !strVal.includes('.')) {
         strVal = strVal.replace(',', '.');
       } else if (strVal.includes(',') && strVal.includes('.')) {
-        // If it has both, like 1.000,50 -> remove dots, replace comma
         strVal = strVal.replace(/\./g, '').replace(',', '.');
       }
       const parsed = parseFloat(strVal);
@@ -443,55 +464,60 @@ function parseIndicadoresGrouped(wb) {
     };
 
     // --- EXTRACT EXACT COLUMNS BASED ON USER REQUIREMENTS ---
-    // PROCESOS: "fecha de creación" -> fallback to index 3 (Col D) or try to find it. But we'll assume index 3 or index 0 for now.
-    out.fechaaperturado = getDate(0) || getDate(3);
+    out.fechaaperturado = getDate(resolveIdx(['fechaaperturado', 'fechacreacion'], 0)) || getDate(resolveIdx(['numdoctrans'], 3));
 
-    // BASE: Fecha de levante = Columna I (index 8)
-    out.fechadelevante = getDate(8);
+    // BASE: Fecha de levante
+    out.fechadelevante = getDate(resolveIdx(['fechadelevante', 'fechalevante'], 8));
 
     // AGILIDAD
-    out.tiempoagilidad = getNum(14); // Col O
-    out.cumpleagilidad = getStr(16); // Col Q
-    out.responsableagilidad = getStr(18); // Col S
-    out.justificacionagilidad = getStr(19); // Col T
+    out.tiempoagilidad = getNum(resolveIdx(['tiempoagilidad', 'tiempo'], 14)); 
+    out.cumpleagilidad = getStr(resolveIdx(['cumpleagilidad', 'cumple'], 16)); 
+    out.responsableagilidad = getStr(resolveIdx(['responsableagilidad', 'responsable'], 18)); 
+    out.justificacionagilidad = getStr(resolveIdx(['justificacionagilidad', 'justificacion'], 19)); 
 
     // FACTURACIÓN
-    out.tiempofacturacion = getNum(40); // Col AO
-    out.cumplefacturacion = getStr(42); // Col AQ
-    out.responsablefacturacion = getStr(44); // Col AS
-    out.justificacionfacturacion = getStr(45); // Col AT
+    out.tiempofacturacion = getNum(resolveIdx(['tiempofacturacion'], 40)); 
+    out.cumplefacturacion = getStr(resolveIdx(['cumplefacturacion'], 42)); 
+    out.responsablefacturacion = getStr(resolveIdx(['responsablefacturacion'], 44)); 
+    out.justificacionfacturacion = getStr(resolveIdx(['justificacionfacturacion'], 45)); 
 
     // INSPECCIÓN
-    out.tiempoinspeccion = getNum(27); // Col AB
-    out.detalleinspeccion = getStr(31); // Col AF (FÍSICO)
-    out.cumpleinspeccion = getStr(29); // Col AD (SI/NO)
+    out.tiempoinspeccion = getNum(resolveIdx(['tiempoinspeccion'], 27)); 
+    out.detalleinspeccion = getStr(resolveIdx(['detalleinspeccion', 'fisico'], 31)); 
+    out.cumpleinspeccion = getStr(resolveIdx(['cumpleinspeccion'], 29)); 
     
     if (out.cumpleinspeccion !== 'SI' && out.cumpleinspeccion !== 'NO' && out.cumpleinspeccion !== 'si' && out.cumpleinspeccion !== 'no') {
-      for (let i = 20; i <= 38; i++) {
+      const startIdx = resolveIdx(['inspeccioninicio', 'inicioinspeccion'], 20);
+      const endIdx = resolveIdx(['inspeccionfin', 'fininspeccion'], 38);
+      for (let i = startIdx; i <= endIdx; i++) {
         let v = getStr(i);
-        if (v && String(v).toUpperCase() === 'SI' && i !== 29 && i !== 31) {
+        if (v && String(v).toUpperCase() === 'SI' && i !== resolveIdx(['cumpleinspeccion'], 29) && i !== resolveIdx(['detalleinspeccion'], 31)) {
           out.cumpleinspeccion = 'SI';
           break;
-        } else if (v && String(v).toUpperCase() === 'NO' && i !== 29 && i !== 31) {
+        } else if (v && String(v).toUpperCase() === 'NO' && i !== resolveIdx(['cumpleinspeccion'], 29) && i !== resolveIdx(['detalleinspeccion'], 31)) {
           out.cumpleinspeccion = 'NO';
           break;
         }
       }
     }
     
-    out.justificacioninspeccion = getStr(32); // Col AG
+    out.justificacioninspeccion = getStr(resolveIdx(['justificacioninspeccion'], 32)); 
 
     // Common fields
-    out.do = getStr(0);
-    out.do3m = getStr(1);
-    out.documentodetransporte = getStr(2);
-    out.do_b = getStr(1); // Col B
-    out.id_operacion = getStr(2); // Col C
-    out.num_doc_trans = getStr(3); // Col D
-    out.mododetransporte = formatModoTransporte(r[4] || r[5] || '');
-    out.administracion = getStr(5) || getStr(6);
-    out.lineadenegocio = getStr(6) || getStr(7);
-    out.tipodedeclaracion = getStr(7) || getStr(8);
+    out.do = getStr(resolveIdx(['do'], 0));
+    out.do3m = getStr(resolveIdx(['do3m', 'dob'], 1));
+    out.documentodetransporte = getStr(resolveIdx(['documentodetransporte', 'doctransporte'], 2));
+    out.do_b = getStr(resolveIdx(['dob'], 1)); 
+    out.id_operacion = getStr(resolveIdx(['idoperacion'], 2)); 
+    out.num_doc_trans = getStr(resolveIdx(['numdoctrans'], 3)); 
+    
+    const mt1 = getStr(resolveIdx(['mododetransporte', 'modotransporte'], 4));
+    const mt2 = getStr(resolveIdx(['mododetransporte2'], 5));
+    out.mododetransporte = formatModoTransporte(mt1 || mt2 || '');
+    
+    out.administracion = getStr(resolveIdx(['administracion', 'admin'], 5)) || getStr(6);
+    out.lineadenegocio = getStr(resolveIdx(['lineadenegocio', 'lineanegocio'], 6)) || getStr(7);
+    out.tipodedeclaracion = getStr(resolveIdx(['tipodedeclaracion', 'tipodeclaracion'], 7)) || getStr(8);
 
     return out;
   }).filter(r => r !== null);

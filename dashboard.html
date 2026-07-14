@@ -316,17 +316,26 @@
             <div class="chart-wrap tall"><canvas id="chartPromInspeccion"></canvas></div>
           </div>
           <div class="pbi-kpi-stack">
-            <div class="pbi-kpi-mini-card">
+            <div class="pbi-kpi-mini-card" style="position: relative;">
+              <svg style="position: absolute; top: 12px; left: 12px; width: 28px; height: 28px;" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
               <span class="kpi-val" id="valTTInspeccion">0,00</span>
               <span class="kpi-lbl">Tiempo Inspección</span>
             </div>
-            <div class="pbi-kpi-mini-card">
+            <div class="pbi-kpi-mini-card" style="position: relative;">
+              <svg style="position: absolute; top: 12px; left: 12px; width: 28px; height: 28px;" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                <path d="M9 10h6"></path><path d="M9 14h6"></path><path d="M9 18h6"></path>
+              </svg>
               <span class="kpi-val" id="valDTInspeccion">0</span>
               <span class="kpi-lbl">Documento Transporte</span>
             </div>
-            <div class="chart-panel" style="padding: 12px; height: 150px;">
-              <h4>Cumplimiento Inspección</h4>
-              <div class="chart-wrap" style="height: 100px;"><canvas id="chartCumpleInspeccion"></canvas></div>
+            <div class="chart-panel" style="padding: 12px; flex: 1; display: flex; flex-direction: column; min-height: 250px;">
+              <h4 style="text-align: center;">DT Inspecciones</h4>
+              <div class="chart-wrap" style="flex: 1; min-height: 200px;"><canvas id="chartCumpleInspeccion"></canvas></div>
             </div>
           </div>
         </div>

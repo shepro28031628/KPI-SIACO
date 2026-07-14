@@ -389,10 +389,28 @@ function parseIndicadoresGrouped(wb) {
 
     // INSPECCIÓN
     out.tiempoinspeccion = getNum(27); // Col AB
-    out.cumpleinspeccion = getStr(29); // Col AD
+    out.detalleinspeccion = getStr(31); // Col AF (FÍSICO)
+    out.cumpleinspeccion = getStr(29); // Col AD (SI/NO)
+    
+    if (out.cumpleinspeccion !== 'SI' && out.cumpleinspeccion !== 'NO' && out.cumpleinspeccion !== 'si' && out.cumpleinspeccion !== 'no') {
+      for (let i = 20; i <= 38; i++) {
+        let v = getStr(i);
+        if (v && String(v).toUpperCase() === 'SI' && i !== 29 && i !== 31) {
+          out.cumpleinspeccion = 'SI';
+          break;
+        } else if (v && String(v).toUpperCase() === 'NO' && i !== 29 && i !== 31) {
+          out.cumpleinspeccion = 'NO';
+          break;
+        }
+      }
+    }
+    
     out.justificacioninspeccion = getStr(32); // Col AG
 
     // Common fields
+    out.do = getStr(0);
+    out.do3m = getStr(1);
+    out.documentodetransporte = getStr(2);
     out.do_b = getStr(1); // Col B
     out.id_operacion = getStr(2); // Col C
     out.num_doc_trans = getStr(3); // Col D
@@ -1153,7 +1171,13 @@ function getYearsForRows(rows) {
             }
           }
         }
-        this.renderSubTable(config.tblDetalle, rows, config.columnasTabla, config.mod);
+         if (config.tblDetalle && config.columnasTabla) {
+          let tableRows = rows;
+          if (config.tblFilterField && config.tblFilterValue) {
+             tableRows = tableRows.filter(r => String(r[config.tblFilterField]).toUpperCase() === String(config.tblFilterValue).toUpperCase());
+          }
+          this.renderSubTable(config.tblDetalle, tableRows, config.columnasTabla, config.mod);
+        }
       },
     };
 
@@ -1286,7 +1310,7 @@ function getYearsForRows(rows) {
         data: { labels: labels, datasets: [{ data: Object.values(dataMap), backgroundColor: bgColors }] },
         options: {
           responsive: true, maintainAspectRatio: false,
-          layout: { padding: 35 },
+          layout: { padding: 45 },
           onClick: (e, activeElements) => {
             if (activeElements.length > 0 && clickHandler) {
               const idx = activeElements[0].index;
@@ -1314,8 +1338,12 @@ function getYearsForRows(rows) {
               }
             },
             datalabels: {
-              display: true,
-              color: '#605e5c',
+              display: function(context) {
+                return context.dataset.data[context.dataIndex] > 0;
+              },
+              color: '#333',
+              backgroundColor: 'rgba(255,255,255,0.7)',
+              borderRadius: 3,
               font: { size: 10, weight: '600' },
               formatter: (value, ctx) => {
                 if (!value || total === 0) return '';

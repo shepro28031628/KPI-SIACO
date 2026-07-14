@@ -1,4 +1,4 @@
-﻿ChartManager.renderRegistros = function() {
+ChartManager.renderRegistros = function() {
 
           const rows = App.raw.registros.filter(r => r['noregistro'] !== null && r['noregistro'] !== undefined);
           if (document.getElementById('valRegTiempo')) document.getElementById('valRegTiempo').textContent = avg(rows.map(r => r['tiempo'])).toFixed(2).replace('.', ',');
@@ -33,13 +33,21 @@
             App.charts.chartRegistrosMesBar = new Chart(document.getElementById('chartRegistrosMesBar'), {
               type: 'bar',
               data: {
-                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                labels: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
                 datasets: [
-                  { label: 'SKU', data: skuByMonthSets.map(s => s.size), backgroundColor: PALETTE[1] },
-                  { label: 'No. REGISTRO', data: regByMonth, type: 'line', borderColor: PALETTE[4], fill: false }
+                  { label: 'SKU', data: skuByMonthSets.map(s => s.size), backgroundColor: '#1E90FF' },
+                  { label: 'No. REGISTRO', data: regByMonth, type: 'line', borderColor: '#FF7F50', fill: false }
                 ]
               },
-              options: { responsive: true, maintainAspectRatio: false }
+              options: { 
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                  datalabels: {
+                    color: '#333', anchor: 'end', align: 'end',
+                    formatter: v => v > 0 ? v : ''
+                  }
+                }
+              }
             });
           }
 
@@ -48,10 +56,18 @@
             App.charts.chartRegistrosTiempoLine = new Chart(document.getElementById('chartRegistrosTiempoLine'), {
               type: 'line',
               data: {
-                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-                datasets: [{ label: 'Tiempo Promedio', data: timeSums.map((s, i) => timeCounts[i] ? parseFloat((s / timeCounts[i]).toFixed(2)) : null), borderColor: PALETTE[2], fill: true }]
+                labels: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+                datasets: [{ label: 'Promedio Tiempo Aprobación', data: timeSums.map((s, i) => timeCounts[i] ? parseFloat((s / timeCounts[i]).toFixed(2)) : null), borderColor: '#1E90FF', fill: false }]
               },
-              options: { responsive: true, maintainAspectRatio: false }
+              options: { 
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                  datalabels: {
+                    color: '#333', anchor: 'end', align: 'bottom',
+                    formatter: v => v > 0 ? String(v).replace('.', ',') : ''
+                  }
+                }
+              }
             });
           }
           this.renderSubTable('tblDetalleRegistrosBody', rows, ['sku', 'noregistro', 'vistobueno', 'estado']);

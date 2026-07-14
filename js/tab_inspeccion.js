@@ -1,11 +1,12 @@
-﻿ChartManager.renderInspeccion = function() {
+ChartManager.renderInspeccion = function() {
 
           this.renderModuloKPI({
             campoTiempo: 'tiempoinspeccion', campoCumplimiento: 'cumpleinspeccion', campoJustificacion: 'justificacioninspeccion',
             elTT: 'valTTInspeccion', elDT: 'valDTInspeccion', chartLinea: 'chartPromInspeccion', chartDona: 'chartCumpleInspeccion',
             chartJust: null, tblJust: null, tblDetalle: 'tblDetalleInspeccionBody',
             columnasTabla: ['do', 'do3m', 'documentodetransporte', 'cumpleinspeccion'],
-            campoRazonMes: null, campoRazonJust: null, mod: 'inspeccion'
+            campoFecha: 'fechadelevante', campoRazonMes: null, campoRazonJust: null, mod: 'inspeccion', requiredField: 'cumpleinspeccion',
+            dtFilterField: 'cumpleinspeccion', dtFilterValue: 'SI'
           });
         }
         ChartManager.renderCOO = function() {
@@ -85,6 +86,7 @@
             } catch (e) { console.warn('Map render error', e); }
           }
         }
+
 
 
 

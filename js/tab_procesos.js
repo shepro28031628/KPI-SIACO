@@ -1,4 +1,4 @@
-﻿ChartManager.renderProcesos = function() {
+ChartManager.renderProcesos = function() {
 
           const rows = FilterEngine.filteredIndicadores();
           const years = getYearsForRows(rows);
@@ -52,7 +52,7 @@
 
           this.renderLineChart('chartPromAgilidadProc', getLineDatasets(rows, years, 'tiempoagilidad', 'fechadelevante'));
           this.renderLineChart('chartPromFacturaProc', getLineDatasets(rows, years, 'tiempofacturacion', 'fechadelevante'));
-          this.renderLineChart('chartPromInspeccionProc', getLineDatasets(rows, years, 'tiempoinspeccion'));
+          this.renderLineChart('chartPromInspeccionProc', getLineDatasets(rows, years, 'tiempoinspeccion', 'fechadelevante', false, 1, 'cumpleinspeccion'));
         }
 
 

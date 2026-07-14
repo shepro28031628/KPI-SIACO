@@ -543,7 +543,7 @@ function countBy(rows, field, keepBlanks = false) {
     } else {
       v = String(v).trim();
       const uv = v.toUpperCase();
-      if (v === '' || v === '-' || uv === 'NA' || uv === 'N/A' || uv === 'NO APLICA' || uv === 'VACIO' || v === '0' || uv === '#N/A') {
+      if (v === '' || v === '-' || uv === 'NA' || uv === 'N/A' || uv === 'NO APLICA' || uv === 'VACIO' || v === '0' || uv === '#N/A' || uv === 'UNDEFINED') {
         if (keepBlanks) v = '(En blanco)';
         else return;
       }
@@ -1050,30 +1050,47 @@ function getYearsForRows(rows) {
         }
       },
       renderModuloKPI(config) {
-        let rows = FilterEngine.filteredIndicadores(config.campoFecha);
+        let baseRows = FilterEngine.filteredIndicadores(config.campoFecha);
 
         if (config.mod === 'agilidad' || config.mod === 'facturacion') {
-          rows = rows.filter(r => r.fechadelevante instanceof Date && !isNaN(r.fechadelevante));
+          baseRows = baseRows.filter(r => r.fechadelevante instanceof Date && !isNaN(r.fechadelevante));
         }
 
         if (!App.chartFilters) App.chartFilters = {};
+        if (!App.chartFilters[config.mod]) App.chartFilters[config.mod] = { label: null, month: null, year: null };
 
-        this.barChart(config.chartDona, countBy(rows, config.campoCumplimiento, config.keepDonaBlanks), 'doughnut', (label) => {
-          if (label && App.chartFilters[config.mod] !== label) {
-            App.chartFilters[config.mod] = label;
-          } else {
-            App.chartFilters[config.mod] = null;
-          }
-          this.renderModuloKPI(config);
-        }, App.chartFilters[config.mod]);
+        const monthOrder = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
-        if (App.chartFilters[config.mod]) {
-          rows = rows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === App.chartFilters[config.mod].toUpperCase());
+        let donutFilteredRows = [...baseRows];
+        if (App.chartFilters[config.mod].month && App.chartFilters[config.mod].year) {
+          donutFilteredRows = donutFilteredRows.filter(r => {
+             const d = r[config.campoFecha];
+             if (!(d instanceof Date) || isNaN(d)) return false;
+             const mStr = monthOrder[d.getMonth()];
+             const yStr = String(d.getFullYear());
+             return mStr.toLowerCase() === App.chartFilters[config.mod].month.toLowerCase() && yStr === App.chartFilters[config.mod].year;
+          });
+        }
+        
+        let lineFilteredRows = [...baseRows];
+        if (App.chartFilters[config.mod].label) {
+          lineFilteredRows = lineFilteredRows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === App.chartFilters[config.mod].label.toUpperCase());
         }
 
-        let reqRows = rows;
+        let fullyFilteredRows = lineFilteredRows.filter(r => donutFilteredRows.includes(r));
+
+        this.barChart(config.chartDona, countBy(donutFilteredRows, config.campoCumplimiento, config.keepDonaBlanks), 'doughnut', (label) => {
+          if (label && App.chartFilters[config.mod].label !== label) {
+            App.chartFilters[config.mod].label = label;
+          } else {
+            App.chartFilters[config.mod].label = null;
+          }
+          this.renderModuloKPI(config);
+        }, App.chartFilters[config.mod].label);
+
+        let reqRows = fullyFilteredRows;
         if (config.requiredField) {
-          reqRows = rows.filter(r => r[config.requiredField] !== null && r[config.requiredField] !== undefined && String(r[config.requiredField]).trim() !== '');
+          reqRows = fullyFilteredRows.filter(r => r[config.requiredField] !== null && r[config.requiredField] !== undefined && String(r[config.requiredField]).trim() !== '');
         }
 
         const valoresTiempo = reqRows.map(r => r[config.campoTiempo]).filter(v => isNum(v) && numVal(v) >= 0);
@@ -1087,7 +1104,7 @@ function getYearsForRows(rows) {
         const elDT = document.getElementById(config.elDT);
         if (elTT) elTT.textContent = tiempoAvg.toFixed(2).replace('.', ',');
 
-        let dtRows = rows;
+        let dtRows = fullyFilteredRows;
         if (config.dtRequiresFechaLevante) {
           dtRows = dtRows.filter(r => r.fechadelevante instanceof Date && !isNaN(r.fechadelevante));
         }
@@ -1104,11 +1121,20 @@ function getYearsForRows(rows) {
         }
         if (elDT) elDT.textContent = fmtInt(dtCount);
 
-        const years = getYearsForRows(rows);
-        this.renderLineChart(config.chartLinea, getLineDatasets(rows, years, config.campoTiempo, config.campoFecha, false, config.multiplier || 1, config.requiredField));
+        const years = getYearsForRows(lineFilteredRows);
+        this.renderLineChart(config.chartLinea, getLineDatasets(lineFilteredRows, years, config.campoTiempo, config.campoFecha, false, config.multiplier || 1, config.requiredField), (month, year) => {
+          if (month && year && (App.chartFilters[config.mod].month !== month || App.chartFilters[config.mod].year !== year)) {
+              App.chartFilters[config.mod].month = month;
+              App.chartFilters[config.mod].year = year;
+          } else {
+              App.chartFilters[config.mod].month = null;
+              App.chartFilters[config.mod].year = null;
+          }
+          this.renderModuloKPI(config);
+        }, App.chartFilters[config.mod].month, App.chartFilters[config.mod].year);
 
         if (config.chartJust && document.getElementById(config.chartJust)) {
-          this.barChart(config.chartJust, countBy(rows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === 'NO'), config.campoJustificacion), 'pie', null, null, 'right');
+          this.barChart(config.chartJust, countBy(fullyFilteredRows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === 'NO'), config.campoJustificacion), 'pie', null, null, 'right');
         }
 
         if (config.tblJust) {
@@ -1120,7 +1146,7 @@ function getYearsForRows(rows) {
             const from = fromVal ? parseUTCDate(fromVal) : null;
             const to = toVal ? parseUTCDate(toVal) : null;
 
-            const nonCompliant = rows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === 'NO' && r[config.campoJustificacion]);
+            const nonCompliant = fullyFilteredRows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === 'NO' && r[config.campoJustificacion]);
 
             const grouped = {};
             nonCompliant.forEach(r => {
@@ -1172,7 +1198,7 @@ function getYearsForRows(rows) {
           }
         }
          if (config.tblDetalle && config.columnasTabla) {
-          let tableRows = rows;
+          let tableRows = fullyFilteredRows;
           if (config.tblFilterField && config.tblFilterValue) {
              tableRows = tableRows.filter(r => String(r[config.tblFilterField]).toUpperCase() === String(config.tblFilterValue).toUpperCase());
           }
@@ -1322,6 +1348,7 @@ function getYearsForRows(rows) {
           },
           plugins: {
             legend: {
+              display: type !== 'bar',
               position: type === 'pie' ? 'right' : 'bottom',
               labels: { boxWidth: 10, font: { size: 9 } },
               onClick: (e, legendItem, legend) => {
@@ -1342,24 +1369,23 @@ function getYearsForRows(rows) {
                 return context.dataset.data[context.dataIndex] > 0;
               },
               color: '#333',
-              backgroundColor: 'rgba(255,255,255,0.7)',
-              borderRadius: 3,
               font: { size: 10, weight: '600' },
               formatter: (value, ctx) => {
                 if (!value || total === 0) return '';
+                if (type === 'bar') return value;
                 let pctNum = (value * 100 / total);
                 let pct = pctNum.toFixed(2).replace('.', ',');
                 return `${value} (${pct}%)`;
               },
-              anchor: 'end',
-              align: 'end',
+              anchor: type === 'bar' ? 'end' : 'end',
+              align: type === 'bar' ? 'end' : 'end',
               offset: 4
             }
           }
         }
       });
     },
-      ChartManager.renderLineChart = function (id, datasets) {
+      ChartManager.renderLineChart = function (id, datasets, clickHandler = null, activeMonth = null, activeYear = null) {
         destroyChart(id);
         const canvasEl = document.getElementById(id); if (!canvasEl) return;
 
@@ -1372,11 +1398,28 @@ function getYearsForRows(rows) {
           type: 'line',
           data: {
             labels: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
-            datasets: datasets
+            datasets: datasets.map(ds => {
+              if (activeMonth || activeYear) {
+                 // Dim datasets or points? With Chart.js lines, it's easier to just pass through, or maybe highlight.
+                 // For now, let's just keep the original colors.
+              }
+              return ds;
+            })
           },
           options: {
             responsive: true, maintainAspectRatio: false,
             layout: { padding: { top: 20, right: 20 } },
+            onClick: (e, activeElements) => {
+              if (activeElements.length > 0 && clickHandler) {
+                const datasetIndex = activeElements[0].datasetIndex;
+                const index = activeElements[0].index;
+                const monthLabel = App.charts[id].data.labels[index];
+                const yearLabel = App.charts[id].data.datasets[datasetIndex].label;
+                setTimeout(() => clickHandler(monthLabel, yearLabel), 0);
+              } else if (clickHandler) {
+                setTimeout(() => clickHandler(null, null), 0);
+              }
+            },
             plugins: {
               legend: {
                 position: 'top',
@@ -1406,4 +1449,5 @@ function getYearsForRows(rows) {
           }
         });
       }
+
 

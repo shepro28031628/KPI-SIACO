@@ -11,8 +11,8 @@ ChartManager.renderProcesos = function() {
               if (d instanceof Date && !isNaN(d) && d.getFullYear() === yr) data[d.getMonth()]++;
             });
             let color = PALETTE[idx % PALETTE.length];
-            if (yr === 2025) color = '#0ea5e9';
-            if (yr === 2026) color = '#1e40af';
+            if (yr === 2025) color = PALETTE[0];
+            if (yr === 2026) color = PALETTE[1];
             return { label: yr.toString(), data: data, backgroundColor: color };
           });
 

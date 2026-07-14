@@ -1058,9 +1058,13 @@ function getYearsForRows(rows) {
         const controls = document.createElement('div');
         controls.className = 'chip-controls';
         const btnAll = document.createElement('button');
-        btnAll.className = 'chip-ctrl-btn'; btnAll.textContent = 'Todos';
+        btnAll.className = 'chip-ctrl-btn'; 
+        btnAll.textContent = 'Todos';
+        btnAll.setAttribute('aria-label', `Seleccionar todos en ${filterKey}`);
         const btnNone = document.createElement('button');
-        btnNone.className = 'chip-ctrl-btn'; btnNone.textContent = 'Ninguno';
+        btnNone.className = 'chip-ctrl-btn'; 
+        btnNone.textContent = 'Ninguno';
+        btnNone.setAttribute('aria-label', `Deseleccionar todos en ${filterKey}`);
         controls.appendChild(btnAll); controls.appendChild(btnNone);
         container.appendChild(controls);
 

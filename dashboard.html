@@ -34,20 +34,20 @@
       </div>
     </div>
     <div class="sidebar-menu">
-      <button class="menu-btn active" data-tab="tab-procesos">📋 Procesos</button>
-      <button class="menu-btn" data-tab="tab-agilidad">⏱️ Agilidad</button>
-      <button class="menu-btn" data-tab="tab-facturacion">💰 Facturación</button>
-      <button class="menu-btn" data-tab="tab-inspeccion">🔍 Inspección</button>
-      <button class="menu-btn" data-tab="tab-registros">📝 Registros</button>
-      <button class="menu-btn" data-tab="tab-coo">🌐 COO</button>
-      <button class="menu-btn" data-tab="tab-datos">📊 Datos Detallados</button>
+      <button class="menu-btn active" data-tab="tab-procesos" aria-label="Ver pestaña Procesos">📋 Procesos</button>
+      <button class="menu-btn" data-tab="tab-agilidad" aria-label="Ver pestaña Agilidad">⏱️ Agilidad</button>
+      <button class="menu-btn" data-tab="tab-facturacion" aria-label="Ver pestaña Facturación">💰 Facturación</button>
+      <button class="menu-btn" data-tab="tab-inspeccion" aria-label="Ver pestaña Inspección">🔍 Inspección</button>
+      <button class="menu-btn" data-tab="tab-registros" aria-label="Ver pestaña Registros">📝 Registros</button>
+      <button class="menu-btn" data-tab="tab-coo" aria-label="Ver pestaña COO">🌐 COO</button>
+      <button class="menu-btn" data-tab="tab-datos" aria-label="Ver pestaña Datos Detallados">📊 Datos Detallados</button>
     </div>
     <div class="sidebar-footer">
       <div id="fileNameLabel">Sin archivos cargados</div>
       <button id="resetBtn">Cargar otros archivos</button>
       <div class="theme-toggle-container">
         <span>Tema Oscuro</span>
-        <button class="theme-toggle-btn" id="themeToggle">🌙</button>
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="Cambiar tema oscuro/claro">🌙</button>
       </div>
     </div>
   </div>
@@ -56,7 +56,7 @@
     <!-- 2. Botón Flotante Limpiar Filtros -->
     <div id="activeFiltersBadge">
       <span id="activeFiltersText">Filtros Activos</span>
-      <button class="clear-filters-btn" id="clearFiltersBtn" title="Limpiar Filtros">✕</button>
+      <button class="clear-filters-btn" id="clearFiltersBtn" title="Limpiar Filtros" aria-label="Limpiar todos los filtros activos">✕</button>
     </div>
 
     <!-- 3. Tooltip Personalizado -->
@@ -79,8 +79,8 @@
 
     <div id="dashboard">
       <div class="top-action-bar">
-        <button class="print-report-btn" id="presentationModeBtn">Modo Presentación</button>
-        <button class="print-report-btn" id="printReportBtn">Exportar PDF / Imprimir</button>
+        <button class="print-report-btn" id="presentationModeBtn" aria-label="Activar modo presentación">Modo Presentación</button>
+        <button class="print-report-btn" id="printReportBtn" aria-label="Exportar a PDF o Imprimir reporte">Exportar PDF / Imprimir</button>
       </div>
 
       <!-- FILTERS (SLICERS STYLE) -->

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torre de Control - KPI Comex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/jsvectormap.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/jsvectormap"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo-container">
+        <div class="brand-logo-icon">✈️</div>
+        <div>
+          <div class="brand-eyebrow">Comercio Exterior</div>
+          <h2>Torre de Control</h2>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-menu">
+      <button class="menu-btn active" data-tab="tab-procesos">📋 Procesos</button>
+      <button class="menu-btn" data-tab="tab-agilidad">⏱️ Agilidad</button>
+      <button class="menu-btn" data-tab="tab-facturacion">💰 Facturación</button>
+      <button class="menu-btn" data-tab="tab-inspeccion">🔍 Inspección</button>
+      <button class="menu-btn" data-tab="tab-registros">📝 Registros</button>
+      <button class="menu-btn" data-tab="tab-coo">🌐 COO</button>
+      <button class="menu-btn" data-tab="tab-datos">📊 Datos Detallados</button>
+    </div>
+    <div class="sidebar-footer">
+      <div id="fileNameLabel">Sin archivos cargados</div>
+      <button id="resetBtn">Cargar otros archivos</button>
+      <div class="theme-toggle-container">
+        <span>Tema Oscuro</span>
+        <button class="theme-toggle-btn" id="themeToggle">🌙</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="content-area">
+
+    <div id="uploadZone">
+      <div class="drop-area-inner">
+        <div class="upload-icon">📁</div>
+        <h2>Carga tus archivos originales</h2>
+        <p>Selecciona los 3 archivos requeridos: REPORTE.xls, STATUS.xlsx y ahorro arancel.xls</p>
+        <label for="fileInput" id="fileBtn" style="display: inline-block; cursor: pointer;">Seleccionar archivos</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" multiple style="display: none;">
+        <div id="uploadStatus">Procesando archivos...</div>
+        <div id="uploadError"></div>
+      </div>
+    </div>
+
+    <div id="dashboard">
+      <div class="top-action-bar">
+        <button class="print-report-btn" id="presentationModeBtn">Modo Presentación</button>
+        <button class="print-report-btn" id="printReportBtn">Exportar PDF / Imprimir</button>
+      </div>
+
+      <!-- FILTERS (SLICERS STYLE) -->
+      <div id="filters">
+        <div class="filter-group">
+          <span class="filter-label">Año</span>
+          <div class="chip-row" id="chipYear"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Administración</span>
+          <div class="chip-row" id="chipAdmin"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Línea de negocio</span>
+          <div class="chip-row" id="chipLinea"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Modo de transporte</span>
+          <div class="chip-row" id="chipModo"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Fecha apertura DO</span>
+          <div class="date-inputs">
+            <input type="date" id="dateFrom">
+            <input type="date" id="dateTo">
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: PROCESOS -->
+      <div class="tab-pane active" id="tab-procesos">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title" id="activeTabTitle">INDICADORES DE GESTION</div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">Vista Consolidada Mensual</div>
+
+        <div style="display: grid; grid-template-columns: 2.5fr 1fr; gap: 16px; margin-bottom: 16px;">
+          <div class="chart-panel">
+            <h4>Documento de Transporte / Mes</h4>
+            <div class="chart-wrap tall"><canvas id="chartDocsMes"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack" style="justify-content: center;">
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valTTAgilidadProc">0,00</span>
+              <span class="kpi-lbl">Tiempo Agilidad</span>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valTTFacturaProc">0,00</span>
+              <span class="kpi-lbl">TT Facturación</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>Promedio de Tiempo Agilidad</h4>
+            <div class="chart-wrap"><canvas id="chartPromAgilidadProc"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Promedio de Tiempo Facturación</h4>
+            <div class="chart-wrap"><canvas id="chartPromFacturaProc"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Promedio de Tiempo Inspección</h4>
+            <div class="chart-wrap"><canvas id="chartPromInspeccionProc"></canvas></div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>Distribución por modo de transporte</h4>
+            <div class="chart-wrap"><canvas id="chartModo"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Volumen por administración</h4>
+            <div class="chart-wrap"><canvas id="chartAdmin"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Volumen por línea de negocio</h4>
+            <div class="chart-wrap"><canvas id="chartLinea"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: AGILIDAD -->
+      <div class="tab-pane" id="tab-agilidad">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">INDICADOR AGILIDAD</div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">META: AEREO 2 DIAS; MARITIMO 5 DIAS</div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>Indicador Agilidad</h4>
+            <div class="chart-wrap tall"><canvas id="chartPromAgilidad"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Cumplimiento Agilidad</h4>
+            <div class="chart-wrap"><canvas id="chartCumpleAgilidad"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valTTAgilidad">0,00</span>
+              <span class="kpi-lbl">TT Agilidad</span>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valDTAgilidad">0</span>
+              <span class="kpi-lbl">DT Agilidad</span>
+            </div>
+            <div class="pbi-table-panel">
+              <h4>Justificaciones Operaciones</h4>
+              <div class="pbi-table-scroll" style="max-height: 150px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Mes</th>
+                      <th>Responsable</th>
+                      <th>Causal</th>
+                      <th>Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblJustAgilidadBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-2col-equal">
+          <div class="chart-panel">
+            <h4>Justificación Agilidad</h4>
+            <div class="chart-wrap"><canvas id="chartJustAgilidad"></canvas></div>
+          </div>
+          <div class="pbi-table-panel">
+            <h4>Registros Filtrados (Agilidad)</h4>
+            <div class="pbi-table-scroll" style="max-height: 240px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>DO</th>
+                    <th>DO 3M</th>
+                    <th>Documento de transporte</th>
+                    <th>Cumple Agilidad</th>
+                    <th>Responsable / Causal</th>
+                    <th>Justificación</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDetalleAgilidadBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: FACTURACION -->
+      <div class="tab-pane" id="tab-facturacion">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">INDICADOR FACTURACIÓN</div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">META: AEREO 2 DIAS; MARITIMO 5 DIAS</div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>Indicador Facturación</h4>
+            <div class="chart-wrap tall"><canvas id="chartPromFactura"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Cumplimiento Facturación</h4>
+            <div class="chart-wrap"><canvas id="chartCumpleFactura"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valTTFactura">0,00</span>
+              <span class="kpi-lbl">TT Facturación</span>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valDTFactura">0</span>
+              <span class="kpi-lbl">DT Facturación</span>
+            </div>
+            <div class="pbi-table-panel">
+              <h4>Justificaciones Facturación (Actualizado)</h4>
+              <div class="pbi-table-scroll" style="max-height: 150px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Mes</th>
+                      <th>Responsable</th>
+                      <th>Causal</th>
+                      <th>Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblJustFacturaBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-2col-equal">
+          <div class="chart-panel">
+            <h4>Justificación Facturación (Actualizado)</h4>
+            <div class="chart-wrap"><canvas id="chartJustFactura"></canvas></div>
+          </div>
+          <div class="pbi-table-panel">
+            <h4>Registros Filtrados (Facturación)</h4>
+            <div class="pbi-table-scroll" style="max-height: 240px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>DO</th>
+                    <th>DO 3M</th>
+                    <th>Documento de transporte</th>
+                    <th>Cumple Facturación</th>
+                    <th>Responsable / Causal</th>
+                    <th>Justificación</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDetalleFacturaBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: INSPECCION -->
+      <div class="tab-pane" id="tab-inspeccion">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">INDICADOR INSPECCIONES</div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">META: INSPECCIÓN EFICIENTE</div>
+
+        <div class="pbi-grid-inspeccion">
+          <div class="chart-panel">
+            <h4>Indicador Inspección</h4>
+            <div class="chart-wrap tall"><canvas id="chartPromInspeccion"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valTTInspeccion">0,00</span>
+              <span class="kpi-lbl">Tiempo Inspección</span>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valDTInspeccion">0</span>
+              <span class="kpi-lbl">Documento Transporte</span>
+            </div>
+            <div class="chart-panel" style="padding: 12px; height: 150px;">
+              <h4>Cumplimiento Inspección</h4>
+              <div class="chart-wrap" style="height: 100px;"><canvas id="chartCumpleInspeccion"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-table-panel" style="margin-top: 16px;">
+          <h4>Registros Filtrados (Inspección)</h4>
+          <div class="pbi-table-scroll" style="max-height: 250px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>DO</th>
+                  <th>DO 3M</th>
+                  <th>Documento de transporte</th>
+                  <th>Cumple Inspección</th>
+                  <th>Responsable / Causal</th>
+                  <th>Justificación</th>
+                </tr>
+              </thead>
+              <tbody id="tblDetalleInspeccionBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: REGISTROS -->
+      <div class="tab-pane" id="tab-registros">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">REGISTROS / LICENCIAS DE IMPORTACION</div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">Gestión Institucional de Vistos Buenos</div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>SKU - Registros por Mes</h4>
+            <div class="chart-wrap tall"><canvas id="chartRegistrosMesBar"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Estado</h4>
+            <div class="chart-wrap"><canvas id="chartRegistrosEstadoDona"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valRegTiempo">0,00</span>
+              <span class="kpi-lbl">Tiempo Ciclo Háb.</span>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valRegSKU">0</span>
+              <span class="kpi-lbl">SKUs únicos</span>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-val" id="valRegNoReg">0</span>
+              <span class="kpi-lbl">No. Registros</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-2col-equal">
+          <div class="chart-panel">
+            <h4>Promedio Tiempo Aprobación</h4>
+            <div class="chart-wrap tall"><canvas id="chartRegistrosTiempoLine"></canvas></div>
+          </div>
+          <div class="pbi-table-panel">
+            <h4>Registros de Importación Detallados</h4>
+            <div class="pbi-table-scroll" style="max-height: 320px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>No. REGISTRO</th>
+                    <th>Visto Bueno</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDetalleRegistrosBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: COO -->
+      <div class="tab-pane" id="tab-coo">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">BENEFICIO COO (CERTIFICADO DE ORIGEN)</div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">Mapeo Global de Impacto Económico</div>
+
+        <div class="coo-layout">
+          <div class="coo-left">
+            <div class="coo-filters-panel">
+              <div class="coo-filter-group">
+                <h5>MES</h5>
+                <div class="coo-filter-list" id="cooFilterMes"></div>
+              </div>
+              <div class="coo-filter-group">
+                <h5>PAIS DE ORIGEN</h5>
+                <div class="coo-filter-list" id="cooFilterPais"></div>
+              </div>
+              <div class="coo-filter-group">
+                <h5>SUBPARTIDA</h5>
+                <div class="coo-filter-list" id="cooFilterSubpartida"></div>
+              </div>
+            </div>
+            <div class="coo-map-container">
+              <div id="cooWorldMap" style="width:100%; height:100%;"></div>
+            </div>
+          </div>
+
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <span class="kpi-lbl" style="font-weight:700;">AHORRO TOTAL USD</span>
+              <span class="kpi-val" id="valCOOTotal" style="color:var(--pbi-blue); font-size:32px;">$ 0</span>
+            </div>
+            <div class="pbi-table-panel">
+              <div class="pbi-table-scroll" style="max-height: 280px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mes</th>
+                      <th>Subpartida</th>
+                      <th>Ahorro en USD</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblDetalleCOOBody"></tbody>
+                </table>
+              </div>
+              <div class="coo-table-total" id="cooTableTotal"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: DATOS DETALLADOS -->
+      <div class="tab-pane" id="tab-datos">
+        <div class="table-controls-panel">
+          <div class="table-search-box"><input type="text" id="tableSearchInput" placeholder="Buscar registros...">
+          </div>
+          <div class="table-sheet-selector">
+            <select id="tableSheetSelect">
+              <option value="indicadores">Indicadores (DOs)</option>
+              <option value="coo">COO (Ahorros)</option>
+              <option value="registros">Registros (Vistos Buenos)</option>
+            </select>
+          </div>
+          <button class="print-report-btn" id="btnExportExcel">Descargar Filtrado</button>
+          <div class="table-rows-info">
+            <span>Mostrando <strong id="tableCurrentRowsCount">0</strong> de <strong
+                id="tableTotalRowsCount">0</strong></span>
+          </div>
+        </div>
+
+        <div class="pbi-table-panel" style="overflow-x: auto;">
+          <table class="premium-data-table" id="premiumDataTable">
+            <thead>
+              <tr id="premiumDataTableHeader"></tr>
+            </thead>
+            <tbody id="premiumDataTableBody"></tbody>
+          </table>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; align-items:center;">
+          <button class="print-report-btn" id="tablePrevBtn">Anterior</button>
+          <span style="font-size:12px;">Página <strong id="tableCurrentPage">1</strong> de <strong
+              id="tableTotalPages">1</strong></span>
+          <button class="print-report-btn" id="tableNextBtn">Siguiente</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <div class="custom-toast" id="customToast">
+    <span id="toastIcon">ℹ️</span>
+    <span id="toastMessage">Notificación</span>
+  </div>
+
+    <script src="js/app.js"></script>
+  <script src="js/tab_procesos.js"></script>
+  <script src="js/tab_agilidad.js"></script>
+  <script src="js/tab_facturacion.js"></script>
+  <script src="js/tab_inspeccion.js"></script>
+  <script src="js/tab_registros.js"></script>t>
+</body>
+
+</html>

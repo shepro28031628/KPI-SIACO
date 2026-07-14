@@ -1328,11 +1328,24 @@ function getYearsForRows(rows) {
     // ==========================================
     function renderTable() {
       const rawData = App.raw[App.tableState.activeSheet] || [];
-      let filtered = rawData;
+      
+      // 0. Filter empty rows
+      let filtered = rawData.filter(row => {
+        const values = Object.values(row);
+        let hasData = false;
+        for (let i = 0; i < values.length; i++) {
+          const v = values[i];
+          if (v !== null && v !== undefined && String(v).trim() !== '' && String(v).trim() !== '-') {
+             hasData = true;
+             break;
+          }
+        }
+        return hasData;
+      });
       
       // 1. Filter
       if (App.tableState.searchQuery) {
-        filtered = rawData.filter(row => Object.values(row).some(v => String(v).toLowerCase().includes(App.tableState.searchQuery)));
+        filtered = filtered.filter(row => Object.values(row).some(v => String(v).toLowerCase().includes(App.tableState.searchQuery)));
       }
       
       // 2. Sort

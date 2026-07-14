@@ -52,6 +52,17 @@
   </div>
 
   <main class="content-area">
+    <!-- 2. Botón Flotante Limpiar Filtros -->
+    <div id="activeFiltersBadge">
+      <span id="activeFiltersText">Filtros Activos</span>
+      <button class="clear-filters-btn" id="clearFiltersBtn" title="Limpiar Filtros">✕</button>
+    </div>
+
+    <!-- 3. Tooltip Personalizado -->
+    <div id="custom-tooltip">
+      <div class="tooltip-title"></div>
+      <div class="tooltip-body"></div>
+    </div>
 
     <div id="uploadZone">
       <div class="drop-area-inner">
@@ -540,25 +551,30 @@
 
       <!-- TAB: DATOS DETALLADOS -->
       <div class="tab-pane" id="tab-datos">
-        <div class="table-controls-panel">
-          <div class="table-search-box"><input type="text" id="tableSearchInput" placeholder="Buscar registros...">
+        <div class="premium-table-toolbar">
+          <div class="table-search-box-premium">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="tableSearchInput" placeholder="Buscar registros...">
           </div>
-          <div class="table-sheet-selector">
+          <div class="table-sheet-selector-premium">
             <select id="tableSheetSelect">
               <option value="indicadores">Indicadores (DOs)</option>
               <option value="coo">COO (Ahorros)</option>
               <option value="registros">Registros (Vistos Buenos)</option>
             </select>
           </div>
-          <button class="print-report-btn" id="btnExportExcel">Descargar Filtrado</button>
-          <div class="table-rows-info">
-            <span>Mostrando <strong id="tableCurrentRowsCount">0</strong> de <strong
-                id="tableTotalRowsCount">0</strong></span>
+          <div style="flex: 1;"></div>
+          <div class="table-rows-info-premium">
+            <span id="tableRowsInfoText">0 registros</span>
           </div>
+          <button class="btn-premium-export" id="btnExportExcel">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Exportar a Excel
+          </button>
         </div>
 
-        <div class="pbi-table-panel" style="overflow-x: auto;">
-          <table class="premium-data-table" id="premiumDataTable">
+        <div class="pbi-table-panel premium-table-wrapper">
+          <table class="premium-data-table modern-table" id="premiumDataTable">
             <thead>
               <tr id="premiumDataTableHeader"></tr>
             </thead>
@@ -566,11 +582,8 @@
           </table>
         </div>
 
-        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; align-items:center;">
-          <button class="print-report-btn" id="tablePrevBtn">Anterior</button>
-          <span style="font-size:12px;">Página <strong id="tableCurrentPage">1</strong> de <strong
-              id="tableTotalPages">1</strong></span>
-          <button class="print-report-btn" id="tableNextBtn">Siguiente</button>
+        <div class="premium-pagination" id="premiumPagination">
+          <!-- Paginator generated via JS -->
         </div>
       </div>
 

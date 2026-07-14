@@ -3,7 +3,7 @@ const App = {
   raw: { indicadores: [], coo: [], registros: [], razones: [] },
   charts: {},
   filters: { admin: new Set(), linea: new Set(), modo: new Set(), year: new Set(), from: null, to: null },
-  tableState: { activeSheet: 'indicadores', searchQuery: '', currentPage: 1, pageSize: 10 },
+  tableState: { activeSheet: 'indicadores', searchQuery: '', currentPage: 1, pageSize: 10, sortCol: null, sortAsc: true },
   worldMapInstance: null
 };
 
@@ -20,6 +20,80 @@ if (typeof Chart !== 'undefined') {
   Chart.defaults.font.family = "'Segoe UI', 'Inter', sans-serif";
   Chart.defaults.borderColor = '#edebe9';
   Chart.defaults.plugins.datalabels = { display: false };
+  
+  // Custom HTML Tooltip
+  const getOrCreateTooltip = (chart) => {
+    let tooltipEl = chart.canvas.parentNode.querySelector('div.custom-tooltip');
+    if (!tooltipEl) {
+      tooltipEl = document.createElement('div');
+      tooltipEl.classList.add('custom-tooltip');
+      tooltipEl.style.position = 'absolute';
+      tooltipEl.style.background = 'rgba(255, 255, 255, 0.95)';
+      tooltipEl.style.backdropFilter = 'blur(10px)';
+      tooltipEl.style.border = '1px solid var(--border-color)';
+      tooltipEl.style.borderRadius = '8px';
+      tooltipEl.style.padding = '12px';
+      tooltipEl.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+      tooltipEl.style.pointerEvents = 'none';
+      tooltipEl.style.zIndex = '3000';
+      tooltipEl.style.transition = 'all 0.1s ease';
+      tooltipEl.style.opacity = '0';
+      tooltipEl.style.minWidth = '120px';
+      tooltipEl.style.color = 'var(--text-main)';
+      tooltipEl.style.fontFamily = "'Segoe UI', 'Inter', sans-serif";
+      
+      const table = document.createElement('div');
+      tooltipEl.appendChild(table);
+      chart.canvas.parentNode.appendChild(tooltipEl);
+    }
+    return tooltipEl;
+  };
+
+  const externalTooltipHandler = (context) => {
+    const {chart, tooltip} = context;
+    const tooltipEl = getOrCreateTooltip(chart);
+
+    if (tooltip.opacity === 0) {
+      tooltipEl.style.opacity = '0';
+      return;
+    }
+
+    if (tooltip.body) {
+      const titleLines = tooltip.title || [];
+      const bodyLines = tooltip.body.map(b => b.lines);
+
+      let innerHtml = '';
+      
+      titleLines.forEach(title => {
+        innerHtml += `<div style="font-weight: 700; font-size: 12px; margin-bottom: 6px; color: var(--text-light); text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">${title}</div>`;
+      });
+
+      bodyLines.forEach((body, i) => {
+        const colors = tooltip.labelColors[i];
+        const bgColor = colors.backgroundColor;
+        const borderColor = colors.borderColor;
+        innerHtml += `<div style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700;">
+          <span style="width: 12px; height: 12px; border-radius: 3px; background-color: ${bgColor}; border: 1px solid ${borderColor}"></span>
+          <span>${body}</span>
+        </div>`;
+      });
+
+      const tableRoot = tooltipEl.querySelector('div');
+      tableRoot.innerHTML = innerHtml;
+    }
+
+    const {offsetLeft: positionX, offsetTop: positionY} = chart.canvas;
+
+    tooltipEl.style.opacity = '1';
+    tooltipEl.style.left = positionX + tooltip.caretX + 'px';
+    tooltipEl.style.top = positionY + tooltip.caretY + 'px';
+  };
+
+  Chart.defaults.plugins.tooltip = {
+    enabled: false,
+    position: 'nearest',
+    external: externalTooltipHandler
+  };
 }
 
 const els = {
@@ -910,9 +984,47 @@ function getYearsForRows(rows) {
         }
 
         if (!this._listenersInit) {
-          document.getElementById('dateFrom').addEventListener('change', () => ChartManager.renderAll());
-          document.getElementById('dateTo').addEventListener('change', () => ChartManager.renderAll());
+          document.getElementById('dateFrom').addEventListener('change', () => { ChartManager.renderAll(); this.updateBadge(); });
+          document.getElementById('dateTo').addEventListener('change', () => { ChartManager.renderAll(); this.updateBadge(); });
+          document.getElementById('clearFiltersBtn').addEventListener('click', () => this.clearAllFilters());
           this._listenersInit = true;
+        }
+        this.updateBadge();
+      },
+      clearAllFilters() {
+        this.initFilters();
+        if (App.chartFilters) {
+          for (const key in App.chartFilters) {
+            App.chartFilters[key] = { label: null, month: null, year: null };
+          }
+        }
+        ChartManager.renderAll();
+        this.updateBadge();
+      },
+      updateBadge() {
+        const badge = document.getElementById('activeFiltersBadge');
+        const text = document.getElementById('activeFiltersText');
+        if (!badge || !text) return;
+        
+        let activeCount = 0;
+        if (App.filters.admin.size > 0) activeCount += App.filters.admin.size;
+        if (App.filters.linea.size > 0) activeCount += App.filters.linea.size;
+        if (App.filters.modo.size > 0) activeCount += App.filters.modo.size;
+        if (App.filters.year.size > 0) activeCount += App.filters.year.size;
+        
+        if (App.chartFilters) {
+          for (const key in App.chartFilters) {
+            const f = App.chartFilters[key];
+            if (f.label) activeCount++;
+            if (f.month && f.year) activeCount++;
+          }
+        }
+        
+        if (activeCount > 0) {
+          text.textContent = `${activeCount} Filtro${activeCount > 1 ? 's' : ''} Activo${activeCount > 1 ? 's' : ''}`;
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
         }
       },
       chipRow(container, values, filterKey) {
@@ -997,6 +1109,10 @@ function getYearsForRows(rows) {
           else if (tabId === 'tab-registros') this.renderRegistros();
           else if (tabId === 'tab-coo') this.renderCOO();
           else if (tabId === 'tab-datos') renderTable();
+          
+          if (FilterEngine && typeof FilterEngine.updateBadge === 'function') {
+            FilterEngine.updateBadge();
+          }
         });
       },
       renderSubTable(tbodyId, rows, fields, mod = '') {
@@ -1213,44 +1329,156 @@ function getYearsForRows(rows) {
     function renderTable() {
       const rawData = App.raw[App.tableState.activeSheet] || [];
       let filtered = rawData;
+      
+      // 1. Filter
       if (App.tableState.searchQuery) {
         filtered = rawData.filter(row => Object.values(row).some(v => String(v).toLowerCase().includes(App.tableState.searchQuery)));
       }
+      
+      // 2. Sort
+      if (App.tableState.sortCol) {
+        filtered = filtered.sort((a, b) => {
+          let valA = a[App.tableState.sortCol];
+          let valB = b[App.tableState.sortCol];
+          if (valA instanceof Date && valB instanceof Date) return App.tableState.sortAsc ? valA - valB : valB - valA;
+          if (typeof valA === 'number' && typeof valB === 'number') return App.tableState.sortAsc ? valA - valB : valB - valA;
+          valA = String(valA || '').toLowerCase();
+          valB = String(valB || '').toLowerCase();
+          if (valA < valB) return App.tableState.sortAsc ? -1 : 1;
+          if (valA > valB) return App.tableState.sortAsc ? 1 : -1;
+          return 0;
+        });
+      }
+
+      // 3. Pagination Math
       const totalPages = Math.max(1, Math.ceil(filtered.length / App.tableState.pageSize));
       if (App.tableState.currentPage > totalPages) App.tableState.currentPage = totalPages;
 
       const startIdx = (App.tableState.currentPage - 1) * App.tableState.pageSize;
-      const pageData = filtered.slice(startIdx, startIdx + App.tableState.pageSize);
+      const endIdx = Math.min(startIdx + App.tableState.pageSize, filtered.length);
+      const pageData = filtered.slice(startIdx, endIdx);
 
-      if (document.getElementById('tableCurrentRowsCount')) document.getElementById('tableCurrentRowsCount').textContent = pageData.length;
-      if (document.getElementById('tableTotalRowsCount')) document.getElementById('tableTotalRowsCount').textContent = filtered.length;
-      if (document.getElementById('tableCurrentPage')) document.getElementById('tableCurrentPage').textContent = App.tableState.currentPage;
-      if (document.getElementById('tableTotalPages')) document.getElementById('tableTotalPages').textContent = totalPages;
+      // 4. Update Info Text
+      const infoText = document.getElementById('tableRowsInfoText');
+      if (infoText) {
+        infoText.textContent = filtered.length > 0 ? `Mostrando ${startIdx + 1} a ${endIdx} de ${filtered.length} registros` : '0 registros';
+      }
 
-      document.getElementById('tablePrevBtn').disabled = App.tableState.currentPage === 1;
-      document.getElementById('tableNextBtn').disabled = App.tableState.currentPage === totalPages;
-
-      const hRow = document.getElementById('premiumDataTableHeader'); hRow.innerHTML = '';
-      const bContainer = document.getElementById('premiumDataTableBody'); bContainer.innerHTML = '';
+      // 5. Render Header
+      const hRow = document.getElementById('premiumDataTableHeader');
+      if (hRow) hRow.innerHTML = '';
+      const bContainer = document.getElementById('premiumDataTableBody');
+      if (bContainer) bContainer.innerHTML = '';
 
       if (!pageData.length) {
-        hRow.innerHTML = '<th>Sin registros</th>'; return;
+        if (hRow) hRow.innerHTML = '<th>Sin registros</th>';
+        if (bContainer) bContainer.innerHTML = '<tr><td style="text-align: center; padding: 40px; color: var(--muted);">No hay datos para mostrar</td></tr>';
+        document.getElementById('premiumPagination').innerHTML = '';
+        return;
       }
 
       const headers = Object.keys(pageData[0]);
-      headers.forEach(h => { const th = document.createElement('th'); th.textContent = h.toUpperCase(); hRow.appendChild(th); });
+      headers.forEach(h => { 
+        const th = document.createElement('th'); 
+        th.textContent = h.toUpperCase();
+        if (App.tableState.sortCol === h) {
+          const icon = document.createElement('span');
+          icon.className = 'sort-icon';
+          icon.textContent = App.tableState.sortAsc ? '▲' : '▼';
+          th.appendChild(icon);
+        }
+        th.addEventListener('click', () => {
+          if (App.tableState.sortCol === h) {
+            App.tableState.sortAsc = !App.tableState.sortAsc;
+          } else {
+            App.tableState.sortCol = h;
+            App.tableState.sortAsc = true;
+          }
+          App.tableState.currentPage = 1;
+          renderTable();
+        });
+        hRow.appendChild(th); 
+      });
 
+      // Helper for badges
+      const getBadgeHTML = (val) => {
+        const str = String(val).toUpperCase().trim();
+        let colorClass = 'badge-neutral';
+        if (['SI', 'CUMPLE', 'APROBADO', 'AUTORIZADO'].includes(str)) colorClass = 'badge-success';
+        else if (['NO', 'NO CUMPLE', 'RECHAZADO'].includes(str)) colorClass = 'badge-danger';
+        else if (['VENCIDO', 'PENDIENTE'].includes(str)) colorClass = 'badge-warning';
+        else return null; // No es un badge
+        return `<span class="status-badge ${colorClass}">${val}</span>`;
+      };
+
+      // 6. Render Rows
       pageData.forEach(row => {
         const tr = document.createElement('tr');
         headers.forEach(h => {
-          const td = document.createElement('td'); const val = row[h];
+          const td = document.createElement('td'); 
+          const val = row[h];
           if (val instanceof Date) td.textContent = val.toLocaleDateString('es-CO');
           else if (typeof val === 'number') td.textContent = h.includes('ahorro') ? fmtUSD(val) : val.toLocaleString('es-CO');
-          else td.textContent = val !== null && val !== undefined ? val : '-';
+          else if (val !== null && val !== undefined) {
+            const badgeHTML = getBadgeHTML(val);
+            if (badgeHTML) td.innerHTML = badgeHTML;
+            else td.textContent = val;
+          } else {
+            td.textContent = '-';
+          }
           tr.appendChild(td);
         });
         bContainer.appendChild(tr);
       });
+
+      // 7. Render Premium Pagination
+      const paginationContainer = document.getElementById('premiumPagination');
+      if (paginationContainer) {
+        paginationContainer.innerHTML = '';
+        
+        const createBtn = (text, isPage, disabled = false, active = false, onClick = null) => {
+          if (!isPage) {
+            const span = document.createElement('span');
+            span.className = 'page-ellipsis';
+            span.textContent = text;
+            return span;
+          }
+          const btn = document.createElement('button');
+          btn.className = 'page-btn' + (active ? ' active' : '');
+          btn.textContent = text;
+          btn.disabled = disabled;
+          if (onClick) btn.addEventListener('click', onClick);
+          return btn;
+        };
+
+        const goPage = (p) => { App.tableState.currentPage = p; renderTable(); };
+
+        paginationContainer.appendChild(createBtn('←', true, App.tableState.currentPage === 1, false, () => goPage(App.tableState.currentPage - 1)));
+        
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, App.tableState.currentPage - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+        
+        if (endPage - startPage + 1 < maxPagesToShow) {
+          startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        if (startPage > 1) {
+          paginationContainer.appendChild(createBtn('1', true, false, false, () => goPage(1)));
+          if (startPage > 2) paginationContainer.appendChild(createBtn('...', false));
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          paginationContainer.appendChild(createBtn(i.toString(), true, false, i === App.tableState.currentPage, () => goPage(i)));
+        }
+
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) paginationContainer.appendChild(createBtn('...', false));
+          paginationContainer.appendChild(createBtn(totalPages.toString(), true, false, false, () => goPage(totalPages)));
+        }
+
+        paginationContainer.appendChild(createBtn('→', true, App.tableState.currentPage === totalPages, false, () => goPage(App.tableState.currentPage + 1)));
+      }
     }
 
     // ==========================================
@@ -1263,9 +1491,41 @@ function getYearsForRows(rows) {
             document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             btn.classList.add('active');
-            const pane = document.getElementById(btn.dataset.tab); if (pane) pane.classList.add('active');
+            const pane = document.getElementById(btn.dataset.tab); 
+            if (pane) {
+              pane.classList.add('active');
+              // 1. Stagger Animations
+              let delay = 0;
+              pane.querySelectorAll('.chart-panel, .pbi-kpi-mini-card, .pbi-table-panel').forEach(el => {
+                el.classList.remove('animate-fade-in-up');
+                void el.offsetWidth;
+                el.style.animationDelay = `${delay}s`;
+                el.classList.add('animate-fade-in-up');
+                delay += 0.05;
+              });
+            }
             ChartManager.renderAll();
           });
+        });
+
+        // 4. Inyectar botones de exportación individual
+        document.querySelectorAll('.chart-panel').forEach(panel => {
+          if (!panel.querySelector('.export-btn')) {
+            const btn = document.createElement('button');
+            btn.className = 'export-btn';
+            btn.title = 'Exportar Gráfica';
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+            btn.addEventListener('click', () => {
+              const canvas = panel.querySelector('canvas');
+              if(canvas) {
+                const link = document.createElement('a');
+                link.download = 'grafica.png';
+                link.href = canvas.toDataURL();
+                link.click();
+              }
+            });
+            panel.appendChild(btn);
+          }
         });
 
         document.getElementById('tableSheetSelect').addEventListener('change', (e) => {
@@ -1274,8 +1534,6 @@ function getYearsForRows(rows) {
         document.getElementById('tableSearchInput').addEventListener('input', (e) => {
           App.tableState.searchQuery = e.target.value.toLowerCase().trim(); App.tableState.currentPage = 1; renderTable();
         });
-        document.getElementById('tablePrevBtn').addEventListener('click', () => { if (App.tableState.currentPage > 1) { App.tableState.currentPage--; renderTable(); } });
-        document.getElementById('tableNextBtn').addEventListener('click', () => { App.tableState.currentPage++; renderTable(); });
         if (els.printBtn) els.printBtn.addEventListener('click', () => window.print());
 
         document.getElementById('btnExportExcel').addEventListener('click', () => {
@@ -1314,6 +1572,19 @@ function getYearsForRows(rows) {
       const canvasEl = document.getElementById(id); if (!canvasEl) return;
       const total = Object.values(dataMap).reduce((a, b) => a + b, 0);
 
+      const panel = canvasEl.closest('.chart-panel, .pbi-table-panel');
+      if (panel) {
+        const existing = panel.querySelector('.empty-state-overlay');
+        if (existing) existing.remove();
+        if (total === 0) {
+          const overlay = document.createElement('div');
+          overlay.className = 'empty-state-overlay';
+          overlay.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>Sin datos para este filtro</span>';
+          panel.appendChild(overlay);
+          return;
+        }
+      }
+
       let bgColors = PALETTE;
       const labels = Object.keys(dataMap);
       if (id.toLowerCase().includes('cumple') || id.toLowerCase().includes('estado')) {
@@ -1349,7 +1620,7 @@ function getYearsForRows(rows) {
           plugins: {
             legend: {
               display: type !== 'bar',
-              position: type === 'pie' ? 'right' : 'bottom',
+              position: (type === 'pie' || type === 'doughnut') ? 'right' : 'bottom',
               labels: { boxWidth: 10, font: { size: 9 } },
               onClick: (e, legendItem, legend) => {
                 if (clickHandler) {
@@ -1366,7 +1637,7 @@ function getYearsForRows(rows) {
             },
             datalabels: {
               display: function(context) {
-                return context.dataset.data[context.dataIndex] > 0;
+                return context.dataset.data[context.dataIndex] > 0 ? 'auto' : false;
               },
               color: '#333',
               font: { size: 10, weight: '600' },
@@ -1379,7 +1650,7 @@ function getYearsForRows(rows) {
               },
               anchor: type === 'bar' ? 'end' : 'end',
               align: type === 'bar' ? 'end' : 'end',
-              offset: 4
+              offset: type === 'bar' ? 4 : 15
             }
           }
         }
@@ -1388,6 +1659,20 @@ function getYearsForRows(rows) {
       ChartManager.renderLineChart = function (id, datasets, clickHandler = null, activeMonth = null, activeYear = null) {
         destroyChart(id);
         const canvasEl = document.getElementById(id); if (!canvasEl) return;
+
+        const hasData = datasets.some(ds => ds.data && ds.data.some(v => v !== null && v > 0));
+        const panel = canvasEl.closest('.chart-panel, .pbi-table-panel');
+        if (panel) {
+          const existing = panel.querySelector('.empty-state-overlay');
+          if (existing) existing.remove();
+          if (!hasData) {
+            const overlay = document.createElement('div');
+            overlay.className = 'empty-state-overlay';
+            overlay.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>Sin datos para este filtro</span>';
+            panel.appendChild(overlay);
+            return;
+          }
+        }
 
         let yAxisTitle = '';
         if (id.toLowerCase().includes('agilidad')) yAxisTitle = 'Tiempo Agilidad';

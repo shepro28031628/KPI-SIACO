@@ -4,9 +4,9 @@ ChartManager.renderInspeccion = function() {
             campoTiempo: 'tiempoinspeccion', campoCumplimiento: 'cumpleinspeccion', campoJustificacion: 'justificacioninspeccion',
             elTT: 'valTTInspeccion', elDT: 'valDTInspeccion', chartLinea: 'chartPromInspeccion', chartDona: 'chartCumpleInspeccion',
             chartJust: null, tblJust: null, tblDetalle: 'tblDetalleInspeccionBody',
-            columnasTabla: ['do', 'do3m', 'documentodetransporte', 'cumpleinspeccion'],
+            columnasTabla: ['do_b', 'id_operacion', 'num_doc_trans', 'cumpleinspeccion', 'tiempoinspeccion', 'justificacioninspeccion'],
             campoFecha: 'fechadelevante', campoRazonMes: null, campoRazonJust: null, mod: 'inspeccion', requiredField: 'cumpleinspeccion',
-            dtFilterField: 'cumpleinspeccion', dtFilterValue: 'SI'
+            dtFilterField: 'cumpleinspeccion', keepDonaBlanks: true, dtRequiresFechaLevante: true
           });
         }
         ChartManager.renderCOO = function() {

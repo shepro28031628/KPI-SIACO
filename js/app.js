@@ -390,11 +390,12 @@ function parseIndicadoresGrouped(wb) {
     // INSPECCIÓN
     out.tiempoinspeccion = getNum(27); // Col AB
     out.cumpleinspeccion = getStr(29); // Col AD
-    // Documento de Transporte - keep standard index or string match?
-    // We'll map a few common ones if they exist
-    out.do = getStr(0);
-    out.do3m = getStr(1);
-    out.documentodetransporte = getStr(2);
+    out.justificacioninspeccion = getStr(32); // Col AG
+
+    // Common fields
+    out.do_b = getStr(1); // Col B
+    out.id_operacion = getStr(2); // Col C
+    out.num_doc_trans = getStr(3); // Col D
     out.mododetransporte = formatModoTransporte(r[4] || r[5] || '');
     out.administracion = getStr(5) || getStr(6);
     out.lineadenegocio = getStr(6) || getStr(7);
@@ -514,14 +515,21 @@ function destroyChart(id) {
   }
 }
 
-function countBy(rows, field) {
+function countBy(rows, field, keepBlanks = false) {
   const m = {};
   rows.forEach(r => {
     let v = r[field];
-    if (v === null || v === undefined) return;
-    v = String(v).trim();
-    const uv = v.toUpperCase();
-    if (v === '' || v === '-' || uv === 'NA' || uv === 'N/A' || uv === 'NO APLICA' || uv === 'VACIO' || v === '0' || uv === '#N/A') return;
+    if (v === null || v === undefined) {
+      if (keepBlanks) v = '(En blanco)';
+      else return;
+    } else {
+      v = String(v).trim();
+      const uv = v.toUpperCase();
+      if (v === '' || v === '-' || uv === 'NA' || uv === 'N/A' || uv === 'NO APLICA' || uv === 'VACIO' || v === '0' || uv === '#N/A') {
+        if (keepBlanks) v = '(En blanco)';
+        else return;
+      }
+    }
     m[v] = (m[v] || 0) + 1;
   });
   return m;
@@ -1026,15 +1034,13 @@ function getYearsForRows(rows) {
       renderModuloKPI(config) {
         let rows = FilterEngine.filteredIndicadores(config.campoFecha);
 
-        if (config.mod === 'agilidad' || config.mod === 'facturacion' || config.mod === 'inspeccion') {
+        if (config.mod === 'agilidad' || config.mod === 'facturacion') {
           rows = rows.filter(r => r.fechadelevante instanceof Date && !isNaN(r.fechadelevante));
         }
-        // El contador global (DT) solo se filtra por fecha de levante (columna I), no por AQ
-
 
         if (!App.chartFilters) App.chartFilters = {};
 
-        this.barChart(config.chartDona, countBy(rows, config.campoCumplimiento), 'doughnut', (label) => {
+        this.barChart(config.chartDona, countBy(rows, config.campoCumplimiento, config.keepDonaBlanks), 'doughnut', (label) => {
           if (label && App.chartFilters[config.mod] !== label) {
             App.chartFilters[config.mod] = label;
           } else {
@@ -1063,9 +1069,20 @@ function getYearsForRows(rows) {
         const elDT = document.getElementById(config.elDT);
         if (elTT) elTT.textContent = tiempoAvg.toFixed(2).replace('.', ',');
 
-        let dtCount = rows.length;
-        if (config.dtFilterField && config.dtFilterValue) {
-          dtCount = rows.filter(r => String(r[config.dtFilterField]).toUpperCase() === String(config.dtFilterValue).toUpperCase()).length;
+        let dtRows = rows;
+        if (config.dtRequiresFechaLevante) {
+          dtRows = dtRows.filter(r => r.fechadelevante instanceof Date && !isNaN(r.fechadelevante));
+        }
+        let dtCount = dtRows.length;
+        if (config.dtFilterField) {
+          if (config.dtFilterValue) {
+            dtCount = dtRows.filter(r => String(r[config.dtFilterField]).toUpperCase() === String(config.dtFilterValue).toUpperCase()).length;
+          } else {
+            dtCount = dtRows.filter(r => {
+              const v = r[config.dtFilterField];
+              return v !== null && v !== undefined && String(v).trim() !== '';
+            }).length;
+          }
         }
         if (elDT) elDT.textContent = fmtInt(dtCount);
 

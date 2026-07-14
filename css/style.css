@@ -1134,3 +1134,29 @@
     font-weight: bold;
     padding: 0 4px;
   }
+/* Inline Styles Extracted */
+.sidebar-brand-layout { display: flex; flex-direction: column; gap: 24px; align-items: center; text-align: center; }
+.brand-logo-img { max-width: 160px; height: auto; }
+.flex-center { justify-content: center; }
+.text-left { text-align: left; }
+.file-btn-label { display: inline-block; cursor: pointer; }
+.d-none { display: none; }
+.pbi-brand-img { height: 24px; object-fit: contain; }
+.grid-docs-agilidad { display: grid; grid-template-columns: 2.5fr 1fr; gap: 16px; margin-bottom: 16px; }
+.max-h-150 { max-height: 150px; }
+.max-h-240 { max-height: 240px; }
+.max-h-250 { max-height: 250px; }
+.max-h-280 { max-height: 280px; }
+.max-h-320 { max-height: 320px; }
+.chart-panel-flex { padding: 12px; flex: 1; display: flex; flex-direction: column; min-height: 250px; }
+.text-center { text-align: center; }
+.chart-wrap-flex { flex: 1; min-height: 200px; }
+.mt-16 { margin-top: 16px; }
+.pos-relative { position: relative; }
+.chart-icon-absolute { position: absolute; top: 12px; left: 12px; width: 28px; height: 28px; color: var(--pbi-blue); }
+.pt-24 { padding-top: 24px; }
+.text-11 { font-size: 11px; }
+.w-full-h-full { width: 100%; height: 100%; }
+.kpi-val-large { color: var(--pbi-blue); font-size: 32px; }
+.font-bold { font-weight: 700; }
+.flex-1 { flex: 1; }

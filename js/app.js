@@ -1778,4 +1778,108 @@ function getYearsForRows(rows) {
         });
       }
 
+      // ==========================================
+      // MODULE: EXPORT TO PDF
+      // ==========================================
+      async function exportToPDF() {
+        if (!window.jspdf || !window.html2canvas) {
+          showNotification('Las librerías de PDF no están cargadas aún.', 'error');
+          return;
+        }
+        
+        const activeTab = document.querySelector('.tab-content.active');
+        if (!activeTab) {
+          showNotification('No hay datos para exportar.', 'error');
+          return;
+        }
 
+        showNotification('Generando reporte PDF, por favor espera...', 'info');
+        if (els.printBtn) {
+          els.printBtn.disabled = true;
+          els.printBtn.textContent = 'Generando...';
+        }
+
+        try {
+          const { jsPDF } = window.jspdf;
+          
+          // Backup original styles to capture scrollable tables
+          const scrollableDivs = activeTab.querySelectorAll('.pbi-table-scroll');
+          const originalDivStyles = [];
+          scrollableDivs.forEach(div => {
+            originalDivStyles.push({ el: div, maxHeight: div.style.maxHeight, overflow: div.style.overflow });
+            div.style.maxHeight = 'none';
+            div.style.overflow = 'visible';
+          });
+
+          // Temporary style for capturing
+          const originalBg = activeTab.style.backgroundColor;
+          activeTab.style.backgroundColor = document.body.classList.contains('dark-theme') ? '#1e1e1e' : '#ffffff';
+
+          const canvas = await html2canvas(activeTab, {
+            scale: 2, 
+            useCORS: true,
+            logging: false,
+            backgroundColor: document.body.classList.contains('dark-theme') ? '#1e1e1e' : '#ffffff'
+          });
+
+          // Restore styles
+          activeTab.style.backgroundColor = originalBg;
+          scrollableDivs.forEach(item => {
+            item.el.style.maxHeight = item.maxHeight;
+            item.el.style.overflow = item.overflow;
+          });
+
+          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+          const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4'
+          });
+
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = pdf.internal.pageSize.getHeight();
+
+          const imgProps = pdf.getImageProperties(imgData);
+          const imgWidth = pdfWidth - 20; 
+          const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+          let heightLeft = imgHeight;
+          let position = 20; 
+
+          pdf.setFontSize(14);
+          pdf.setFont("helvetica", "bold");
+          let activeTabName = document.querySelector('.menu-btn.active')?.textContent.trim() || 'Reporte';
+          activeTabName = activeTabName.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '').trim();
+          pdf.text(`Reporte Torre de Control SIACO - ${activeTabName}`, 10, 10);
+          
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "normal");
+          pdf.text(`Fecha de exportación: ${new Date().toLocaleString('es-CO')}`, 10, 16);
+          
+          pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
+          heightLeft -= (pdfHeight - position);
+
+          while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+          }
+
+          pdf.save(`Reporte_SIACO_${activeTabName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+          showNotification('¡Reporte PDF exportado con éxito!', 'success');
+
+        } catch (error) {
+          console.error('Error generando PDF:', error);
+          showNotification('Error al generar el PDF.', 'error');
+        } finally {
+          if (els.printBtn) {
+            els.printBtn.disabled = false;
+            els.printBtn.textContent = 'Exportar PDF / Imprimir';
+          }
+        }
+      }
+
+      if (els.printBtn) {
+        els.printBtn.addEventListener('click', exportToPDF);
+      }

@@ -23,11 +23,11 @@
 <body>
 
   <div class="sidebar">
-    <div class="sidebar-brand" style="display: flex; flex-direction: column; gap: 24px; align-items: center; text-align: center;">
-      <img src="logo.png" alt="Logo SIACO" style="max-width: 160px; height: auto;">
-      <div class="brand-logo-container" style="justify-content: center;">
+    <div class="sidebar-brand sidebar-brand-layout">
+      <img src="logo.png" alt="Logo SIACO" class="brand-logo-img">
+      <div class="brand-logo-container flex-center">
         <div class="brand-logo-icon">✈️</div>
-        <div style="text-align: left;">
+        <div class="text-left">
           <div class="brand-eyebrow">Comercio Exterior</div>
           <h2>Torre de Control</h2>
         </div>
@@ -70,8 +70,8 @@
         <div class="upload-icon">📁</div>
         <h2>Carga tus archivos originales</h2>
         <p>Selecciona los 3 archivos requeridos: REPORTE.xls, STATUS.xlsx y ahorro arancel.xls</p>
-        <label for="fileInput" id="fileBtn" style="display: inline-block; cursor: pointer;">Seleccionar archivos</label>
-        <input type="file" id="fileInput" accept=".xlsx,.xls" multiple style="display: none;">
+        <label for="fileInput" id="fileBtn" class="file-btn-label">Seleccionar archivos</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" multiple class="d-none">
         <div id="uploadStatus">Procesando archivos...</div>
         <div id="uploadError"></div>
       </div>
@@ -113,18 +113,18 @@
       <!-- TAB: PROCESOS -->
       <div class="tab-pane active" id="tab-procesos">
         <div class="powerbi-header">
-          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" class="pbi-brand-img"></div>
           <div class="powerbi-title" id="activeTabTitle">INDICADORES DE GESTION</div>
-          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" class="pbi-brand-img"></div>
         </div>
         <div class="powerbi-goal-tag">Vista Consolidada Mensual</div>
 
-        <div style="display: grid; grid-template-columns: 2.5fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div class="grid-docs-agilidad">
           <div class="chart-panel">
             <h4>Documento de Transporte / Mes</h4>
             <div class="chart-wrap tall"><canvas id="chartDocsMes"></canvas></div>
           </div>
-          <div class="pbi-kpi-stack" style="justify-content: center;">
+          <div class="pbi-kpi-stack flex-center">
             <div class="pbi-kpi-mini-card">
               <div class="kpi-icon-circle blue">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -180,9 +180,9 @@
       <!-- TAB: AGILIDAD -->
       <div class="tab-pane" id="tab-agilidad">
         <div class="powerbi-header">
-          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" class="pbi-brand-img"></div>
           <div class="powerbi-title">INDICADOR AGILIDAD</div>
-          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" class="pbi-brand-img"></div>
         </div>
         <div class="powerbi-goal-tag">META: AEREO 2 DIAS; MARITIMO 5 DIAS</div>
 
@@ -216,7 +216,7 @@
             </div>
             <div class="pbi-table-panel">
               <h4>Justificaciones Operaciones</h4>
-              <div class="pbi-table-scroll" style="max-height: 150px;">
+              <div class="pbi-table-scroll max-h-150">
                 <table>
                   <thead>
                     <tr>
@@ -241,7 +241,7 @@
           </div>
           <div class="pbi-table-panel">
             <h4>Registros Filtrados (Agilidad)</h4>
-            <div class="pbi-table-scroll" style="max-height: 240px;">
+            <div class="pbi-table-scroll max-h-240">
               <table>
                 <thead>
                   <tr>
@@ -263,9 +263,9 @@
       <!-- TAB: FACTURACION -->
       <div class="tab-pane" id="tab-facturacion">
         <div class="powerbi-header">
-          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" class="pbi-brand-img"></div>
           <div class="powerbi-title">INDICADOR FACTURACIÓN</div>
-          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" class="pbi-brand-img"></div>
         </div>
         <div class="powerbi-goal-tag">META: AEREO 2 DIAS; MARITIMO 5 DIAS</div>
 
@@ -299,7 +299,7 @@
             </div>
             <div class="pbi-table-panel">
               <h4>Justificaciones Facturación (Actualizado)</h4>
-              <div class="pbi-table-scroll" style="max-height: 150px;">
+              <div class="pbi-table-scroll max-h-150">
                 <table>
                   <thead>
                     <tr>
@@ -324,7 +324,7 @@
           </div>
           <div class="pbi-table-panel">
             <h4>Registros Filtrados (Facturación)</h4>
-            <div class="pbi-table-scroll" style="max-height: 240px;">
+            <div class="pbi-table-scroll max-h-240">
               <table>
                 <thead>
                   <tr>
@@ -346,9 +346,9 @@
       <!-- TAB: INSPECCION -->
       <div class="tab-pane" id="tab-inspeccion">
         <div class="powerbi-header">
-          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" class="pbi-brand-img"></div>
           <div class="powerbi-title">INDICADOR INSPECCIONES</div>
-          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" class="pbi-brand-img"></div>
         </div>
         <div class="powerbi-goal-tag">META: INSPECCIÓN EFICIENTE</div>
 
@@ -380,16 +380,16 @@
                 <span class="kpi-lbl">Documento Transporte</span>
               </div>
             </div>
-            <div class="chart-panel" style="padding: 12px; flex: 1; display: flex; flex-direction: column; min-height: 250px;">
-              <h4 style="text-align: center;">DT Inspecciones</h4>
-              <div class="chart-wrap" style="flex: 1; min-height: 200px;"><canvas id="chartCumpleInspeccion"></canvas></div>
+            <div class="chart-panel chart-panel-flex">
+              <h4 class="text-center">DT Inspecciones</h4>
+              <div class="chart-wrap chart-wrap-flex"><canvas id="chartCumpleInspeccion"></canvas></div>
             </div>
           </div>
         </div>
 
-        <div class="pbi-table-panel" style="margin-top: 16px;">
+        <div class="pbi-table-panel mt-16">
           <h4>Registros Filtrados (Inspección)</h4>
-          <div class="pbi-table-scroll" style="max-height: 250px;">
+          <div class="pbi-table-scroll max-h-250">
             <table id="tblDetalleInspeccion" class="pbi-table">
               <thead>
                 <tr>
@@ -410,9 +410,9 @@
       <!-- TAB: REGISTROS -->
       <div class="tab-pane" id="tab-registros">
         <div class="powerbi-header">
-          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" class="pbi-brand-img"></div>
           <div class="powerbi-title">REGISTROS / LICENCIAS DE IMPORTACION</div>
-          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" class="pbi-brand-img"></div>
         </div>
         <div class="powerbi-goal-tag">Gestión Institucional de Vistos Buenos</div>
 
@@ -465,17 +465,17 @@
         </div>
 
         <div class="pbi-grid-2col-equal">
-          <div class="chart-panel" style="position: relative;">
-            <svg style="position: absolute; top: 12px; left: 12px; width: 28px; height: 28px; color: var(--pbi-blue);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <div class="chart-panel pos-relative">
+            <svg class="chart-icon-absolute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
-            <h4 style="text-align: center;">Promedio Tiempo Aprobación</h4>
+            <h4 class="text-center">Promedio Tiempo Aprobación</h4>
             <div class="chart-wrap tall"><canvas id="chartRegistrosTiempoLine"></canvas></div>
           </div>
-          <div class="pbi-table-panel" style="padding-top: 24px;">
-            <div class="pbi-table-scroll" style="max-height: 320px;">
-              <table style="font-size: 11px;">
+          <div class="pbi-table-panel pt-24">
+            <div class="pbi-table-scroll max-h-320">
+              <table class="text-11">
                 <thead>
                   <tr>
                     <th>SKU</th>
@@ -494,9 +494,9 @@
       <!-- TAB: COO -->
       <div class="tab-pane" id="tab-coo">
         <div class="powerbi-header">
-          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo.png" alt="SIACO" class="pbi-brand-img"></div>
           <div class="powerbi-title">BENEFICIO COO (CERTIFICADO DE ORIGEN)</div>
-          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+          <div class="pbi-brand-box"><img src="logo1.png" alt="3M" class="pbi-brand-img"></div>
         </div>
         <div class="powerbi-goal-tag">Mapeo Global de Impacto Económico</div>
 
@@ -517,7 +517,7 @@
               </div>
             </div>
             <div class="coo-map-container">
-              <div id="cooWorldMap" style="width:100%; height:100%;"></div>
+              <div id="cooWorldMap" class="w-full-h-full"></div>
             </div>
           </div>
 
@@ -527,12 +527,12 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
               </div>
               <div class="kpi-content">
-                <span class="kpi-val" id="valCOOTotal" style="color:var(--pbi-blue); font-size:32px;">$ 0</span>
-                <span class="kpi-lbl" style="font-weight:700;">AHORRO TOTAL USD</span>
+                <span class="kpi-val kpi-val-large" id="valCOOTotal">$ 0</span>
+                <span class="kpi-lbl font-bold">AHORRO TOTAL USD</span>
               </div>
             </div>
             <div class="pbi-table-panel">
-              <div class="pbi-table-scroll" style="max-height: 280px;">
+              <div class="pbi-table-scroll max-h-280">
                 <table>
                   <thead>
                     <tr>
@@ -564,7 +564,7 @@
               <option value="registros">Registros (Vistos Buenos)</option>
             </select>
           </div>
-          <div style="flex: 1;"></div>
+          <div class="flex-1"></div>
           <div class="table-rows-info-premium">
             <span id="tableRowsInfoText">0 registros</span>
           </div>
@@ -596,7 +596,9 @@
     <span id="toastMessage">Notificación</span>
   </div>
 
-    <script src="js/app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="js/app.js"></script>
   <script src="js/tab_procesos.js"></script>
   <script src="js/tab_agilidad.js"></script>
   <script src="js/tab_facturacion.js"></script>

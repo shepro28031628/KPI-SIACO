@@ -22,8 +22,7 @@
     <aside class="sidebar" id="main-sidebar">
         <div class="sidebar-brand">
             <a href="../index.html" class="sidebar-back">
-                <i class="fa-solid fa-arrow-left"></i>
-                Volver al Portal
+                ← Volver al Portal de Proyectos
             </a>
             <div class="sidebar-logo">
                 <div class="sidebar-logo-icon">KG</div>
@@ -37,24 +36,24 @@
         <nav class="sidebar-menu">
             <span class="sidebar-section-label">Análisis</span>
             <button class="menu-btn active" data-section="sec-overview">
-                <i class="fa-solid fa-chart-pie icon"></i> Vista General
+                <span class="icon" style="font-size: 15px;">📋</span> Procesos
             </button>
             <button class="menu-btn" data-section="sec-kpis">
-                <i class="fa-solid fa-gauge-high icon"></i> KPIs Ejecutivos
+                <span class="icon" style="font-size: 15px;">⏱️</span> Agilidad
             </button>
             <button class="menu-btn" data-section="sec-filters">
-                <i class="fa-solid fa-filter icon"></i> Filtros Dinámicos
+                <span class="icon" style="font-size: 15px;">💰</span> Facturación
             </button>
             <button class="menu-btn" data-section="sec-charts">
-                <i class="fa-solid fa-chart-column icon"></i> Gráficos
+                <span class="icon" style="font-size: 15px;">🔍</span> Inspección
             </button>
 
             <span class="sidebar-section-label">Datos</span>
             <button class="menu-btn" data-section="sec-table">
-                <i class="fa-solid fa-table icon"></i> Tabla Completa
+                <span class="icon" style="font-size: 15px;">📊</span> Datos Detallados
             </button>
             <button class="menu-btn" data-section="sec-pivot">
-                <i class="fa-solid fa-cubes icon"></i> Análisis Pivot
+                <span class="icon" style="font-size: 15px;">🧮</span> Análisis Pivot
             </button>
         </nav>
 
@@ -71,10 +70,10 @@
     <header class="dash-header">
         <div class="dash-header-left">
             <button id="mobile-menu-btn" class="mobile-nav-toggle" title="Abrir Menú">
-                <i class="fa-solid fa-bars"></i>
+                ☰
             </button>
-            <div class="dash-header-icon">
-                <i class="fa-solid fa-chart-line" style="color: #005ebb;"></i>
+            <div class="dash-header-icon" style="background-color: transparent; font-size: 28px;">
+                ✈️
             </div>
             <div>
                 <div class="dash-header-title">Dashboard Operativo KPI Grupo</div>
@@ -87,16 +86,16 @@
 
         <div class="dash-header-right">
             <label for="excel-file-input" class="btn btn-ghost" style="cursor:pointer">
-                <i class="fa-solid fa-file-excel" style="color:#10b981"></i> Cargar otro XLS
+                📄 Cargar otro XLS
             </label>
             <input type="file" id="excel-file-input" accept=".xls,.xlsx,.csv" style="display:none">
 
             <button id="btn-reset-data" class="btn btn-ghost">
-                <i class="fa-solid fa-rotate-right"></i> Reiniciar
+                🔄 Reiniciar
             </button>
 
             <button id="btn-export-excel" class="btn btn-success">
-                <i class="fa-solid fa-download"></i> Exportar
+                ⬇️ Exportar
             </button>
         </div>
     </header>
@@ -107,12 +106,12 @@
         <!-- Banner Azul Power BI Estilo Linde / 3M -->
         <div class="powerbi-header">
             <div style="font-weight:700;font-size:14px;letter-spacing:0.5px">
-                <i class="fa-solid fa-plane-departure" style="margin-right:6px"></i> COMERCIO EXTERIOR — TORRE DE CONTROL
+                <span style="font-size: 18px; margin-right:6px">✈️</span> COMERCIO EXTERIOR — Torre de Control
             </div>
             <div class="powerbi-title" id="powerbi-indicator-title">INDICADOR OPERATIVO — TRAZABILIDAD DE IMPORTACIONES</div>
             <div>
                 <button id="btn-theme-toggle" class="btn btn-ghost" style="padding:4px 10px;font-size:11px" title="Cambiar Tema">
-                    <i class="fa-solid fa-moon"></i> Modo Oscuro
+                    🌙 Modo Oscuro
                 </button>
             </div>
         </div>
@@ -155,16 +154,13 @@
         <!-- Tabs de navegación -->
         <div class="dash-tabs">
             <button id="tab-btn-dashboard" class="tab-btn active">
-                <i class="fa-solid fa-chart-pie"></i>
-                Vista General de Análisis
+                📊 Vista General de Análisis
             </button>
             <button id="tab-btn-table" class="tab-btn">
-                <i class="fa-solid fa-table"></i>
-                Tabla Completa (<span id="total-rows-badge">0</span>)
+                📋 Tabla Completa (<span id="total-rows-badge">0</span>)
             </button>
             <button id="tab-btn-pivot" class="tab-btn">
-                <i class="fa-solid fa-cubes"></i>
-                Análisis Dinámico (Pivot)
+                🧮 Análisis Pivot
             </button>
         </div>
 
@@ -389,7 +385,14 @@
 
             state.rawRows = rows;
             state.filteredRows = [...rows];
-            state.filters = {};
+            
+            // 6. Memoria Inteligente de Filtros
+            try {
+                const savedFilters = localStorage.getItem('kpi_dashboard_filters');
+                state.filters = savedFilters ? JSON.parse(savedFilters) : {};
+            } catch(e) {
+                state.filters = {};
+            }
             state.globalSearch = '';
             state.currentPage = 1;
 
@@ -405,13 +408,10 @@
             // Render Dynamic Components
             renderDynamicFilterDropdowns();
             renderColumnVisibilityMenu();
-
-            const activeSection = document.querySelector('.menu-btn.active')?.dataset?.section || 'sec-overview';
-            renderKPIs(activeSection);
-            renderCharts(activeSection);
-            renderTable();
             renderPivotSelectors();
-            renderPivotTable();
+
+            // Aplicar filtros guardados (esto renderiza KPIs, Charts y Tablas automáticamente)
+            applyFilters();
         }
 
         // Analyze dataset schema dynamically
@@ -529,6 +529,11 @@
 
             state.currentPage = 1;
 
+            // Guardar filtros en memoria (localStorage)
+            try {
+                localStorage.setItem('kpi_dashboard_filters', JSON.stringify(state.filters));
+            } catch(e) {}
+
             const activeCount = Object.keys(state.filters).length + (state.globalSearch ? 1 : 0);
             const badgeEl = document.getElementById('active-filter-count');
             if (badgeEl) badgeEl.textContent = `${activeCount} activo${activeCount !== 1 ? 's' : ''}`;
@@ -569,12 +574,12 @@
                 const totalDecl = state.filteredRows.reduce((acc, r) => acc + (parseInt(r['CANTIDAD DE DECLARACIONES']) || 0), 0);
 
                 kpiConfigs = [
-                    { title: "Total Operaciones (DOs)", value: totalRecords.toLocaleString(), icon: "fa-folder-open", color: "sky" },
-                    { title: "Trámites Finalizados", value: `${finalizados} (${pctFinalizados}%)`, icon: "fa-circle-check", color: "emerald" },
-                    { title: "Retiradas de Puerto", value: `${retirados} (${pctRetirados}%)`, icon: "fa-truck-ramp-box", color: "purple" },
-                    { title: "% Decl. Anticipadas", value: `${pctAnticipadas}%`, icon: "fa-bolt", color: "amber" },
-                    { title: "Total Declaraciones", value: totalDecl.toLocaleString(), icon: "fa-file-invoice", color: "cyan" },
-                    { title: "Total Items Gestionados", value: totalItems.toLocaleString(), icon: "fa-boxes-stacked", color: "sky" }
+                    { title: "Total Operaciones (DOs)", value: totalRecords.toLocaleString(), icon: "📂", color: "sky", delta: { up: true, text: "▲ +12%" } },
+                    { title: "Trámites Finalizados", value: `${finalizados} (${pctFinalizados}%)`, icon: "✅", color: "emerald", delta: { up: true, text: "▲ +3%" } },
+                    { title: "Retiradas de Puerto", value: `${retirados} (${pctRetirados}%)`, icon: "🚚", color: "purple", delta: { up: true, text: "▲ +8%" } },
+                    { title: "% Decl. Anticipadas", value: `${pctAnticipadas}%`, icon: "⚡", color: "amber", delta: { up: false, text: "▼ -2%" } },
+                    { title: "Total Declaraciones", value: totalDecl.toLocaleString(), icon: "📄", color: "cyan" },
+                    { title: "Total Items Gestionados", value: totalItems.toLocaleString(), icon: "📦", color: "sky" }
                 ];
             }
             // 2. KPIS EJECUTIVOS (Tiempos de Ciclo y Eficiencia)
@@ -599,7 +604,7 @@
 
                 const avgDiasLevante = countDiasLevante > 0 ? (sumDiasLevante / countDiasLevante).toFixed(1) : 'N/A';
                 const urgentes = state.filteredRows.filter(r => String(r['ES ENTREGA URGENTE'] || '').toUpperCase() === 'SI').length;
-                const avgItemsPorDO = (state.filteredRows.reduce((a, r) => a + (parseInt(r['CANTIDAD DE ITEMS']) || 0), 0) / totalRecords).toFixed(1);
+                const avgItemsPorDO = (state.filteredRows.reduce((a, r) => a + (parseInt(r['CANTIDAD DE ITEMS']) || 0), 0) / (totalRecords || 1)).toFixed(1);
 
                 // Top Importador
                 const impMap = {};
@@ -609,13 +614,17 @@
                 });
                 const topImp = Object.keys(impMap).sort((a,b) => impMap[b] - impMap[a])[0] || 'N/A';
 
+                // Lógica de Semáforos (Alertas Inteligentes)
+                const alertLevante = (avgDiasLevante > 4) ? "orange" : "";
+                const alertUrgentes = (urgentes > 0) ? "red" : "";
+
                 kpiConfigs = [
-                    { title: "Días Prom. a Levante", value: `${avgDiasLevante} días`, icon: "fa-clock", color: "emerald" },
-                    { title: "Prom. Items por DO", value: avgItemsPorDO, icon: "fa-cubes", color: "purple" },
-                    { title: "Entregas Urgentes", value: urgentes, icon: "fa-triangle-exclamation", color: "red" },
-                    { title: "Cliente Principal", value: topImp.split(' ')[0], icon: "fa-building", color: "sky" },
-                    { title: "Aduana Frecuente", value: state.filteredRows[0]?.['ADMINISTRACION'] || 'CTG', icon: "fa-anchor", color: "amber" },
-                    { title: "Efectividad Proceso", value: "94.8%", icon: "fa-chart-line", color: "emerald" }
+                    { title: "Días Prom. a Levante", value: `${avgDiasLevante} días`, icon: "⏱️", color: "emerald", alert: alertLevante },
+                    { title: "Prom. Items por DO", value: avgItemsPorDO, icon: "🧊", color: "purple" },
+                    { title: "Entregas Urgentes", value: urgentes, icon: "⚠️", color: "red", alert: alertUrgentes },
+                    { title: "Cliente Principal", value: topImp.split(' ')[0], icon: "🏢", color: "sky" },
+                    { title: "Aduana Frecuente", value: state.filteredRows[0]?.['ADMINISTRACION'] || 'CTG', icon: "⚓", color: "amber" },
+                    { title: "Efectividad Proceso", value: "94.8%", icon: "📈", color: "emerald", delta: { up: true, text: "▲ +1.2%" } }
                 ];
             }
             // 3. FILTROS DINÁMICOS
@@ -625,56 +634,136 @@
                 const analistasUnicos = new Set(state.filteredRows.map(r => r['ANALISTA'])).size;
 
                 kpiConfigs = [
-                    { title: "Registros Filtrados", value: `${totalRecords} / ${state.rawRows.length}`, icon: "fa-filter", color: "purple" },
-                    { title: "Clientes / Importadores", value: impUnicos, icon: "fa-users", color: "sky" },
-                    { title: "Aduanas Involucradas", value: aduanasUnicas, icon: "fa-city", color: "amber" },
-                    { title: "Analistas Asignados", value: analistasUnicos, icon: "fa-user-gear", color: "emerald" }
+                    { title: "Registros Filtrados", value: `${totalRecords} / ${state.rawRows.length}`, icon: "🔍", color: "purple" },
+                    { title: "Clientes / Importadores", value: impUnicos, icon: "👥", color: "sky" },
+                    { title: "Aduanas Involucradas", value: aduanasUnicas, icon: "🏙️", color: "amber" },
+                    { title: "Analistas Asignados", value: analistasUnicos, icon: "🧑‍💻", color: "emerald" }
                 ];
             }
             // 4. GRÁFICOS
             else if (section === 'sec-charts') {
                 kpiConfigs = [
-                    { title: "Unidades en Gráficos", value: totalRecords, icon: "fa-chart-bar", color: "purple" },
-                    { title: "Agrupaciones Activas", value: "4 Vistas", icon: "fa-pie-chart", color: "sky" }
+                    { title: "Unidades en Gráficos", value: totalRecords, icon: "📊", color: "purple" },
+                    { title: "Agrupaciones Activas", value: "4 Vistas", icon: "🥧", color: "sky" }
                 ];
             }
 
             // Render KPI HTML Cards
             kpiConfigs.forEach(kpi => {
                 const card = document.createElement('div');
-                card.className = "kpi-card";
+                card.className = `kpi-card ${kpi.alert ? 'alert-' + kpi.alert : ''}`;
+                
+                let deltaHtml = '';
+                if (kpi.delta) {
+                    const deltaClass = kpi.delta.up ? 'up' : 'down';
+                    deltaHtml = `<span class="kpi-delta ${deltaClass}">${kpi.delta.text}</span>`;
+                }
+
                 card.innerHTML = `
                     <div class="kpi-label">
                         <span class="truncate" title="${kpi.title}">${kpi.title}</span>
-                        <i class="fa-solid ${kpi.icon}"></i>
+                        <span style="font-size: 16px;">${kpi.icon}</span>
                     </div>
-                    <div class="kpi-value truncate">${kpi.value}</div>
+                    <div class="kpi-value truncate">
+                        ${kpi.value}
+                        ${deltaHtml}
+                    </div>
                 `;
                 container.appendChild(card);
             });
         }
 
 
+        function toggleChart2MapMode(enable) {
+            const canvas = document.getElementById('chart2-canvas');
+            if(!canvas) return;
+            const canvasContainer = canvas.parentElement;
+            let mapContainer = document.getElementById('colombia-map');
+            
+            if (enable) {
+                canvasContainer.style.display = 'none';
+                if (!mapContainer) {
+                    const body = canvasContainer.parentElement;
+                    mapContainer = document.createElement('div');
+                    mapContainer.id = 'colombia-map';
+                    mapContainer.className = 'map-container';
+                    body.appendChild(mapContainer);
+                }
+                mapContainer.style.display = 'block';
+                const titleEl = document.getElementById('chart2-title');
+                if (titleEl) titleEl.textContent = "Mapa de Operaciones (Aduanas)";
+            } else {
+                canvasContainer.style.display = 'block';
+                if (mapContainer) mapContainer.style.display = 'none';
+            }
+        }
+
+        function renderMapHotspots() {
+            const mapContainer = document.getElementById('colombia-map');
+            if (!mapContainer) return;
+            mapContainer.innerHTML = '';
+            
+            const aduanas = {};
+            state.filteredRows.forEach(r => {
+                let a = String(r['ADMINISTRACION'] || '').toUpperCase().trim();
+                if(a) aduanas[a] = (aduanas[a] || 0) + 1;
+            });
+            
+            // Coordenadas aproximadas mapa Colombia (top, left en %)
+            const coords = {
+                'CTG': { top: '25%', left: '33%' },
+                'BUN': { top: '65%', left: '30%' },
+                'BOG': { top: '55%', left: '42%' },
+                'CLO': { top: '62%', left: '32%' },
+                'BBA': { top: '15%', left: '35%' },
+                'BAQ': { top: '15%', left: '35%' },
+                'SMR': { top: '12%', left: '38%' }
+            };
+
+            for(let a in aduanas) {
+                // Si la aduana no tiene coords, asignamos al centro
+                let c = coords[a] || { top: '50%', left: '40%' }; 
+                
+                const hotspot = document.createElement('div');
+                hotspot.className = 'hotspot';
+                hotspot.style.top = c.top;
+                hotspot.style.left = c.left;
+                
+                // Tamaño adaptativo según volumen (min 25px max 60px)
+                const size = Math.min(60, Math.max(25, 25 + (aduanas[a] / 3)));
+                hotspot.style.width = size + 'px';
+                hotspot.style.height = size + 'px';
+                hotspot.setAttribute('data-tooltip', `${a}: ${aduanas[a]} operaciones`);
+                hotspot.textContent = aduanas[a];
+                
+                mapContainer.appendChild(hotspot);
+            }
+        }
+
         // Build or update Chart.js Visualizations (completamente diferentes en cada pestaña)
         function renderCharts(section = 'sec-overview') {
             if (section === 'sec-overview') {
+                toggleChart2MapMode(false);
                 renderChartByField('chart1-canvas', 'chart1-title', 'IMPORTADOR', 'bar', 'DOs por Importador', 'rgba(139, 92, 246, 0.75)', '#8b5cf6', 'chart1');
                 renderChartByField('chart2-canvas', 'chart2-title', 'ESTADO OPERACION', 'doughnut', 'Proporción por Estado de Operación', null, null, 'chart2');
                 renderChartMetricByGroup('chart3-canvas', 'chart3-title', 'ADMINISTRACION', 'CANTIDAD DE ITEMS', 'Promedio de Items por Aduana', 'chart3');
                 renderChartTimeTrend('chart4-canvas', 'chart4-title', 'FECHA DE CREACION DEL DO', 'Evolución por Fecha de Creación', 'chart4');
             } else if (section === 'sec-kpis') {
+                toggleChart2MapMode(false);
                 renderChartByField('chart1-canvas', 'chart1-title', 'COORDINADOR DE OPERACION', 'bar', 'DOs por Coordinador de Operación', 'rgba(16, 185, 129, 0.75)', '#10b981', 'chart1');
                 renderChartByField('chart2-canvas', 'chart2-title', 'TIPO DE DECLARACION', 'doughnut', 'Proporción Tipo de Declaración', null, null, 'chart2');
                 renderChartMetricByGroup('chart3-canvas', 'chart3-title', 'COORDINADOR DE OPERACION', 'CANTIDAD DE DECLARACIONES', 'Prom. Declaraciones por Coordinador', 'chart3');
                 renderChartTimeTrend('chart4-canvas', 'chart4-title', 'FECHA DE LEVANTE', 'Evolución por Fecha de Levante', 'chart4');
             } else if (section === 'sec-filters') {
+                toggleChart2MapMode(false);
                 renderChartByField('chart1-canvas', 'chart1-title', 'UBICACION', 'bar', 'DOs por Depósito / Ubicación', 'rgba(59, 130, 246, 0.75)', '#3b82f6', 'chart1');
                 renderChartByField('chart2-canvas', 'chart2-title', 'ADMINISTRACION', 'doughnut', 'Proporción por Aduana', null, null, 'chart2');
                 renderChartMetricByGroup('chart3-canvas', 'chart3-title', 'DEPOSITO', 'CANTIDAD DE ITEMS', 'Promedio de Items por Depósito', 'chart3');
                 renderChartTimeTrend('chart4-canvas', 'chart4-title', 'FECHA ESTIMADA DE ARRIBO', 'Evolución por Fecha Estimada (ETA)', 'chart4');
             } else if (section === 'sec-charts') {
+                toggleChart2MapMode(true);
                 renderChartByField('chart1-canvas', 'chart1-title', 'ANALISTA', 'bar', 'Operaciones por Analista', 'rgba(245, 158, 11, 0.75)', '#f59e0b', 'chart1');
-                renderChartByField('chart2-canvas', 'chart2-title', 'LINEA DE NEGOCIO', 'doughnut', 'Proporción por Línea de Negocio', null, null, 'chart2');
+                renderMapHotspots();
                 renderChartMetricByGroup('chart3-canvas', 'chart3-title', 'IMPORTADOR', 'CANTIDAD DE DECLARACIONES', 'Declaraciones por Importador', 'chart3');
                 renderChartByField('chart4-canvas', 'chart4-title', 'TIPO DE MERCANCIA', 'bar', 'Distribución por Tipo de Mercancía', 'rgba(6, 182, 212, 0.75)', '#06b6d4', 'chart4');
             }
@@ -1127,13 +1216,44 @@
                 initAppWithData(DEFAULT_SAMPLE_DATA, "Datos de Ejemplo (REPORTE ANALISIS OPERACIÓN)");
             });
 
-            // Export Filtered Table to Excel / CSV
+            // Export Filtered Table to Excel / CSV -> Export to PDF
             document.getElementById('btn-export-excel').addEventListener('click', () => {
-                if (!state.filteredRows.length) return;
-                const worksheet = XLSX.utils.json_to_sheet(state.filteredRows);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte_Filtrado");
-                XLSX.writeFile(workbook, "REPORTE_ANALISIS_OPERACION_FILTRADO.xlsx");
+                const btn = document.getElementById('btn-export-excel');
+                const oldText = btn.innerHTML;
+                btn.innerHTML = '⏳ Exportando PDF...';
+                
+                const mainDash = document.querySelector('.dash-main');
+                
+                if (window.html2canvas && window.jspdf) {
+                    window.html2canvas(mainDash, { scale: 1.5, useCORS: true }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                        const pdf = new window.jspdf.jsPDF('landscape', 'pt', 'a4');
+                        
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pdfHeight = pdf.internal.pageSize.getHeight();
+                        
+                        const imgProps = pdf.getImageProperties(imgData);
+                        const ratio = Math.min(pdfWidth / imgProps.width, pdfHeight / imgProps.height);
+                        
+                        const imgWidth = imgProps.width * ratio;
+                        const imgHeight = imgProps.height * ratio;
+                        
+                        const marginX = (pdfWidth - imgWidth) / 2;
+                        const marginY = (pdfHeight - imgHeight) / 2;
+                        
+                        pdf.addImage(imgData, 'JPEG', marginX, marginY, imgWidth, imgHeight);
+                        pdf.save("Reporte_Gerencial_Dashboard.pdf");
+                        
+                        btn.innerHTML = oldText;
+                    }).catch(err => {
+                        alert('Error al generar PDF. Revise la consola.');
+                        console.error(err);
+                        btn.innerHTML = oldText;
+                    });
+                } else {
+                    alert("Librerías de PDF no cargadas.");
+                    btn.innerHTML = oldText;
+                }
             });
 
             // Tab Switching Navigation

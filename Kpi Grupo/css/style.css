@@ -515,6 +515,83 @@ body {
   box-shadow: var(--shadow);
 }
 
+/* ── Semáforos y Alertas ──────────────────────────────────────── */
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); border-color: rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); border-color: transparent; }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); border-color: transparent; }
+}
+@keyframes pulse-orange {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); border-color: rgba(245, 158, 11, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); border-color: transparent; }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); border-color: transparent; }
+}
+
+.kpi-card.alert-red {
+  animation: pulse-red 2s infinite;
+  border: 1px solid var(--red);
+}
+.kpi-card.alert-orange {
+  animation: pulse-orange 2s infinite;
+  border: 1px solid var(--yellow);
+}
+
+/* ── Indicadores de Tendencia (Deltas) ────────────────────────── */
+.kpi-delta {
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.kpi-delta.up { background-color: var(--green-light); color: var(--green); }
+.kpi-delta.down { background-color: var(--red-light); color: var(--red); }
+.kpi-delta.neutral { background-color: #f3f2f1; color: var(--text-light); }
+
+/* ── Mapa de Calor (Hotspots) ─────────────────────────────────── */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/e/ec/Colombia_location_map.svg') no-repeat center center;
+  background-size: contain;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.hotspot {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(239, 68, 68, 0.85);
+  border: 2px solid #ffffff;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  animation: pulse-red 2s infinite;
+  cursor: pointer;
+}
+.hotspot:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: -30px;
+  background: #111;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+
 .chart-panel-header {
   display: flex;
   align-items: center;

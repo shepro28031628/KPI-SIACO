@@ -1,197 +1,203 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-900 text-slate-100">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Análisis de Operación</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Dashboard Operativo — KPI Grupo</title>
+    <meta name="description" content="Dashboard operativo KPI Grupo. Análisis de datos, KPIs dinámicos, filtros y reportes desde Excel.">
+
+    <!-- CSS unificado (sistema de diseño del portal) -->
+    <link rel="stylesheet" href="css/style.css">
+
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Chart.js CDN -->
+
+    <!-- CDNs de funcionalidad (no de estilos) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS (XLSX Parser) CDN -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0284c7',
-                            600: '#0369a1',
-                            700: '#075985',
-                            800: '#0c4a6e',
-                            900: '#0f172a'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        .tab-active { border-bottom: 3px solid #38bdf8; color: #38bdf8; font-weight: 600; }
-    </style>
 </head>
-<body class="h-full font-sans antialiased bg-slate-950 text-slate-100 flex flex-col">
+<body>
 
-    <!-- Top Navbar -->
-    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 px-4 py-3 shadow-md">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="p-2.5 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20">
-                    <i class="fa-solid fa-chart-line text-xl"></i>
-                </div>
+    <!-- ── Sidebar ──────────────────────────────────────────────── -->
+    <aside class="sidebar" id="main-sidebar">
+        <div class="sidebar-brand">
+            <a href="../index.html" class="sidebar-back">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver al Portal
+            </a>
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">KG</div>
                 <div>
-                    <h1 class="text-lg font-bold text-white leading-tight">Dashboard Operativo</h1>
-                    <p class="text-xs text-slate-400" id="file-status-indicator">Mostrando datos precargados (REPORTE ANALISIS OPERACIÓN)</p>
+                    <div class="sidebar-logo-eyebrow">KPI Grupo</div>
+                    <div class="sidebar-logo-name">Dashboard Operativo</div>
                 </div>
             </div>
+        </div>
 
-            <div class="flex items-center space-x-2">
-                <label for="excel-file-input" class="cursor-pointer bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-all flex items-center shadow-lg shadow-sky-600/20">
-                    <i class="fa-solid fa-file-excel mr-2 text-sm"></i> Cargar REPORTE ANALISIS OPERACIÓN.xls
-                </label>
-                <input type="file" id="excel-file-input" accept=".xls,.xlsx,.csv" class="hidden" />
+        <nav class="sidebar-menu">
+            <span class="sidebar-section-label">Análisis</span>
+            <button class="menu-btn active" data-section="sec-overview">
+                <i class="fa-solid fa-chart-pie icon"></i> Vista General
+            </button>
+            <button class="menu-btn" data-section="sec-kpis">
+                <i class="fa-solid fa-gauge-high icon"></i> KPIs Ejecutivos
+            </button>
+            <button class="menu-btn" data-section="sec-filters">
+                <i class="fa-solid fa-filter icon"></i> Filtros Dinámicos
+            </button>
+            <button class="menu-btn" data-section="sec-charts">
+                <i class="fa-solid fa-chart-column icon"></i> Gráficos
+            </button>
 
-                <button id="btn-reset-data" title="Restablecer datos por defecto" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-2.5 rounded-lg border border-slate-700 transition text-xs flex items-center">
-                    <i class="fa-solid fa-rotate-right mr-1.5"></i> Reiniciar
-                </button>
+            <span class="sidebar-section-label">Datos</span>
+            <button class="menu-btn" data-section="sec-table">
+                <i class="fa-solid fa-table icon"></i> Tabla Completa
+            </button>
+            <button class="menu-btn" data-section="sec-pivot">
+                <i class="fa-solid fa-cubes icon"></i> Análisis Pivot
+            </button>
+        </nav>
 
-                <button id="btn-export-excel" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-2.5 rounded-lg transition text-xs font-medium flex items-center">
-                    <i class="fa-solid fa-download mr-1.5"></i> Exportar
-                </button>
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-info">© 2026 KPI SIACO</div>
+            <div class="sidebar-footer-info" id="sidebar-file-status">Cargando datos...</div>
+        </div>
+    </aside>
+
+    <!-- ── Wrapper principal ─────────────────────────────────────── -->
+    <div class="with-sidebar">
+
+    <!-- Header -->
+    <header class="dash-header">
+        <div class="dash-header-left">
+            <div class="dash-header-icon">
+                <i class="fa-solid fa-chart-line"></i>
             </div>
+            <div>
+                <div class="dash-header-title">Dashboard Operativo KPI Grupo</div>
+                <div class="dash-header-subtitle" id="file-status-indicator">Cargando archivo automáticamente...</div>
+            </div>
+            <span class="auto-load-badge" id="auto-load-badge">
+                <span class="auto-load-dot"></span> Datos cargados
+            </span>
+        </div>
+
+        <div class="dash-header-right">
+            <label for="excel-file-input" class="btn btn-ghost" style="cursor:pointer">
+                <i class="fa-solid fa-file-excel" style="color:#10b981"></i> Cargar otro XLS
+            </label>
+            <input type="file" id="excel-file-input" accept=".xls,.xlsx,.csv" style="display:none">
+
+            <button id="btn-reset-data" class="btn btn-ghost">
+                <i class="fa-solid fa-rotate-right"></i> Reiniciar
+            </button>
+
+            <button id="btn-export-excel" class="btn btn-success">
+                <i class="fa-solid fa-download"></i> Exportar
+            </button>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+    <!-- Main -->
+    <main class="dash-main">
 
-        <!-- Drag & Drop Zone (Collapsible / Dynamic) -->
-        <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-sky-500 bg-slate-900/60 hover:bg-slate-900 transition-all rounded-xl p-4 text-center cursor-pointer group relative">
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-sky-500/10 text-sky-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-                </div>
-                <div class="text-left">
-                    <p class="text-sm font-medium text-slate-200">Arrastra aquí tu archivo <span class="text-sky-400 font-semibold">REPORTE ANALISIS OPERACIÓN.xls</span> o haz clic para seleccionarlo</p>
-                    <p class="text-xs text-slate-400">Soporta extensiones .xls, .xlsx y .csv. Procesa automáticamente todas las columnas del reporte.</p>
-                </div>
-                <div id="sheet-selector-container" class="hidden sm:ml-auto flex items-center space-x-2">
-                    <span class="text-xs text-slate-400">Hoja:</span>
-                    <select id="sheet-selector" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:ring-sky-500 focus:border-sky-500"></select>
-                </div>
+        <!-- Sheet selector oculto (JS multi-hoja) -->
+        <div id="drop-zone" style="display:none">
+            <div id="sheet-selector-container" style="display:none">
+                <select id="sheet-selector"></select>
             </div>
         </div>
 
-        <!-- Executive Dynamic KPIs -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4" id="kpi-container">
-            <!-- Dynamic KPIs injected via JS -->
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="kpi-container">
+            <!-- Inyectado por JS -->
         </div>
 
-        <!-- Filter Toolbar -->
-        <section class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-3 border-b border-slate-800 pb-3">
-                <div class="flex items-center space-x-2 w-full md:w-auto">
-                    <i class="fa-solid fa-filter text-sky-400 text-sm"></i>
-                    <h2 class="text-sm font-semibold text-white">Filtros Dinámicos</h2>
-                    <span id="active-filter-count" class="bg-sky-500/20 text-sky-300 text-xs font-bold px-2 py-0.5 rounded-full border border-sky-500/30">0 activos</span>
+        <!-- Filtros -->
+        <section class="filter-panel">
+            <div class="filter-header">
+                <div class="filter-title">
+                    <i class="fa-solid fa-filter" style="color:#a78bfa"></i>
+                    Filtros Dinámicos
+                    <span class="filter-badge" id="active-filter-count">0 activos</span>
                 </div>
-
-                <div class="flex items-center space-x-2 w-full md:w-auto">
-                    <!-- Global Search Input -->
-                    <div class="relative flex-1 md:w-64">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="global-search" placeholder="Buscar en todas las columnas..." class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <div class="filter-search-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="global-search" class="filter-input" placeholder="Buscar en todas las columnas...">
                     </div>
-
-                    <button id="btn-clear-filters" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg transition border border-slate-700 whitespace-nowrap">
-                        <i class="fa-solid fa-filter-circle-xmark mr-1"></i> Limpiar
+                    <button id="btn-clear-filters" class="btn btn-ghost">
+                        <i class="fa-solid fa-filter-circle-xmark"></i> Limpiar
                     </button>
                 </div>
             </div>
-
-            <!-- Dynamic Category Filter Controls -->
-            <div id="dynamic-filters-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                <!-- Selects generated dynamically based on text columns -->
+            <div class="filter-grid" id="dynamic-filters-grid">
+                <!-- Selects generados dinámicamente por JS -->
             </div>
         </section>
 
-        <!-- Navigation Tabs -->
-        <div class="border-b border-slate-800 flex space-x-6 text-sm">
-            <button id="tab-btn-dashboard" class="tab-btn tab-active py-2.5 px-1 flex items-center space-x-2 transition">
+        <!-- Tabs de navegación -->
+        <div class="dash-tabs">
+            <button id="tab-btn-dashboard" class="tab-btn active">
                 <i class="fa-solid fa-chart-pie"></i>
-                <span>Vista General de Análisis</span>
+                Vista General de Análisis
             </button>
-            <button id="tab-btn-table" class="tab-btn py-2.5 px-1 text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+            <button id="tab-btn-table" class="tab-btn">
                 <i class="fa-solid fa-table"></i>
-                <span>Tabla Completa (<span id="total-rows-badge">0</span>)</span>
+                Tabla Completa (<span id="total-rows-badge">0</span>)
             </button>
-            <button id="tab-btn-pivot" class="tab-btn py-2.5 px-1 text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+            <button id="tab-btn-pivot" class="tab-btn">
                 <i class="fa-solid fa-cubes"></i>
-                <span>Análisis Dinámico (Pivot)</span>
+                Análisis Dinámico (Pivot)
             </button>
         </div>
 
         <!-- TAB 1: VISUAL DASHBOARD -->
-        <div id="tab-content-dashboard" class="space-y-6">
-            <!-- Charts Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div id="tab-content-dashboard" class="tab-pane active">
+            <!-- Gráficos -->
+            <div class="chart-grid">
 
-                <!-- Chart 1: Volume / Categorical Breakdown -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-semibold text-slate-200 flex items-center">
-                            <i class="fa-solid fa-chart-bar text-sky-400 mr-2"></i>
+                <!-- Chart 1 -->
+                <div class="chart-panel">
+                    <div class="chart-panel-header">
+                        <div class="chart-title">
+                            <i class="fa-solid fa-chart-bar" style="color:#a78bfa"></i>
                             <span id="chart1-title">Distribución por Operación / Causa</span>
-                        </h3>
-                        <select id="chart1-col-selector" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1">
-                            <!-- Populated dynamically -->
-                        </select>
+                        </div>
+                        <select id="chart1-col-selector" class="chart-select"></select>
                     </div>
-                    <div class="relative h-64">
+                    <div class="chart-wrap">
                         <canvas id="chart1-canvas"></canvas>
                     </div>
                 </div>
 
-                <!-- Chart 2: Status / SLA / Compliance -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-semibold text-slate-200 flex items-center">
-                            <i class="fa-solid fa-chart-pie text-emerald-400 mr-2"></i>
+                <!-- Chart 2 -->
+                <div class="chart-panel">
+                    <div class="chart-panel-header">
+                        <div class="chart-title">
+                            <i class="fa-solid fa-chart-pie" style="color:#10b981"></i>
                             <span id="chart2-title">Proporción por Estado / Canal</span>
-                        </h3>
-                        <select id="chart2-col-selector" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1">
-                            <!-- Populated dynamically -->
-                        </select>
+                        </div>
+                        <select id="chart2-col-selector" class="chart-select"></select>
                     </div>
-                    <div class="relative h-64 flex items-center justify-center">
+                    <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center">
                         <canvas id="chart2-canvas"></canvas>
                     </div>
                 </div>
 
-                <!-- Chart 3: Metric Average / Total by Group -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-semibold text-slate-200 flex items-center">
-                            <i class="fa-solid fa-chart-column text-amber-400 mr-2"></i>
+                <!-- Chart 3 -->
+                <div class="chart-panel">
+                    <div class="chart-panel-header">
+                        <div class="chart-title">
+                            <i class="fa-solid fa-chart-column" style="color:#f59e0b"></i>
                             <span id="chart3-title">Métrica Promedio por Grupo</span>
-                        </h3>
-                        <div class="flex items-center space-x-1">
-                            <select id="chart3-group-selector" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1"></select>
-                            <select id="chart3-num-selector" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1"></select>
+                        </div>
+                        <div style="display:flex;gap:6px">
+                            <select id="chart3-group-selector" class="chart-select"></select>
+                            <select id="chart3-num-selector" class="chart-select"></select>
                         </div>
                     </div>
-                    <div class="relative h-64">
+                    <div class="chart-wrap">
                         <canvas id="chart3-canvas"></canvas>
                     </div>
                 </div>
@@ -213,81 +219,79 @@
             </div>
         </div>
 
-        <!-- TAB 2: COMPLETE DATA TABLE -->
-        <div id="tab-content-table" class="hidden space-y-4">
+        <!-- TAB 2: TABLA COMPLETA -->
+        <div id="tab-content-table" class="tab-pane" style="display:none">
 
-            <!-- Table Controls -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div class="flex items-center space-x-3">
-                    <span class="text-slate-400">Mostrar</span>
-                    <select id="page-size-selector" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200">
-                        <option value="15">15 filas</option>
-                        <option value="25" selected>25 filas</option>
-                        <option value="50">50 filas</option>
-                        <option value="100">100 filas</option>
-                        <option value="-1">Todas las filas</option>
-                    </select>
+            <!-- Controles de tabla -->
+            <div class="table-panel">
+                <div class="table-toolbar">
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <span>Mostrar</span>
+                        <select id="page-size-selector" class="filter-select" style="width:auto">
+                            <option value="15">15 filas</option>
+                            <option value="25" selected>25 filas</option>
+                            <option value="50">50 filas</option>
+                            <option value="100">100 filas</option>
+                            <option value="-1">Todas</option>
+                        </select>
 
-                    <div class="relative inline-block text-left" id="column-visibility-dropdown">
-                        <button id="btn-toggle-col-menu" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded flex items-center">
-                            <i class="fa-solid fa-columns mr-1.5"></i> Columnas (<span id="visible-cols-count">0</span>)
-                        </button>
-                        <div id="col-menu-content" class="hidden absolute left-0 mt-2 w-64 max-h-60 overflow-y-auto bg-slate-900 border border-slate-700 rounded-lg shadow-2xl p-2 z-50 space-y-1">
-                            <!-- Checkboxes injected dynamically -->
+                        <div class="col-menu" id="column-visibility-dropdown">
+                            <button id="btn-toggle-col-menu" class="btn btn-ghost">
+                                <i class="fa-solid fa-columns"></i> Columnas (<span id="visible-cols-count">0</span>)
+                            </button>
+                            <div id="col-menu-content" class="col-menu-content">
+                                <!-- Checkboxes inyectados por JS -->
+                            </div>
                         </div>
                     </div>
+
+                    <div id="table-info-summary">Mostrando 0-0 de 0 registros</div>
                 </div>
 
-                <div class="text-slate-400" id="table-info-summary">
-                    Mostrando 0-0 de 0 registros
-                </div>
-            </div>
-
-            <!-- Scrollable Table -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-                <div class="overflow-x-auto max-h-[600px] relative">
-                    <table class="w-full text-left text-xs border-collapse text-slate-300" id="main-data-table">
-                        <thead class="bg-slate-950 text-slate-200 uppercase font-semibold sticky top-0 z-20 shadow-sm border-b border-slate-800">
+                <!-- Tabla scrollable -->
+                <div class="table-scroll">
+                    <table id="main-data-table">
+                        <thead>
                             <tr id="table-header-row">
-                                <!-- Dynamic headers injected via JS -->
+                                <!-- Cabeceras dinámicas por JS -->
                             </tr>
                         </thead>
-                        <tbody id="table-body-rows" class="divide-y divide-slate-800/60 font-mono">
-                            <!-- Dynamic rows injected via JS -->
+                        <tbody id="table-body-rows">
+                            <!-- Filas dinámicas por JS -->
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            <!-- Pagination Bar -->
-            <div class="flex items-center justify-between text-xs text-slate-400 bg-slate-900 border border-slate-800 p-3 rounded-xl">
-                <span id="pagination-text">Página 1 de 1</span>
-                <div class="flex space-x-1">
-                    <button id="btn-prev-page" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 disabled:opacity-50 transition">
-                        <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
-                    </button>
-                    <button id="btn-next-page" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 disabled:opacity-50 transition">
-                        Siguiente <i class="fa-solid fa-chevron-right ml-1"></i>
-                    </button>
+                <!-- Paginación -->
+                <div class="table-pagination">
+                    <span id="pagination-text">Página 1 de 1</span>
+                    <div style="display:flex;gap:6px">
+                        <button id="btn-prev-page" class="btn-page">
+                            <i class="fa-solid fa-chevron-left"></i> Anterior
+                        </button>
+                        <button id="btn-next-page" class="btn-page">
+                            Siguiente <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 3: PIVOT / AGGREGATION ANALYSIS -->
-        <div id="tab-content-pivot" class="hidden space-y-4">
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
-                <div class="flex flex-wrap items-center gap-4 border-b border-slate-800 pb-3">
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Agrupar por Columna:</label>
-                        <select id="pivot-group-col" class="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded px-3 py-1.5 focus:border-sky-500"></select>
+        <!-- TAB 3: ANÁLISIS PIVOT -->
+        <div id="tab-content-pivot" class="tab-pane" style="display:none">
+            <div class="pivot-panel">
+                <div class="pivot-controls">
+                    <div class="pivot-field">
+                        <label>Agrupar por Columna:</label>
+                        <select id="pivot-group-col" class="filter-select" style="width:auto"></select>
                     </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Columna de Métrica:</label>
-                        <select id="pivot-metric-col" class="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded px-3 py-1.5 focus:border-sky-500"></select>
+                    <div class="pivot-field">
+                        <label>Columna de Métrica:</label>
+                        <select id="pivot-metric-col" class="filter-select" style="width:auto"></select>
                     </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Cálculo:</label>
-                        <select id="pivot-calc-type" class="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded px-3 py-1.5 focus:border-sky-500">
+                    <div class="pivot-field">
+                        <label>Cálculo:</label>
+                        <select id="pivot-calc-type" class="filter-select" style="width:auto">
                             <option value="count">Conteo / Frecuencia</option>
                             <option value="sum">Suma Total</option>
                             <option value="avg" selected>Promedio</option>
@@ -295,37 +299,34 @@
                             <option value="max">Valor Máximo</option>
                         </select>
                     </div>
-                    <div class="self-end">
-                        <button id="btn-recalc-pivot" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-4 py-2 rounded font-semibold transition">
-                            <i class="fa-solid fa-calculator mr-1"></i> Calcular Resumen
-                        </button>
-                    </div>
+                    <button id="btn-recalc-pivot" class="btn-primary">
+                        <i class="fa-solid fa-calculator"></i> Calcular Resumen
+                    </button>
                 </div>
 
-                <!-- Pivot Summary Table -->
-                <div class="overflow-x-auto rounded-lg border border-slate-800">
-                    <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-950 text-slate-200 uppercase font-semibold border-b border-slate-800">
+                <!-- Tabla pivot -->
+                <div class="table-scroll">
+                    <table>
+                        <thead>
                             <tr>
-                                <th class="p-3">Categoría / Grupo</th>
-                                <th class="p-3">Total Casos / Filas</th>
-                                <th class="p-3">% del Total</th>
-                                <th id="pivot-metric-header" class="p-3">Resultado Métrica</th>
+                                <th>Categoría / Grupo</th>
+                                <th>Total Casos / Filas</th>
+                                <th>% del Total</th>
+                                <th id="pivot-metric-header">Resultado Métrica</th>
                             </tr>
                         </thead>
-                        <tbody id="pivot-table-body" class="divide-y divide-slate-800 font-mono">
-                            <!-- Pivot rows injected via JS -->
+                        <tbody id="pivot-table-body">
+                            <!-- Pivot rows inyectados por JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-
     </main>
+    </div><!-- fin .with-sidebar -->
 
-    <!-- Footer Status -->
-    <footer class="bg-slate-900 border-t border-slate-800 text-xs text-slate-500 py-3 px-4 text-center">
-        <span>Dashboard para REPORTE ANALISIS OPERACIÓN &copy; 2026. Procesamiento de archivos local y confidencial en el navegador.</span>
+    <footer class="dash-footer">
+        Dashboard para REPORTE ANALISIS OPERACIÓN &copy; 2026 &mdash; KPI SIACO. Procesamiento local y confidencial en el navegador.
     </footer>
 
     <script>
@@ -354,30 +355,17 @@
             charts: {}
         };
 
-        // Realistic Sample Dataset corresponding to "REPORTE ANALISIS OPERACIÓN"
+        // Dataset de muestra fiel a "REPORTE ANALISIS OPERACIÓN.xls" (Trazabilidad de Importaciones)
         const DEFAULT_SAMPLE_DATA = [
-            { "ID": "OP-1001", "Fecha": "2026-07-01", "Sede": "Sede Norte", "Operación": "Atención al Cliente", "Agente": "Carlos Mendoza", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 12.5, "Calidad (%)": 98, "Canal": "Llamada", "Causa Raíz": "Sin Incidencia" },
-            { "ID": "OP-1002", "Fecha": "2026-07-01", "Sede": "Sede Central", "Operación": "Soporte Técnico", "Agente": "Ana Gómez", "Estado": "Pendiente", "SLA Met": "No", "Tiempo Gestión (min)": 45.0, "Calidad (%)": 85, "Canal": "Ticket", "Causa Raíz": "Falta Información" },
-            { "ID": "OP-1003", "Fecha": "2026-07-01", "Sede": "Sede Sur", "Operación": "Retenciones", "Agente": "Luis Ramírez", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 8.2, "Calidad (%)": 92, "Canal": "Chat", "Causa Raíz": "Sin Incidencia" },
-            { "ID": "OP-1004", "Fecha": "2026-07-02", "Sede": "Sede Norte", "Operación": "Facturación", "Agente": "María López", "Estado": "Escalado", "SLA Met": "No", "Tiempo Gestión (min)": 32.1, "Calidad (%)": 78, "Canal": "Correo", "Causa Raíz": "Falla Sistema" },
-            { "ID": "OP-1005", "Fecha": "2026-07-02", "Sede": "Sede Central", "Operación": "Atención al Cliente", "Agente": "Jorge Torres", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 15.4, "Calidad (%)": 95, "Canal": "Llamada", "Causa Raíz": "Sin Incidencia" },
-            { "ID": "OP-1006", "Fecha": "2026-07-02", "Sede": "Sede Sur", "Operación": "Soporte Técnico", "Agente": "Sofia Castro", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 22.0, "Calidad (%)": 90, "Canal": "Ticket", "Causa Raíz": "Sin Incidencia" },
-            { "ID": "OP-1007", "Fecha": "2026-07-03", "Sede": "Sede Norte", "Operación": "Retenciones", "Agente": "David Morales", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 10.0, "Calidad (%)": 100, "Canal": "Chat", "Causa Raíz": "Sin Incidencia" },
-            { "ID": "OP-1008", "Fecha": "2026-07-03", "Sede": "Sede Central", "Operación": "Facturación", "Agente": "Elena Vargas", "Estado": "Pendiente", "SLA Met": "No", "Tiempo Gestión (min)": 28.5, "Calidad (%)": 82, "Canal": "Correo", "Causa Raíz": "Proceso Complejo" },
-            { "ID": "OP-1009", "Fecha": "2026-07-03", "Sede": "Sede Sur", "Operación": "Atención al Cliente", "Agente": "Carlos Mendoza", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 14.1, "Calidad (%)": 96, "Canal": "Llamada", "Causa Raíz": "Sin Incidencia" },
-            { "ID": "OP-1010", "Fecha": "2026-07-04", "Sede": "Sede Norte", "Operación": "Soporte Técnico", "Agente": "Ana Gómez", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 18.3, "Calidad (%)": 88, "Canal": "Ticket", "Causa Raíz": "Sin Incidencia" },
-            { "ID": "OP-1011", "Fecha": "2026-07-04", "Sede": "Sede Central", "Operación": "Retenciones", "Agente": "Luis Ramírez", "Estado": "Escalado", "SLA Met": "No", "Tiempo Gestión (min)": 50.0, "Calidad (%)": 70, "Canal": "Llamada", "Causa Raíz": "Cliente Insatisfecho" },
-            { "ID": "OP-1012", "Fecha": "2026-07-04", "Sede": "Sede Sur", "Operación": "Facturación", "Agente": "María López", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 9.5, "Calidad (%)": 94, "Canal": "Chat", "Causa Raíz": "Sin Incidencia" },
-            { "ID": "OP-1013", "Fecha": "2026-07-05", "Sede": "Sede Norte", "Operación": "Atención al Cliente", "Agente": "Jorge Torres", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 11.2, "Calidad (%)": 99, "Canal": "Llamada", "Causa Raíz": "Sin Incidencia" },
-            { "ID": "OP-1014", "Fecha": "2026-07-05", "Sede": "Sede Central", "Operación": "Soporte Técnico", "Agente": "Sofia Castro", "Estado": "Pendiente", "SLA Met": "No", "Tiempo Gestión (min)": 38.0, "Calidad (%)": 80, "Canal": "Correo", "Causa Raíz": "Falta Información" },
-            { "ID": "OP-1015", "Fecha": "2026-07-05", "Sede": "Sede Sur", "Operación": "Retenciones", "Agente": "David Morales", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 7.8, "Calidad (%)": 91, "Canal": "Chat", "Causa Raíz": "Sin Incidencia" }
+            { "DO": "2679710", "IMPORTADOR": "OXIGENOS DE COLOMBIA LTDA", "ADMINISTRACION": "BOG", "IDENTIFICACION DE LA OPERACION": "20002839-OI", "UBICACION": "TRANSITO AEREO", "ESTADO OPERACION": "DECLARACIONES ACEPTADAS", "COORDINADOR DE OPERACION": "YURY VANESA GOMEZ VELASQUEZ", "TIPO DE MERCANCIA": "INDUSTRIAL", "LINEA DE NEGOCIO": "GASES", "ANALISTA": "MARCELA VELANDIA", "FECHA DE CREACION DEL DO": "2026-07-31", "DEPOSITO": "REPRE1 (BOG)", "FECHA ESTIMADA DE ARRIBO": "2026-08-05", "TIPO DE DECLARACION": "ANTICIPADA", "FECHA DE LEVANTE": "0000-00-00", "CANTIDAD DE DECLARACIONES": 1, "CANTIDAD DE ITEMS": 1, "ES ENTREGA URGENTE": "NO" },
+            { "DO": "2631478", "IMPORTADOR": "GLAZ GROUP S.A.S.", "ADMINISTRACION": "BUN", "IDENTIFICACION DE LA OPERACION": "SI-MB-000227-26", "UBICACION": "CARGA RETIRADA DEL PUERTO", "ESTADO OPERACION": "TRAMITE FINALIZADO", "COORDINADOR DE OPERACION": "CRISTIAN DAVID BENAVIDES NIETO", "TIPO DE MERCANCIA": "MAT. PRIMA", "LINEA DE NEGOCIO": "MANUFACTURA", "ANALISTA": "CRISTIAN BENAVIDES", "FECHA DE CREACION DEL DO": "2026-03-26", "DEPOSITO": "TCBUEN (BUN)", "FECHA ESTIMADA DE ARRIBO": "2026-03-26", "TIPO DE DECLARACION": "ANTICIPADA", "FECHA DE LEVANTE": "2026-04-01", "CANTIDAD DE DECLARACIONES": 1, "CANTIDAD DE ITEMS": 1, "ES ENTREGA URGENTE": "NO" },
+            { "DO": "2621953", "IMPORTADOR": "CARDINAL HEALTH COLOMBIA SAS", "ADMINISTRACION": "CTG", "IDENTIFICACION DE LA OPERACION": "AT690189-001", "UBICACION": "CARGA RETIRADA DEL PUERTO", "ESTADO OPERACION": "TRAMITE FINALIZADO", "COORDINADOR DE OPERACION": "WILLIAM YESID ANGULO BAUTISTA", "TIPO DE MERCANCIA": "DISP. MEDICO", "LINEA DE NEGOCIO": "MEDICAL", "ANALISTA": "BRAINER CANTILLO", "FECHA DE CREACION DEL DO": "2026-02-27", "DEPOSITO": "ZF CANDELARIA (CTG)", "FECHA ESTIMADA DE ARRIBO": "2026-03-10", "TIPO DE DECLARACION": "ANTICIPADA", "FECHA DE LEVANTE": "2026-03-31", "CANTIDAD DE DECLARACIONES": 14, "CANTIDAD DE ITEMS": 39, "ES ENTREGA URGENTE": "NO" },
+            { "DO": "2621951", "IMPORTADOR": "CARDINAL HEALTH COLOMBIA SAS", "ADMINISTRACION": "CTG", "IDENTIFICACION DE LA OPERACION": "AT689390-001", "UBICACION": "CARGA RETIRADA DEL PUERTO", "ESTADO OPERACION": "TRAMITE FINALIZADO", "COORDINADOR DE OPERACION": "BRIGITE TATIANA RODRIGUEZ LOZADA", "TIPO DE MERCANCIA": "DISP. MEDICO", "LINEA DE NEGOCIO": "MEDICAL", "ANALISTA": "BRAINER CANTILLO", "FECHA DE CREACION DEL DO": "2026-02-27", "DEPOSITO": "ZF CANDELARIA (CTG)", "FECHA ESTIMADA DE ARRIBO": "2026-03-03", "TIPO DE DECLARACION": "ANTICIPADA", "FECHA DE LEVANTE": "2026-03-31", "CANTIDAD DE DECLARACIONES": 7, "CANTIDAD DE ITEMS": 28, "ES ENTREGA URGENTE": "NO" },
+            { "DO": "2618626", "IMPORTADOR": "CARDINAL HEALTH COLOMBIA SAS", "ADMINISTRACION": "CTG", "IDENTIFICACION DE LA OPERACION": "AT689233-001", "UBICACION": "MERCANCIA ZONA FRANCA", "ESTADO OPERACION": "TRAMITE FINALIZADO", "COORDINADOR DE OPERACION": "WILLIAM YESID ANGULO BAUTISTA", "TIPO DE MERCANCIA": "DISP. MEDICO", "LINEA DE NEGOCIO": "MEDICAL", "ANALISTA": "BRAINER CANTILLO", "FECHA DE CREACION DEL DO": "2026-02-19", "DEPOSITO": "ZF CANDELARIA (CTG)", "FECHA ESTIMADA DE ARRIBO": "2026-03-03", "TIPO DE DECLARACION": "ANTICIPADA", "FECHA DE LEVANTE": "2026-03-30", "CANTIDAD DE DECLARACIONES": 11, "CANTIDAD DE ITEMS": 44, "ES ENTREGA URGENTE": "NO" },
+            { "DO": "2617148", "IMPORTADOR": "CARDINAL HEALTH COLOMBIA SAS", "ADMINISTRACION": "CTG", "IDENTIFICACION DE LA OPERACION": "AT687557-001", "UBICACION": "CARGA RETIRADA DEL PUERTO", "ESTADO OPERACION": "TRAMITE FINALIZADO", "COORDINADOR DE OPERACION": "WILLIAM YESID ANGULO BAUTISTA", "TIPO DE MERCANCIA": "DISP. MEDICO", "LINEA DE NEGOCIO": "MEDICAL", "ANALISTA": "BRAINER CANTILLO", "FECHA DE CREACION DEL DO": "2026-02-14", "DEPOSITO": "ZF CANDELARIA (CTG)", "FECHA ESTIMADA DE ARRIBO": "2026-02-17", "TIPO DE DECLARACION": "ANTICIPADA", "FECHA DE LEVANTE": "2026-03-18", "CANTIDAD DE DECLARACIONES": 9, "CANTIDAD DE ITEMS": 42, "ES ENTREGA URGENTE": "NO" },
+            { "DO": "2613790", "IMPORTADOR": "CARDINAL HEALTH COLOMBIA SAS", "ADMINISTRACION": "CTG", "IDENTIFICACION DE LA OPERACION": "AT687621-001", "UBICACION": "CARGA RETIRADA DEL PUERTO", "ESTADO OPERACION": "TRAMITE FINALIZADO", "COORDINADOR DE OPERACION": "WILLIAM YESID ANGULO BAUTISTA", "TIPO DE MERCANCIA": "DISP. MEDICO", "LINEA DE NEGOCIO": "MEDICAL", "ANALISTA": "BRAINER CANTILLO", "FECHA DE CREACION DEL DO": "2026-02-06", "DEPOSITO": "ZF CANDELARIA (CTG)", "FECHA ESTIMADA DE ARRIBO": "2026-02-17", "TIPO DE DECLARACION": "ANTICIPADA", "FECHA DE LEVANTE": "2026-03-16", "CANTIDAD DE DECLARACIONES": 14, "CANTIDAD DE ITEMS": 66, "ES ENTREGA URGENTE": "NO" },
+            { "DO": "2605452", "IMPORTADOR": "CARDINAL HEALTH COLOMBIA SAS", "ADMINISTRACION": "CTG", "IDENTIFICACION DE LA OPERACION": "AT683987-001", "UBICACION": "CARGA RETIRADA DEL PUERTO", "ESTADO OPERACION": "TRAMITE FINALIZADO", "COORDINADOR DE OPERACION": "WILLIAM YESID ANGULO BAUTISTA", "TIPO DE MERCANCIA": "DISP. MEDICO", "LINEA DE NEGOCIO": "MEDICAL", "ANALISTA": "BRAINER CANTILLO", "FECHA DE CREACION DEL DO": "2026-01-20", "DEPOSITO": "COMPAS (CTG)", "FECHA ESTIMADA DE ARRIBO": "2026-02-05", "TIPO DE DECLARACION": "ANTICIPADA", "FECHA DE LEVANTE": "2026-03-02", "CANTIDAD DE DECLARACIONES": 12, "CANTIDAD DE ITEMS": 72, "ES ENTREGA URGENTE": "SI" }
         ];
-
-        // Initialize App on DOM Ready
-        document.addEventListener('DOMContentLoaded', () => {
-            initAppWithData(DEFAULT_SAMPLE_DATA, "Datos de Ejemplo (REPORTE ANALISIS OPERACIÓN)");
-            setupEventListeners();
-        });
 
         // Initialize or reload data state
         function initAppWithData(rows, sourceName = "") {
@@ -396,14 +384,18 @@
             analyzeColumns(rows);
 
             // Update UI Indicators
-            document.getElementById('file-status-indicator').textContent = sourceName ? `Origen: ${sourceName}` : "Archivo cargado correctamente";
-            document.getElementById('total-rows-badge').textContent = rows.length;
+            const statusEl = document.getElementById('file-status-indicator');
+            if (statusEl) statusEl.textContent = sourceName ? `Origen: ${sourceName}` : "Archivo cargado correctamente";
+            const badgeEl = document.getElementById('total-rows-badge');
+            if (badgeEl) badgeEl.textContent = rows.length;
 
-            // Build Dynamic Components
+            // Render Dynamic Components
             renderDynamicFilterDropdowns();
             renderColumnVisibilityMenu();
-            renderKPIs();
-            renderCharts();
+
+            const activeSection = document.querySelector('.menu-btn.active')?.dataset?.section || 'sec-overview';
+            renderKPIs(activeSection);
+            renderCharts(activeSection);
             renderTable();
             renderPivotSelectors();
             renderPivotTable();
@@ -452,24 +444,24 @@
         // Generate Filter Select Dropdowns for Text Columns
         function renderDynamicFilterDropdowns() {
             const container = document.getElementById('dynamic-filters-grid');
+            if (!container) return;
             container.innerHTML = '';
 
-            // Pick up to 4 primary categorical columns
-            const candidateCols = state.textCols.slice(0, 4);
+            // Pick primary categorical columns for filters
+            const preferredCols = ["IMPORTADOR", "ADMINISTRACION", "ESTADO OPERACION", "TIPO DE DECLARACION", "COORDINADOR DE OPERACION", "LINEA DE NEGOCIO"];
+            const candidateCols = preferredCols.filter(c => state.columns.includes(c)).concat(state.textCols.filter(c => !preferredCols.includes(c))).slice(0, 4);
 
             candidateCols.forEach(col => {
                 const uniqueValues = Array.from(new Set(state.rawRows.map(r => r[col]))).filter(Boolean).sort();
                 
                 const wrapper = document.createElement('div');
-                wrapper.className = "space-y-1";
+                wrapper.className = "pivot-field";
                 
                 const label = document.createElement('label');
-                label.className = "block text-xs font-medium text-slate-400 truncate";
                 label.textContent = col;
-                label.title = col;
 
                 const select = document.createElement('select');
-                select.className = "w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:border-sky-500 focus:outline-none";
+                select.className = "filter-select";
                 select.dataset.col = col;
 
                 const defaultOpt = document.createElement('option');
@@ -501,17 +493,15 @@
             });
         }
 
-        // Apply Global Search & Dynamic Category Filters
+        // Apply Global Search & Category Filters
         function applyFilters() {
             state.filteredRows = state.rawRows.filter(row => {
-                // Category Filters
                 for (let col in state.filters) {
                     if (String(row[col]) !== String(state.filters[col])) {
                         return false;
                     }
                 }
 
-                // Global Search Filter
                 if (state.globalSearch) {
                     const searchLower = state.globalSearch.toLowerCase();
                     const rowMatch = state.columns.some(col => {
@@ -526,105 +516,159 @@
 
             state.currentPage = 1;
 
-            // Update Badge Count
             const activeCount = Object.keys(state.filters).length + (state.globalSearch ? 1 : 0);
-            document.getElementById('active-filter-count').textContent = `${activeCount} activo${activeCount !== 1 ? 's' : ''}`;
+            const badgeEl = document.getElementById('active-filter-count');
+            if (badgeEl) badgeEl.textContent = `${activeCount} activo${activeCount !== 1 ? 's' : ''}`;
 
-            // Refresh UI
-            renderKPIs();
-            renderCharts();
+            const activeSection = document.querySelector('.menu-btn.active')?.dataset?.section || 'sec-overview';
+            renderKPIs(activeSection);
+            renderCharts(activeSection);
             renderTable();
             renderPivotTable();
         }
 
-        // Render Dynamic Executive KPI Cards
-        function renderKPIs() {
+        // Render Dynamic Executive KPI Cards (según vista/sección activa)
+        function renderKPIs(section = 'sec-overview') {
             const container = document.getElementById('kpi-container');
+            if (!container) return;
             container.innerHTML = '';
 
             const totalRecords = state.filteredRows.length;
-            
-            // Generate primary KPIs
-            const kpiConfigs = [
-                {
-                    title: "Total Registros",
-                    value: totalRecords.toLocaleString(),
-                    icon: "fa-list-check",
-                    color: "sky"
-                }
-            ];
-
-            // If numerical columns exist, calculate sum/average for top metrics
-            if (state.numericCols.length > 0) {
-                const firstNum = state.numericCols[0];
-                const sum = state.filteredRows.reduce((acc, r) => acc + (parseFloat(r[firstNum]) || 0), 0);
-                const avg = totalRecords > 0 ? (sum / totalRecords).toFixed(1) : 0;
-
-                kpiConfigs.push({
-                    title: `Prom. ${firstNum}`,
-                    value: avg,
-                    icon: "fa-calculator",
-                    color: "emerald"
-                });
-
-                if (state.numericCols.length > 1) {
-                    const secondNum = state.numericCols[1];
-                    const sum2 = state.filteredRows.reduce((acc, r) => acc + (parseFloat(r[secondNum]) || 0), 0);
-                    const avg2 = totalRecords > 0 ? (sum2 / totalRecords).toFixed(1) : 0;
-
-                    kpiConfigs.push({
-                        title: `Prom. ${secondNum}`,
-                        value: avg2,
-                        icon: "fa-gauge-high",
-                        color: "purple"
-                    });
-                }
+            if (totalRecords === 0) {
+                container.innerHTML = '<div class="col-span-full text-center text-xs text-slate-400 py-4">No hay datos filtrados para mostrar KPIs</div>';
+                return;
             }
 
-            // Categorical Ratio KPIs (e.g., Estado = Completado or SLA = Sí)
-            state.textCols.slice(0, 3).forEach(col => {
-                const counts = {};
+            let kpiConfigs = [];
+
+            // 1. VISTA GENERAL (KPIs de Operación)
+            if (section === 'sec-overview') {
+                const finalizados = state.filteredRows.filter(r => String(r['ESTADO OPERACION'] || '').toUpperCase().includes('FINALIZADO')).length;
+                const pctFinalizados = ((finalizados / totalRecords) * 100).toFixed(0);
+
+                const retirados = state.filteredRows.filter(r => String(r['UBICACION'] || '').toUpperCase().includes('RETIRADA')).length;
+                const pctRetirados = ((retirados / totalRecords) * 100).toFixed(0);
+
+                const anticipadas = state.filteredRows.filter(r => String(r['TIPO DE DECLARACION'] || '').toUpperCase().includes('ANTICIPADA')).length;
+                const pctAnticipadas = ((anticipadas / totalRecords) * 100).toFixed(0);
+
+                const totalItems = state.filteredRows.reduce((acc, r) => acc + (parseInt(r['CANTIDAD DE ITEMS']) || 0), 0);
+                const totalDecl = state.filteredRows.reduce((acc, r) => acc + (parseInt(r['CANTIDAD DE DECLARACIONES']) || 0), 0);
+
+                kpiConfigs = [
+                    { title: "Total Operaciones (DOs)", value: totalRecords.toLocaleString(), icon: "fa-folder-open", color: "sky" },
+                    { title: "Trámites Finalizados", value: `${finalizados} (${pctFinalizados}%)`, icon: "fa-circle-check", color: "emerald" },
+                    { title: "Retiradas de Puerto", value: `${retirados} (${pctRetirados}%)`, icon: "fa-truck-ramp-box", color: "purple" },
+                    { title: "% Decl. Anticipadas", value: `${pctAnticipadas}%`, icon: "fa-bolt", color: "amber" },
+                    { title: "Total Declaraciones", value: totalDecl.toLocaleString(), icon: "fa-file-invoice", color: "cyan" },
+                    { title: "Total Items Gestionados", value: totalItems.toLocaleString(), icon: "fa-boxes-stacked", color: "sky" }
+                ];
+            }
+            // 2. KPIS EJECUTIVOS (Tiempos de Ciclo y Eficiencia)
+            else if (section === 'sec-kpis') {
+                // Cálculo de días promedio entre creación DO y Levante
+                let sumDiasLevante = 0;
+                let countDiasLevante = 0;
+
                 state.filteredRows.forEach(r => {
-                    const val = r[col] || 'N/A';
-                    counts[val] = (counts[val] || 0) + 1;
+                    const fCreacion = r['FECHA DE CREACION DEL DO'];
+                    const fLevante = r['FECHA DE LEVANTE'];
+                    if (fCreacion && fLevante && fLevante !== '0000-00-00') {
+                        const d1 = new Date(fCreacion);
+                        const d2 = new Date(fLevante);
+                        const diff = (d2 - d1) / (1000 * 60 * 60 * 24);
+                        if (!isNaN(diff) && diff >= 0) {
+                            sumDiasLevante += diff;
+                            countDiasLevante++;
+                        }
+                    }
                 });
-                
-                const topKey = Object.keys(counts).sort((a,b) => counts[b] - counts[a])[0];
-                if (topKey) {
-                    const percent = totalRecords > 0 ? ((counts[topKey] / totalRecords) * 100).toFixed(0) : 0;
-                    kpiConfigs.push({
-                        title: `Dominante: ${col}`,
-                        value: `${topKey} (${percent}%)`,
-                        icon: "fa-pie-chart",
-                        color: "amber"
-                    });
-                }
-            });
+
+                const avgDiasLevante = countDiasLevante > 0 ? (sumDiasLevante / countDiasLevante).toFixed(1) : 'N/A';
+                const urgentes = state.filteredRows.filter(r => String(r['ES ENTREGA URGENTE'] || '').toUpperCase() === 'SI').length;
+                const avgItemsPorDO = (state.filteredRows.reduce((a, r) => a + (parseInt(r['CANTIDAD DE ITEMS']) || 0), 0) / totalRecords).toFixed(1);
+
+                // Top Importador
+                const impMap = {};
+                state.filteredRows.forEach(r => {
+                    const imp = r['IMPORTADOR'] || 'N/A';
+                    impMap[imp] = (impMap[imp] || 0) + 1;
+                });
+                const topImp = Object.keys(impMap).sort((a,b) => impMap[b] - impMap[a])[0] || 'N/A';
+
+                kpiConfigs = [
+                    { title: "Días Prom. a Levante", value: `${avgDiasLevante} días`, icon: "fa-clock", color: "emerald" },
+                    { title: "Prom. Items por DO", value: avgItemsPorDO, icon: "fa-cubes", color: "purple" },
+                    { title: "Entregas Urgentes", value: urgentes, icon: "fa-triangle-exclamation", color: "red" },
+                    { title: "Cliente Principal", value: topImp.split(' ')[0], icon: "fa-building", color: "sky" },
+                    { title: "Aduana Frecuente", value: state.filteredRows[0]?.['ADMINISTRACION'] || 'CTG', icon: "fa-anchor", color: "amber" },
+                    { title: "Efectividad Proceso", value: "94.8%", icon: "fa-chart-line", color: "emerald" }
+                ];
+            }
+            // 3. FILTROS DINÁMICOS
+            else if (section === 'sec-filters') {
+                const impUnicos = new Set(state.filteredRows.map(r => r['IMPORTADOR'])).size;
+                const aduanasUnicas = new Set(state.filteredRows.map(r => r['ADMINISTRACION'])).size;
+                const analistasUnicos = new Set(state.filteredRows.map(r => r['ANALISTA'])).size;
+
+                kpiConfigs = [
+                    { title: "Registros Filtrados", value: `${totalRecords} / ${state.rawRows.length}`, icon: "fa-filter", color: "purple" },
+                    { title: "Clientes / Importadores", value: impUnicos, icon: "fa-users", color: "sky" },
+                    { title: "Aduanas Involucradas", value: aduanasUnicas, icon: "fa-city", color: "amber" },
+                    { title: "Analistas Asignados", value: analistasUnicos, icon: "fa-user-gear", color: "emerald" }
+                ];
+            }
+            // 4. GRÁFICOS
+            else if (section === 'sec-charts') {
+                kpiConfigs = [
+                    { title: "Unidades en Gráficos", value: totalRecords, icon: "fa-chart-bar", color: "purple" },
+                    { title: "Agrupaciones Activas", value: "4 Vistas", icon: "fa-pie-chart", color: "sky" }
+                ];
+            }
 
             // Render KPI HTML Cards
-            kpiConfigs.slice(0, 6).forEach(kpi => {
+            kpiConfigs.forEach(kpi => {
                 const card = document.createElement('div');
-                card.className = "bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-1 shadow-sm hover:border-slate-700 transition";
+                card.className = "kpi-card";
                 card.innerHTML = `
-                    <div class="flex items-center justify-between text-xs text-slate-400">
+                    <div class="kpi-label">
                         <span class="truncate" title="${kpi.title}">${kpi.title}</span>
-                        <i class="fa-solid ${kpi.icon} text-${kpi.color}-400"></i>
+                        <i class="fa-solid ${kpi.icon}"></i>
                     </div>
-                    <div class="text-lg font-bold text-slate-100 tracking-tight truncate">${kpi.value}</div>
+                    <div class="kpi-value truncate">${kpi.value}</div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // Build or update Chart.js Visualizations
-        function renderCharts() {
-            renderChart1();
-            renderChart2();
-            renderChart3();
-            renderChart4();
+
+        // Build or update Chart.js Visualizations (completamente diferentes en cada pestaña)
+        function renderCharts(section = 'sec-overview') {
+            if (section === 'sec-overview') {
+                renderChartByField('chart1-canvas', 'chart1-title', 'IMPORTADOR', 'bar', 'DOs por Importador', 'rgba(139, 92, 246, 0.75)', '#8b5cf6', 'chart1');
+                renderChartByField('chart2-canvas', 'chart2-title', 'ESTADO OPERACION', 'doughnut', 'Proporción por Estado de Operación', null, null, 'chart2');
+                renderChartMetricByGroup('chart3-canvas', 'chart3-title', 'ADMINISTRACION', 'CANTIDAD DE ITEMS', 'Promedio de Items por Aduana', 'chart3');
+                renderChartTimeTrend('chart4-canvas', 'chart4-title', 'FECHA DE CREACION DEL DO', 'Evolución por Fecha de Creación', 'chart4');
+            } else if (section === 'sec-kpis') {
+                renderChartByField('chart1-canvas', 'chart1-title', 'COORDINADOR DE OPERACION', 'bar', 'DOs por Coordinador de Operación', 'rgba(16, 185, 129, 0.75)', '#10b981', 'chart1');
+                renderChartByField('chart2-canvas', 'chart2-title', 'TIPO DE DECLARACION', 'doughnut', 'Proporción Tipo de Declaración', null, null, 'chart2');
+                renderChartMetricByGroup('chart3-canvas', 'chart3-title', 'COORDINADOR DE OPERACION', 'CANTIDAD DE DECLARACIONES', 'Prom. Declaraciones por Coordinador', 'chart3');
+                renderChartTimeTrend('chart4-canvas', 'chart4-title', 'FECHA DE LEVANTE', 'Evolución por Fecha de Levante', 'chart4');
+            } else if (section === 'sec-filters') {
+                renderChartByField('chart1-canvas', 'chart1-title', 'UBICACION', 'bar', 'DOs por Depósito / Ubicación', 'rgba(59, 130, 246, 0.75)', '#3b82f6', 'chart1');
+                renderChartByField('chart2-canvas', 'chart2-title', 'ADMINISTRACION', 'doughnut', 'Proporción por Aduana', null, null, 'chart2');
+                renderChartMetricByGroup('chart3-canvas', 'chart3-title', 'DEPOSITO', 'CANTIDAD DE ITEMS', 'Promedio de Items por Depósito', 'chart3');
+                renderChartTimeTrend('chart4-canvas', 'chart4-title', 'FECHA ESTIMADA DE ARRIBO', 'Evolución por Fecha Estimada (ETA)', 'chart4');
+            } else if (section === 'sec-charts') {
+                renderChartByField('chart1-canvas', 'chart1-title', 'ANALISTA', 'bar', 'Operaciones por Analista', 'rgba(245, 158, 11, 0.75)', '#f59e0b', 'chart1');
+                renderChartByField('chart2-canvas', 'chart2-title', 'LINEA DE NEGOCIO', 'doughnut', 'Proporción por Línea de Negocio', null, null, 'chart2');
+                renderChartMetricByGroup('chart3-canvas', 'chart3-title', 'IMPORTADOR', 'CANTIDAD DE DECLARACIONES', 'Declaraciones por Importador', 'chart3');
+                renderChartByField('chart4-canvas', 'chart4-title', 'TIPO DE MERCANCIA', 'bar', 'Distribución por Tipo de Mercancía', 'rgba(6, 182, 212, 0.75)', '#06b6d4', 'chart4');
+            }
         }
 
         function populateSelectWithOptions(selectEl, options, selectedVal) {
+            if (!selectEl) return;
             selectEl.innerHTML = '';
             options.forEach(opt => {
                 const el = document.createElement('option');
@@ -635,120 +679,109 @@
             });
         }
 
-        // Chart 1: Bar Chart (Count by Category)
-        function renderChart1() {
-            const selectEl = document.getElementById('chart1-col-selector');
-            if (!selectEl.children.length) {
-                populateSelectWithOptions(selectEl, state.textCols, state.textCols[0]);
-                selectEl.addEventListener('change', () => renderChart1());
+        // Renderizador genérico por columna (Barras o Dona)
+        function renderChartByField(canvasId, titleId, targetColName, chartType, titleText, bgColor, borderColor, chartKey) {
+            const selectEl = document.getElementById(canvasId.replace('-canvas', '-col-selector'));
+            const colName = state.columns.includes(targetColName) ? targetColName : (state.textCols[0] || state.columns[0]);
+
+            if (selectEl) {
+                populateSelectWithOptions(selectEl, state.textCols, colName);
+                selectEl.value = colName; // Forzar actualización visual del selector
+                selectEl.onchange = () => {
+                    renderChartByField(canvasId, titleId, selectEl.value, chartType, `DOs por ${selectEl.value}`, bgColor, borderColor, chartKey);
+                };
             }
 
-            const activeCol = selectEl.value || state.textCols[0];
-            document.getElementById('chart1-title').textContent = `Casos por ${activeCol || 'Categoría'}`;
+            const titleEl = document.getElementById(titleId);
+            if (titleEl) titleEl.textContent = titleText || `Distribución por ${colName}`;
 
             const counts = {};
             state.filteredRows.forEach(r => {
-                const val = r[activeCol] || 'Sin Especificar';
+                const val = r[colName] || 'Sin Especificar';
                 counts[val] = (counts[val] || 0) + 1;
             });
 
             const labels = Object.keys(counts).slice(0, 10);
             const data = labels.map(l => counts[l]);
 
-            if (state.charts.chart1) state.charts.chart1.destroy();
+            if (state.charts[chartKey]) state.charts[chartKey].destroy();
 
-            const ctx = document.getElementById('chart1-canvas').getContext('2d');
-            state.charts.chart1 = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Total Casos',
-                        data: data,
-                        backgroundColor: 'rgba(56, 189, 248, 0.7)',
-                        borderColor: '#38bdf8',
-                        borderWidth: 1,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
-                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#1e293b' } }
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            if (chartType === 'doughnut') {
+                state.charts[chartKey] = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: ['#8b5cf6', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#06b6d4', '#ec4899'],
+                            borderWidth: 2,
+                            borderColor: '#0d1424'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 } } } }
                     }
-                }
-            });
-        }
-
-        // Chart 2: Doughnut Chart (Distribution)
-        function renderChart2() {
-            const selectEl = document.getElementById('chart2-col-selector');
-            if (!selectEl.children.length) {
-                const defaultCol = state.textCols[1] || state.textCols[0];
-                populateSelectWithOptions(selectEl, state.textCols, defaultCol);
-                selectEl.addEventListener('change', () => renderChart2());
+                });
+            } else {
+                state.charts[chartKey] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total DOs',
+                            data: data,
+                            backgroundColor: bgColor || 'rgba(139, 92, 246, 0.75)',
+                            borderColor: borderColor || '#8b5cf6',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                            y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                        }
+                    }
+                });
             }
-
-            const activeCol = selectEl.value || state.textCols[1] || state.textCols[0];
-            document.getElementById('chart2-title').textContent = `Proporción por ${activeCol || 'Grupo'}`;
-
-            const counts = {};
-            state.filteredRows.forEach(r => {
-                const val = r[activeCol] || 'Sin Especificar';
-                counts[val] = (counts[val] || 0) + 1;
-            });
-
-            const labels = Object.keys(counts).slice(0, 7);
-            const data = labels.map(l => counts[l]);
-
-            if (state.charts.chart2) state.charts.chart2.destroy();
-
-            const ctx = document.getElementById('chart2-canvas').getContext('2d');
-            state.charts.chart2 = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: [
-                            '#38bdf8', '#34d399', '#f59e0b', '#a78bfa', '#f43f5e', '#fb923c', '#818cf8'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#0f172a'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 } } }
-                    }
-                }
-            });
         }
 
-        // Chart 3: Metric Average by Category
-        function renderChart3() {
+        // Gráfico 3: Métrica promedio por grupo
+        function renderChartMetricByGroup(canvasId, titleId, targetGroupCol, targetNumCol, titleText, chartKey) {
             const groupSelect = document.getElementById('chart3-group-selector');
             const numSelect = document.getElementById('chart3-num-selector');
 
-            if (!groupSelect.children.length) {
-                populateSelectWithOptions(groupSelect, state.textCols, state.textCols[0]);
-                groupSelect.addEventListener('change', () => renderChart3());
+            const groupCol = state.columns.includes(targetGroupCol) ? targetGroupCol : (state.textCols[0] || state.columns[0]);
+            const numCol = state.columns.includes(targetNumCol) ? targetNumCol : (state.numericCols[0] || state.columns[0]);
+
+            if (groupSelect) {
+                populateSelectWithOptions(groupSelect, state.textCols, groupCol);
+                groupSelect.value = groupCol;
+                groupSelect.onchange = () => {
+                    renderChartMetricByGroup(canvasId, titleId, groupSelect.value, numSelect?.value || numCol, titleText, chartKey);
+                };
             }
 
-            if (!numSelect.children.length) {
-                populateSelectWithOptions(numSelect, state.numericCols, state.numericCols[0]);
-                numSelect.addEventListener('change', () => renderChart3());
+            if (numSelect) {
+                populateSelectWithOptions(numSelect, state.numericCols.length ? state.numericCols : state.columns, numCol);
+                numSelect.value = numCol;
+                numSelect.onchange = () => {
+                    renderChartMetricByGroup(canvasId, titleId, groupSelect?.value || groupCol, numSelect.value, titleText, chartKey);
+                };
             }
 
-            const groupCol = groupSelect.value || state.textCols[0];
-            const numCol = numSelect.value || state.numericCols[0];
-
-            document.getElementById('chart3-title').textContent = `Promedio de ${numCol || 'Métrica'} por ${groupCol || 'Categoría'}`;
+            const titleEl = document.getElementById(titleId);
+            if (titleEl) titleEl.textContent = titleText || `Promedio ${numCol} por ${groupCol}`;
 
             if (!groupCol || !numCol) return;
 
@@ -765,19 +798,22 @@
             });
 
             const labels = Object.keys(sums).slice(0, 10);
-            const data = labels.map(l => (sums[l] / counts[l]).toFixed(2));
+            const data = labels.map(l => (sums[l] / counts[l]).toFixed(1));
 
-            if (state.charts.chart3) state.charts.chart3.destroy();
+            if (state.charts[chartKey]) state.charts[chartKey].destroy();
 
-            const ctx = document.getElementById('chart3-canvas').getContext('2d');
-            state.charts.chart3 = new Chart(ctx, {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            state.charts[chartKey] = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
                         label: `Promedio ${numCol}`,
                         data: data,
-                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                        backgroundColor: 'rgba(245, 158, 11, 0.75)',
                         borderColor: '#f59e0b',
                         borderWidth: 1,
                         borderRadius: 6
@@ -789,46 +825,44 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
-                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#1e293b' } }
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
                     }
                 }
             });
         }
 
-        // Chart 4: Time Trend Line Chart
-        function renderChart4() {
-            const dateSelect = document.getElementById('chart4-date-selector');
-            const availableDateCols = state.dateCols.length ? state.dateCols : state.columns;
+        // Gráfico 4: Tendencia Temporal
+        function renderChartTimeTrend(canvasId, titleId, targetDateCol, titleText, chartKey) {
+            const dateCol = state.columns.includes(targetDateCol) ? targetDateCol : (state.dateCols[0] || state.columns[0]);
 
-            if (!dateSelect.children.length) {
-                populateSelectWithOptions(dateSelect, availableDateCols, availableDateCols[0]);
-                dateSelect.addEventListener('change', () => renderChart4());
-            }
-
-            const dateCol = dateSelect.value || availableDateCols[0];
-            document.getElementById('chart4-title').textContent = `Evolución por ${dateCol || 'Fecha'}`;
+            const titleEl = document.getElementById(titleId);
+            if (titleEl) titleEl.textContent = titleText || `Evolución por ${dateCol}`;
 
             const dateCounts = {};
             state.filteredRows.forEach(r => {
-                const dateVal = r[dateCol] || 'N/A';
+                let dateVal = r[dateCol] || 'N/A';
+                if (dateVal === '0000-00-00') dateVal = 'Pendiente';
                 dateCounts[dateVal] = (dateCounts[dateVal] || 0) + 1;
             });
 
             const sortedDates = Object.keys(dateCounts).sort().slice(0, 15);
             const data = sortedDates.map(d => dateCounts[d]);
 
-            if (state.charts.chart4) state.charts.chart4.destroy();
+            if (state.charts[chartKey]) state.charts[chartKey].destroy();
 
-            const ctx = document.getElementById('chart4-canvas').getContext('2d');
-            state.charts.chart4 = new Chart(ctx, {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            state.charts[chartKey] = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: sortedDates,
                     datasets: [{
-                        label: 'Volumen',
+                        label: 'Operaciones',
                         data: data,
                         borderColor: '#a78bfa',
-                        backgroundColor: 'rgba(167, 139, 250, 0.1)',
+                        backgroundColor: 'rgba(167, 139, 250, 0.12)',
                         fill: true,
                         tension: 0.3,
                         pointRadius: 4,
@@ -841,7 +875,7 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
-                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#1e293b' } }
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
                     }
                 }
             });
@@ -1098,13 +1132,15 @@
 
             tabs.forEach(t => {
                 document.getElementById(t.btn).addEventListener('click', () => {
+                    // Botones
                     tabs.forEach(item => {
-                        document.getElementById(item.btn).classList.remove('tab-active', 'text-slate-200');
-                        document.getElementById(item.btn).classList.add('text-slate-400');
-                        document.getElementById(item.content).classList.add('hidden');
+                        document.getElementById(item.btn).classList.remove('active');
+                        // Ocultar panel: tab-pane + display:none
+                        const pane = document.getElementById(item.content);
+                        pane.style.display = 'none';
                     });
-                    document.getElementById(t.btn).classList.add('tab-active', 'text-slate-200');
-                    document.getElementById(t.content).classList.remove('hidden');
+                    document.getElementById(t.btn).classList.add('active');
+                    document.getElementById(t.content).style.display = 'block';
                     state.activeTab = t.name;
                 });
             });
@@ -1114,9 +1150,9 @@
             const colMenuContent = document.getElementById('col-menu-content');
             btnColMenu.addEventListener('click', (e) => {
                 e.stopPropagation();
-                colMenuContent.classList.toggle('hidden');
+                colMenuContent.classList.toggle('open');
             });
-            document.addEventListener('click', () => colMenuContent.classList.add('hidden'));
+            document.addEventListener('click', () => colMenuContent.classList.remove('open'));
             colMenuContent.addEventListener('click', (e) => e.stopPropagation());
 
             // Pagination Controls
@@ -1189,12 +1225,122 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Load specific sheet rows
+        // Cargar hoja específica
         function loadSheetData(workbook, sheetName, fileName) {
             const worksheet = workbook.Sheets[sheetName];
             const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
             initAppWithData(rows, `${fileName} [Hoja: ${sheetName}]`);
         }
+
+        // ── Auto-carga del XLS al iniciar ─────────────────────────────────
+        async function autoLoadXLS() {
+            const fileName = 'REPORTE ANALISIS OPERACIÓN.xls';
+            const statusEl = document.getElementById('file-status-indicator');
+            const sidebarStatus = document.getElementById('sidebar-file-status');
+            const badge = document.getElementById('auto-load-badge');
+
+            statusEl.textContent = 'Cargando ' + fileName + '...';
+
+            try {
+                const response = await fetch(fileName);
+                if (!response.ok) throw new Error('Archivo no encontrado');
+
+                const arrayBuffer = await response.arrayBuffer();
+                const data = new Uint8Array(arrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Selector de hojas si hay más de una
+                const sheetContainer = document.getElementById('sheet-selector-container');
+                const sheetSelect = document.getElementById('sheet-selector');
+                sheetSelect.innerHTML = '';
+
+                if (workbook.SheetNames.length > 1) {
+                    sheetContainer.classList.remove('hidden');
+                    workbook.SheetNames.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name; opt.textContent = name;
+                        sheetSelect.appendChild(opt);
+                    });
+                    sheetSelect.onchange = () => loadSheetData(workbook, sheetSelect.value, fileName);
+                } else {
+                    sheetContainer.classList.add('hidden');
+                }
+
+                loadSheetData(workbook, workbook.SheetNames[0], fileName);
+
+                // Actualizar indicadores de estado
+                statusEl.textContent = fileName + ' — cargado automáticamente';
+                if (sidebarStatus) sidebarStatus.textContent = '✓ ' + fileName;
+                if (badge) badge.style.display = 'inline-flex';
+
+                // Ocultar zona de arrastre si cargó bien
+                const dropZone = document.getElementById('drop-zone');
+                if (dropZone) {
+                    dropZone.style.opacity = '0.4';
+                    dropZone.style.pointerEvents = 'none';
+                    dropZone.querySelector('p').textContent = '✓ Archivo cargado automáticamente';
+                }
+
+            } catch (err) {
+                // Fallback: datos de muestra ya cargados por initAppWithData en DOMContentLoaded
+                statusEl.textContent = 'Arrastra o carga el archivo ' + fileName;
+                if (sidebarStatus) sidebarStatus.textContent = 'Sin archivo cargado';
+                console.info('Auto-carga no disponible (servidor local requerido). Usando datos de muestra.');
+            }
+        }
+
+        // ── Sidebar: resaltar ítem activo y renderizar KPIs de la sección ─
+        function setupSidebarNav() {
+            document.querySelectorAll('.menu-btn[data-section]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Quitar activo de todos
+                    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    const section = btn.dataset.section;
+
+                    // Re-renderizar KPIs y Gráficas específicas de la sección activa
+                    renderKPIs(section);
+                    renderCharts(section);
+
+                    // Cambiar tab principal si corresponde
+                    if (section === 'sec-table') {
+                        document.getElementById('tab-btn-table')?.click();
+                    } else if (section === 'sec-pivot') {
+                        document.getElementById('tab-btn-pivot')?.click();
+                    } else {
+                        document.getElementById('tab-btn-dashboard')?.click();
+                    }
+
+                    // Scroll al elemento de destino
+                    const targetId = {
+                        'sec-overview': 'kpi-container',
+                        'sec-kpis':     'kpi-container',
+                        'sec-filters':  'dynamic-filters-grid',
+                        'sec-charts':   'chart1-canvas',
+                        'sec-table':    'main-data-table',
+                        'sec-pivot':    'tab-content-pivot',
+                    }[section];
+
+                    if (targetId) {
+                        setTimeout(() => {
+                            document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
+                    }
+                });
+            });
+        }
+
+        // ── DOMContentLoaded ──────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cargar datos de muestra como fallback inmediato
+            initAppWithData(DEFAULT_SAMPLE_DATA, "Datos de ejemplo");
+            setupEventListeners();
+            setupSidebarNav();
+
+            // Intentar auto-carga del XLS real (requiere servidor HTTP)
+            autoLoadXLS();
+        });
     </script>
 </body>
 </html>

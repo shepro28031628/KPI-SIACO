@@ -246,13 +246,14 @@ body {
 .github-icon { width: 16px; height: 16px; fill: currentColor; }
 
 /* Responsive */
-@media (max-width: 900px) { .projects-grid { grid-template-columns: 1fr; } .hero-title { font-size: 38px; } }
+@media (max-width: 900px) { .hero-title { font-size: 38px; } }
 @media (max-width: 640px) {
   .portal-wrapper { padding: 24px 18px 48px; }
   .portal-header { flex-direction: column; align-items: flex-start; gap: 14px; }
   .hero-title { font-size: 30px; letter-spacing: -1px; }
   .hero-stats { gap: 22px; }
   .stat-divider { display: none; }
+  .projects-grid { grid-template-columns: 1fr; }
   .project-card { padding: 24px; }
   .card-meta { flex-wrap: wrap; gap: 14px; }
 }

@@ -1,4 +1,4 @@
-﻿/* PORTAL DASHBOARD STYLES - PREMIUM DARK v2 */
+/* PORTAL DASHBOARD STYLES - PREMIUM DARK v2 */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* Design Tokens */
@@ -152,7 +152,9 @@ body {
 .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
 
 /* Grid */
-.projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 28px; margin-bottom: 56px; animation: fadeUp 0.8s 0.2s cubic-bezier(0.16,1,0.3,1) both; }
+.projects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 56px; animation: fadeUp 0.8s 0.2s cubic-bezier(0.16,1,0.3,1) both; }
+
+@media (max-width: 1100px) { .projects-grid { grid-template-columns: repeat(2, 1fr); } }
 
 /* Card */
 .project-card {
@@ -180,6 +182,7 @@ body {
 .card-logo-circle { width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; flex-shrink: 0; }
 .card-logo-3m { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; border: 1px solid rgba(239,68,68,0.5); box-shadow: 0 8px 24px rgba(239,68,68,0.35); }
 .card-logo-linde { background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%); color: #fff; border: 1px solid rgba(37,99,235,0.5); box-shadow: 0 8px 24px rgba(37,99,235,0.35); }
+.card-logo-kpigrupo { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #fff; border: 1px solid rgba(139,92,246,0.5); box-shadow: 0 8px 24px rgba(139,92,246,0.35); }
 .card-badge-tag {
   padding: 5px 11px; border-radius: var(--r-sm); font-size: 10.5px; font-weight: 700;
   letter-spacing: 0.6px; text-transform: uppercase;
@@ -231,6 +234,8 @@ body {
 .btn-3m:hover { box-shadow: 0 10px 30px rgba(239,68,68,0.55); transform: translateY(-2px); }
 .btn-linde { background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); box-shadow: 0 6px 20px rgba(37,99,235,0.35); }
 .btn-linde:hover { box-shadow: 0 10px 30px rgba(37,99,235,0.55); transform: translateY(-2px); }
+.btn-kpigrupo { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); box-shadow: 0 6px 20px rgba(139,92,246,0.35); }
+.btn-kpigrupo:hover { box-shadow: 0 10px 30px rgba(139,92,246,0.55); transform: translateY(-2px); }
 .btn-primary svg { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1); flex-shrink: 0; }
 .btn-primary:hover svg { transform: translateX(4px); }
 

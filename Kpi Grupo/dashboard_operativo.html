@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Análisis de Operación</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (XLSX Parser) CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            800: '#0c4a6e',
+                            900: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .tab-active { border-bottom: 3px solid #38bdf8; color: #38bdf8; font-weight: 600; }
+    </style>
+</head>
+<body class="h-full font-sans antialiased bg-slate-950 text-slate-100 flex flex-col">
+
+    <!-- Top Navbar -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 px-4 py-3 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20">
+                    <i class="fa-solid fa-chart-line text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white leading-tight">Dashboard Operativo</h1>
+                    <p class="text-xs text-slate-400" id="file-status-indicator">Mostrando datos precargados (REPORTE ANALISIS OPERACIÓN)</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <label for="excel-file-input" class="cursor-pointer bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-all flex items-center shadow-lg shadow-sky-600/20">
+                    <i class="fa-solid fa-file-excel mr-2 text-sm"></i> Cargar REPORTE ANALISIS OPERACIÓN.xls
+                </label>
+                <input type="file" id="excel-file-input" accept=".xls,.xlsx,.csv" class="hidden" />
+
+                <button id="btn-reset-data" title="Restablecer datos por defecto" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-2.5 rounded-lg border border-slate-700 transition text-xs flex items-center">
+                    <i class="fa-solid fa-rotate-right mr-1.5"></i> Reiniciar
+                </button>
+
+                <button id="btn-export-excel" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-2.5 rounded-lg transition text-xs font-medium flex items-center">
+                    <i class="fa-solid fa-download mr-1.5"></i> Exportar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Drag & Drop Zone (Collapsible / Dynamic) -->
+        <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-sky-500 bg-slate-900/60 hover:bg-slate-900 transition-all rounded-xl p-4 text-center cursor-pointer group relative">
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-sky-500/10 text-sky-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                </div>
+                <div class="text-left">
+                    <p class="text-sm font-medium text-slate-200">Arrastra aquí tu archivo <span class="text-sky-400 font-semibold">REPORTE ANALISIS OPERACIÓN.xls</span> o haz clic para seleccionarlo</p>
+                    <p class="text-xs text-slate-400">Soporta extensiones .xls, .xlsx y .csv. Procesa automáticamente todas las columnas del reporte.</p>
+                </div>
+                <div id="sheet-selector-container" class="hidden sm:ml-auto flex items-center space-x-2">
+                    <span class="text-xs text-slate-400">Hoja:</span>
+                    <select id="sheet-selector" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:ring-sky-500 focus:border-sky-500"></select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Executive Dynamic KPIs -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4" id="kpi-container">
+            <!-- Dynamic KPIs injected via JS -->
+        </div>
+
+        <!-- Filter Toolbar -->
+        <section class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2 w-full md:w-auto">
+                    <i class="fa-solid fa-filter text-sky-400 text-sm"></i>
+                    <h2 class="text-sm font-semibold text-white">Filtros Dinámicos</h2>
+                    <span id="active-filter-count" class="bg-sky-500/20 text-sky-300 text-xs font-bold px-2 py-0.5 rounded-full border border-sky-500/30">0 activos</span>
+                </div>
+
+                <div class="flex items-center space-x-2 w-full md:w-auto">
+                    <!-- Global Search Input -->
+                    <div class="relative flex-1 md:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="global-search" placeholder="Buscar en todas las columnas..." class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500">
+                    </div>
+
+                    <button id="btn-clear-filters" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg transition border border-slate-700 whitespace-nowrap">
+                        <i class="fa-solid fa-filter-circle-xmark mr-1"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Category Filter Controls -->
+            <div id="dynamic-filters-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <!-- Selects generated dynamically based on text columns -->
+            </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <div class="border-b border-slate-800 flex space-x-6 text-sm">
+            <button id="tab-btn-dashboard" class="tab-btn tab-active py-2.5 px-1 flex items-center space-x-2 transition">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Vista General de Análisis</span>
+            </button>
+            <button id="tab-btn-table" class="tab-btn py-2.5 px-1 text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+                <i class="fa-solid fa-table"></i>
+                <span>Tabla Completa (<span id="total-rows-badge">0</span>)</span>
+            </button>
+            <button id="tab-btn-pivot" class="tab-btn py-2.5 px-1 text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+                <i class="fa-solid fa-cubes"></i>
+                <span>Análisis Dinámico (Pivot)</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: VISUAL DASHBOARD -->
+        <div id="tab-content-dashboard" class="space-y-6">
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- Chart 1: Volume / Categorical Breakdown -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-slate-200 flex items-center">
+                            <i class="fa-solid fa-chart-bar text-sky-400 mr-2"></i>
+                            <span id="chart1-title">Distribución por Operación / Causa</span>
+                        </h3>
+                        <select id="chart1-col-selector" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="chart1-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Status / SLA / Compliance -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-slate-200 flex items-center">
+                            <i class="fa-solid fa-chart-pie text-emerald-400 mr-2"></i>
+                            <span id="chart2-title">Proporción por Estado / Canal</span>
+                        </h3>
+                        <select id="chart2-col-selector" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="relative h-64 flex items-center justify-center">
+                        <canvas id="chart2-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Metric Average / Total by Group -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-slate-200 flex items-center">
+                            <i class="fa-solid fa-chart-column text-amber-400 mr-2"></i>
+                            <span id="chart3-title">Métrica Promedio por Grupo</span>
+                        </h3>
+                        <div class="flex items-center space-x-1">
+                            <select id="chart3-group-selector" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1"></select>
+                            <select id="chart3-num-selector" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1"></select>
+                        </div>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="chart3-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Time Trend / Timeline -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-slate-200 flex items-center">
+                            <i class="fa-solid fa-chart-line text-purple-400 mr-2"></i>
+                            <span id="chart4-title">Tendencia Temporal</span>
+                        </h3>
+                        <select id="chart4-date-selector" class="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded px-2 py-1"></select>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="chart4-canvas"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB 2: COMPLETE DATA TABLE -->
+        <div id="tab-content-table" class="hidden space-y-4">
+
+            <!-- Table Controls -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex items-center space-x-3">
+                    <span class="text-slate-400">Mostrar</span>
+                    <select id="page-size-selector" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200">
+                        <option value="15">15 filas</option>
+                        <option value="25" selected>25 filas</option>
+                        <option value="50">50 filas</option>
+                        <option value="100">100 filas</option>
+                        <option value="-1">Todas las filas</option>
+                    </select>
+
+                    <div class="relative inline-block text-left" id="column-visibility-dropdown">
+                        <button id="btn-toggle-col-menu" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded flex items-center">
+                            <i class="fa-solid fa-columns mr-1.5"></i> Columnas (<span id="visible-cols-count">0</span>)
+                        </button>
+                        <div id="col-menu-content" class="hidden absolute left-0 mt-2 w-64 max-h-60 overflow-y-auto bg-slate-900 border border-slate-700 rounded-lg shadow-2xl p-2 z-50 space-y-1">
+                            <!-- Checkboxes injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-slate-400" id="table-info-summary">
+                    Mostrando 0-0 de 0 registros
+                </div>
+            </div>
+
+            <!-- Scrollable Table -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto max-h-[600px] relative">
+                    <table class="w-full text-left text-xs border-collapse text-slate-300" id="main-data-table">
+                        <thead class="bg-slate-950 text-slate-200 uppercase font-semibold sticky top-0 z-20 shadow-sm border-b border-slate-800">
+                            <tr id="table-header-row">
+                                <!-- Dynamic headers injected via JS -->
+                            </tr>
+                        </thead>
+                        <tbody id="table-body-rows" class="divide-y divide-slate-800/60 font-mono">
+                            <!-- Dynamic rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination Bar -->
+            <div class="flex items-center justify-between text-xs text-slate-400 bg-slate-900 border border-slate-800 p-3 rounded-xl">
+                <span id="pagination-text">Página 1 de 1</span>
+                <div class="flex space-x-1">
+                    <button id="btn-prev-page" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 disabled:opacity-50 transition">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
+                    </button>
+                    <button id="btn-next-page" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 disabled:opacity-50 transition">
+                        Siguiente <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: PIVOT / AGGREGATION ANALYSIS -->
+        <div id="tab-content-pivot" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+                <div class="flex flex-wrap items-center gap-4 border-b border-slate-800 pb-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Agrupar por Columna:</label>
+                        <select id="pivot-group-col" class="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded px-3 py-1.5 focus:border-sky-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Columna de Métrica:</label>
+                        <select id="pivot-metric-col" class="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded px-3 py-1.5 focus:border-sky-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Cálculo:</label>
+                        <select id="pivot-calc-type" class="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded px-3 py-1.5 focus:border-sky-500">
+                            <option value="count">Conteo / Frecuencia</option>
+                            <option value="sum">Suma Total</option>
+                            <option value="avg" selected>Promedio</option>
+                            <option value="min">Valor Mínimo</option>
+                            <option value="max">Valor Máximo</option>
+                        </select>
+                    </div>
+                    <div class="self-end">
+                        <button id="btn-recalc-pivot" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-4 py-2 rounded font-semibold transition">
+                            <i class="fa-solid fa-calculator mr-1"></i> Calcular Resumen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pivot Summary Table -->
+                <div class="overflow-x-auto rounded-lg border border-slate-800">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-950 text-slate-200 uppercase font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Categoría / Grupo</th>
+                                <th class="p-3">Total Casos / Filas</th>
+                                <th class="p-3">% del Total</th>
+                                <th id="pivot-metric-header" class="p-3">Resultado Métrica</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pivot-table-body" class="divide-y divide-slate-800 font-mono">
+                            <!-- Pivot rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Status -->
+    <footer class="bg-slate-900 border-t border-slate-800 text-xs text-slate-500 py-3 px-4 text-center">
+        <span>Dashboard para REPORTE ANALISIS OPERACIÓN &copy; 2026. Procesamiento de archivos local y confidencial en el navegador.</span>
+    </footer>
+
+    <script>
+        // Global Application State
+        const state = {
+            rawRows: [],          // Raw loaded data objects
+            filteredRows: [],     // Active filtered data objects
+            columns: [],          // Detected column names
+            numericCols: [],      // Numerical columns
+            textCols: [],         // Categorical columns
+            dateCols: [],         // Date-like columns
+            visibleCols: [],      // Columns visible in table
+            
+            // Active filters
+            filters: {},          // { colName: selectedValue }
+            globalSearch: '',
+            
+            // Pagination
+            currentPage: 1,
+            pageSize: 25,
+
+            // Active Tab
+            activeTab: 'dashboard',
+
+            // Chart instances
+            charts: {}
+        };
+
+        // Realistic Sample Dataset corresponding to "REPORTE ANALISIS OPERACIÓN"
+        const DEFAULT_SAMPLE_DATA = [
+            { "ID": "OP-1001", "Fecha": "2026-07-01", "Sede": "Sede Norte", "Operación": "Atención al Cliente", "Agente": "Carlos Mendoza", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 12.5, "Calidad (%)": 98, "Canal": "Llamada", "Causa Raíz": "Sin Incidencia" },
+            { "ID": "OP-1002", "Fecha": "2026-07-01", "Sede": "Sede Central", "Operación": "Soporte Técnico", "Agente": "Ana Gómez", "Estado": "Pendiente", "SLA Met": "No", "Tiempo Gestión (min)": 45.0, "Calidad (%)": 85, "Canal": "Ticket", "Causa Raíz": "Falta Información" },
+            { "ID": "OP-1003", "Fecha": "2026-07-01", "Sede": "Sede Sur", "Operación": "Retenciones", "Agente": "Luis Ramírez", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 8.2, "Calidad (%)": 92, "Canal": "Chat", "Causa Raíz": "Sin Incidencia" },
+            { "ID": "OP-1004", "Fecha": "2026-07-02", "Sede": "Sede Norte", "Operación": "Facturación", "Agente": "María López", "Estado": "Escalado", "SLA Met": "No", "Tiempo Gestión (min)": 32.1, "Calidad (%)": 78, "Canal": "Correo", "Causa Raíz": "Falla Sistema" },
+            { "ID": "OP-1005", "Fecha": "2026-07-02", "Sede": "Sede Central", "Operación": "Atención al Cliente", "Agente": "Jorge Torres", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 15.4, "Calidad (%)": 95, "Canal": "Llamada", "Causa Raíz": "Sin Incidencia" },
+            { "ID": "OP-1006", "Fecha": "2026-07-02", "Sede": "Sede Sur", "Operación": "Soporte Técnico", "Agente": "Sofia Castro", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 22.0, "Calidad (%)": 90, "Canal": "Ticket", "Causa Raíz": "Sin Incidencia" },
+            { "ID": "OP-1007", "Fecha": "2026-07-03", "Sede": "Sede Norte", "Operación": "Retenciones", "Agente": "David Morales", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 10.0, "Calidad (%)": 100, "Canal": "Chat", "Causa Raíz": "Sin Incidencia" },
+            { "ID": "OP-1008", "Fecha": "2026-07-03", "Sede": "Sede Central", "Operación": "Facturación", "Agente": "Elena Vargas", "Estado": "Pendiente", "SLA Met": "No", "Tiempo Gestión (min)": 28.5, "Calidad (%)": 82, "Canal": "Correo", "Causa Raíz": "Proceso Complejo" },
+            { "ID": "OP-1009", "Fecha": "2026-07-03", "Sede": "Sede Sur", "Operación": "Atención al Cliente", "Agente": "Carlos Mendoza", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 14.1, "Calidad (%)": 96, "Canal": "Llamada", "Causa Raíz": "Sin Incidencia" },
+            { "ID": "OP-1010", "Fecha": "2026-07-04", "Sede": "Sede Norte", "Operación": "Soporte Técnico", "Agente": "Ana Gómez", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 18.3, "Calidad (%)": 88, "Canal": "Ticket", "Causa Raíz": "Sin Incidencia" },
+            { "ID": "OP-1011", "Fecha": "2026-07-04", "Sede": "Sede Central", "Operación": "Retenciones", "Agente": "Luis Ramírez", "Estado": "Escalado", "SLA Met": "No", "Tiempo Gestión (min)": 50.0, "Calidad (%)": 70, "Canal": "Llamada", "Causa Raíz": "Cliente Insatisfecho" },
+            { "ID": "OP-1012", "Fecha": "2026-07-04", "Sede": "Sede Sur", "Operación": "Facturación", "Agente": "María López", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 9.5, "Calidad (%)": 94, "Canal": "Chat", "Causa Raíz": "Sin Incidencia" },
+            { "ID": "OP-1013", "Fecha": "2026-07-05", "Sede": "Sede Norte", "Operación": "Atención al Cliente", "Agente": "Jorge Torres", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 11.2, "Calidad (%)": 99, "Canal": "Llamada", "Causa Raíz": "Sin Incidencia" },
+            { "ID": "OP-1014", "Fecha": "2026-07-05", "Sede": "Sede Central", "Operación": "Soporte Técnico", "Agente": "Sofia Castro", "Estado": "Pendiente", "SLA Met": "No", "Tiempo Gestión (min)": 38.0, "Calidad (%)": 80, "Canal": "Correo", "Causa Raíz": "Falta Información" },
+            { "ID": "OP-1015", "Fecha": "2026-07-05", "Sede": "Sede Sur", "Operación": "Retenciones", "Agente": "David Morales", "Estado": "Completado", "SLA Met": "Sí", "Tiempo Gestión (min)": 7.8, "Calidad (%)": 91, "Canal": "Chat", "Causa Raíz": "Sin Incidencia" }
+        ];
+
+        // Initialize App on DOM Ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initAppWithData(DEFAULT_SAMPLE_DATA, "Datos de Ejemplo (REPORTE ANALISIS OPERACIÓN)");
+            setupEventListeners();
+        });
+
+        // Initialize or reload data state
+        function initAppWithData(rows, sourceName = "") {
+            if (!rows || rows.length === 0) {
+                alert("El archivo cargado no contiene registros válidos.");
+                return;
+            }
+
+            state.rawRows = rows;
+            state.filteredRows = [...rows];
+            state.filters = {};
+            state.globalSearch = '';
+            state.currentPage = 1;
+
+            // Detect Columns & Types
+            analyzeColumns(rows);
+
+            // Update UI Indicators
+            document.getElementById('file-status-indicator').textContent = sourceName ? `Origen: ${sourceName}` : "Archivo cargado correctamente";
+            document.getElementById('total-rows-badge').textContent = rows.length;
+
+            // Build Dynamic Components
+            renderDynamicFilterDropdowns();
+            renderColumnVisibilityMenu();
+            renderKPIs();
+            renderCharts();
+            renderTable();
+            renderPivotSelectors();
+            renderPivotTable();
+        }
+
+        // Analyze dataset schema dynamically
+        function analyzeColumns(rows) {
+            if (!rows.length) return;
+            
+            const sample = rows[0];
+            state.columns = Object.keys(sample);
+            state.visibleCols = [...state.columns];
+
+            state.numericCols = [];
+            state.textCols = [];
+            state.dateCols = [];
+
+            state.columns.forEach(col => {
+                let numericCount = 0;
+                let dateCount = 0;
+                let validCount = 0;
+
+                rows.slice(0, 50).forEach(r => {
+                    const val = r[col];
+                    if (val !== undefined && val !== null && val !== '') {
+                        validCount++;
+                        if (typeof val === 'number' || (!isNaN(parseFloat(val)) && isFinite(val))) {
+                            numericCount++;
+                        }
+                        if (typeof val === 'string' && (val.match(/^\d{4}-\d{2}-\d{2}/) || !isNaN(Date.parse(val)))) {
+                            dateCount++;
+                        }
+                    }
+                });
+
+                if (numericCount / validCount > 0.7) {
+                    state.numericCols.push(col);
+                } else if (dateCount / validCount > 0.7) {
+                    state.dateCols.push(col);
+                } else {
+                    state.textCols.push(col);
+                }
+            });
+        }
+
+        // Generate Filter Select Dropdowns for Text Columns
+        function renderDynamicFilterDropdowns() {
+            const container = document.getElementById('dynamic-filters-grid');
+            container.innerHTML = '';
+
+            // Pick up to 4 primary categorical columns
+            const candidateCols = state.textCols.slice(0, 4);
+
+            candidateCols.forEach(col => {
+                const uniqueValues = Array.from(new Set(state.rawRows.map(r => r[col]))).filter(Boolean).sort();
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = "space-y-1";
+                
+                const label = document.createElement('label');
+                label.className = "block text-xs font-medium text-slate-400 truncate";
+                label.textContent = col;
+                label.title = col;
+
+                const select = document.createElement('select');
+                select.className = "w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:border-sky-500 focus:outline-none";
+                select.dataset.col = col;
+
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = "";
+                defaultOpt.textContent = `-- Todos (${col}) --`;
+                select.appendChild(defaultOpt);
+
+                uniqueValues.forEach(val => {
+                    const opt = document.createElement('option');
+                    opt.value = val;
+                    opt.textContent = val;
+                    if (state.filters[col] === val) opt.selected = true;
+                    select.appendChild(opt);
+                });
+
+                select.addEventListener('change', (e) => {
+                    const val = e.target.value;
+                    if (val) {
+                        state.filters[col] = val;
+                    } else {
+                        delete state.filters[col];
+                    }
+                    applyFilters();
+                });
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(select);
+                container.appendChild(wrapper);
+            });
+        }
+
+        // Apply Global Search & Dynamic Category Filters
+        function applyFilters() {
+            state.filteredRows = state.rawRows.filter(row => {
+                // Category Filters
+                for (let col in state.filters) {
+                    if (String(row[col]) !== String(state.filters[col])) {
+                        return false;
+                    }
+                }
+
+                // Global Search Filter
+                if (state.globalSearch) {
+                    const searchLower = state.globalSearch.toLowerCase();
+                    const rowMatch = state.columns.some(col => {
+                        const val = row[col];
+                        return val !== null && val !== undefined && String(val).toLowerCase().includes(searchLower);
+                    });
+                    if (!rowMatch) return false;
+                }
+
+                return true;
+            });
+
+            state.currentPage = 1;
+
+            // Update Badge Count
+            const activeCount = Object.keys(state.filters).length + (state.globalSearch ? 1 : 0);
+            document.getElementById('active-filter-count').textContent = `${activeCount} activo${activeCount !== 1 ? 's' : ''}`;
+
+            // Refresh UI
+            renderKPIs();
+            renderCharts();
+            renderTable();
+            renderPivotTable();
+        }
+
+        // Render Dynamic Executive KPI Cards
+        function renderKPIs() {
+            const container = document.getElementById('kpi-container');
+            container.innerHTML = '';
+
+            const totalRecords = state.filteredRows.length;
+            
+            // Generate primary KPIs
+            const kpiConfigs = [
+                {
+                    title: "Total Registros",
+                    value: totalRecords.toLocaleString(),
+                    icon: "fa-list-check",
+                    color: "sky"
+                }
+            ];
+
+            // If numerical columns exist, calculate sum/average for top metrics
+            if (state.numericCols.length > 0) {
+                const firstNum = state.numericCols[0];
+                const sum = state.filteredRows.reduce((acc, r) => acc + (parseFloat(r[firstNum]) || 0), 0);
+                const avg = totalRecords > 0 ? (sum / totalRecords).toFixed(1) : 0;
+
+                kpiConfigs.push({
+                    title: `Prom. ${firstNum}`,
+                    value: avg,
+                    icon: "fa-calculator",
+                    color: "emerald"
+                });
+
+                if (state.numericCols.length > 1) {
+                    const secondNum = state.numericCols[1];
+                    const sum2 = state.filteredRows.reduce((acc, r) => acc + (parseFloat(r[secondNum]) || 0), 0);
+                    const avg2 = totalRecords > 0 ? (sum2 / totalRecords).toFixed(1) : 0;
+
+                    kpiConfigs.push({
+                        title: `Prom. ${secondNum}`,
+                        value: avg2,
+                        icon: "fa-gauge-high",
+                        color: "purple"
+                    });
+                }
+            }
+
+            // Categorical Ratio KPIs (e.g., Estado = Completado or SLA = Sí)
+            state.textCols.slice(0, 3).forEach(col => {
+                const counts = {};
+                state.filteredRows.forEach(r => {
+                    const val = r[col] || 'N/A';
+                    counts[val] = (counts[val] || 0) + 1;
+                });
+                
+                const topKey = Object.keys(counts).sort((a,b) => counts[b] - counts[a])[0];
+                if (topKey) {
+                    const percent = totalRecords > 0 ? ((counts[topKey] / totalRecords) * 100).toFixed(0) : 0;
+                    kpiConfigs.push({
+                        title: `Dominante: ${col}`,
+                        value: `${topKey} (${percent}%)`,
+                        icon: "fa-pie-chart",
+                        color: "amber"
+                    });
+                }
+            });
+
+            // Render KPI HTML Cards
+            kpiConfigs.slice(0, 6).forEach(kpi => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-1 shadow-sm hover:border-slate-700 transition";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between text-xs text-slate-400">
+                        <span class="truncate" title="${kpi.title}">${kpi.title}</span>
+                        <i class="fa-solid ${kpi.icon} text-${kpi.color}-400"></i>
+                    </div>
+                    <div class="text-lg font-bold text-slate-100 tracking-tight truncate">${kpi.value}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Build or update Chart.js Visualizations
+        function renderCharts() {
+            renderChart1();
+            renderChart2();
+            renderChart3();
+            renderChart4();
+        }
+
+        function populateSelectWithOptions(selectEl, options, selectedVal) {
+            selectEl.innerHTML = '';
+            options.forEach(opt => {
+                const el = document.createElement('option');
+                el.value = opt;
+                el.textContent = opt;
+                if (opt === selectedVal) el.selected = true;
+                selectEl.appendChild(el);
+            });
+        }
+
+        // Chart 1: Bar Chart (Count by Category)
+        function renderChart1() {
+            const selectEl = document.getElementById('chart1-col-selector');
+            if (!selectEl.children.length) {
+                populateSelectWithOptions(selectEl, state.textCols, state.textCols[0]);
+                selectEl.addEventListener('change', () => renderChart1());
+            }
+
+            const activeCol = selectEl.value || state.textCols[0];
+            document.getElementById('chart1-title').textContent = `Casos por ${activeCol || 'Categoría'}`;
+
+            const counts = {};
+            state.filteredRows.forEach(r => {
+                const val = r[activeCol] || 'Sin Especificar';
+                counts[val] = (counts[val] || 0) + 1;
+            });
+
+            const labels = Object.keys(counts).slice(0, 10);
+            const data = labels.map(l => counts[l]);
+
+            if (state.charts.chart1) state.charts.chart1.destroy();
+
+            const ctx = document.getElementById('chart1-canvas').getContext('2d');
+            state.charts.chart1 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Casos',
+                        data: data,
+                        backgroundColor: 'rgba(56, 189, 248, 0.7)',
+                        borderColor: '#38bdf8',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#1e293b' } }
+                    }
+                }
+            });
+        }
+
+        // Chart 2: Doughnut Chart (Distribution)
+        function renderChart2() {
+            const selectEl = document.getElementById('chart2-col-selector');
+            if (!selectEl.children.length) {
+                const defaultCol = state.textCols[1] || state.textCols[0];
+                populateSelectWithOptions(selectEl, state.textCols, defaultCol);
+                selectEl.addEventListener('change', () => renderChart2());
+            }
+
+            const activeCol = selectEl.value || state.textCols[1] || state.textCols[0];
+            document.getElementById('chart2-title').textContent = `Proporción por ${activeCol || 'Grupo'}`;
+
+            const counts = {};
+            state.filteredRows.forEach(r => {
+                const val = r[activeCol] || 'Sin Especificar';
+                counts[val] = (counts[val] || 0) + 1;
+            });
+
+            const labels = Object.keys(counts).slice(0, 7);
+            const data = labels.map(l => counts[l]);
+
+            if (state.charts.chart2) state.charts.chart2.destroy();
+
+            const ctx = document.getElementById('chart2-canvas').getContext('2d');
+            state.charts.chart2 = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#38bdf8', '#34d399', '#f59e0b', '#a78bfa', '#f43f5e', '#fb923c', '#818cf8'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#0f172a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // Chart 3: Metric Average by Category
+        function renderChart3() {
+            const groupSelect = document.getElementById('chart3-group-selector');
+            const numSelect = document.getElementById('chart3-num-selector');
+
+            if (!groupSelect.children.length) {
+                populateSelectWithOptions(groupSelect, state.textCols, state.textCols[0]);
+                groupSelect.addEventListener('change', () => renderChart3());
+            }
+
+            if (!numSelect.children.length) {
+                populateSelectWithOptions(numSelect, state.numericCols, state.numericCols[0]);
+                numSelect.addEventListener('change', () => renderChart3());
+            }
+
+            const groupCol = groupSelect.value || state.textCols[0];
+            const numCol = numSelect.value || state.numericCols[0];
+
+            document.getElementById('chart3-title').textContent = `Promedio de ${numCol || 'Métrica'} por ${groupCol || 'Categoría'}`;
+
+            if (!groupCol || !numCol) return;
+
+            const sums = {};
+            const counts = {};
+
+            state.filteredRows.forEach(r => {
+                const grp = r[groupCol] || 'N/A';
+                const val = parseFloat(r[numCol]);
+                if (!isNaN(val)) {
+                    sums[grp] = (sums[grp] || 0) + val;
+                    counts[grp] = (counts[grp] || 0) + 1;
+                }
+            });
+
+            const labels = Object.keys(sums).slice(0, 10);
+            const data = labels.map(l => (sums[l] / counts[l]).toFixed(2));
+
+            if (state.charts.chart3) state.charts.chart3.destroy();
+
+            const ctx = document.getElementById('chart3-canvas').getContext('2d');
+            state.charts.chart3 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Promedio ${numCol}`,
+                        data: data,
+                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#1e293b' } }
+                    }
+                }
+            });
+        }
+
+        // Chart 4: Time Trend Line Chart
+        function renderChart4() {
+            const dateSelect = document.getElementById('chart4-date-selector');
+            const availableDateCols = state.dateCols.length ? state.dateCols : state.columns;
+
+            if (!dateSelect.children.length) {
+                populateSelectWithOptions(dateSelect, availableDateCols, availableDateCols[0]);
+                dateSelect.addEventListener('change', () => renderChart4());
+            }
+
+            const dateCol = dateSelect.value || availableDateCols[0];
+            document.getElementById('chart4-title').textContent = `Evolución por ${dateCol || 'Fecha'}`;
+
+            const dateCounts = {};
+            state.filteredRows.forEach(r => {
+                const dateVal = r[dateCol] || 'N/A';
+                dateCounts[dateVal] = (dateCounts[dateVal] || 0) + 1;
+            });
+
+            const sortedDates = Object.keys(dateCounts).sort().slice(0, 15);
+            const data = sortedDates.map(d => dateCounts[d]);
+
+            if (state.charts.chart4) state.charts.chart4.destroy();
+
+            const ctx = document.getElementById('chart4-canvas').getContext('2d');
+            state.charts.chart4 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: 'Volumen',
+                        data: data,
+                        borderColor: '#a78bfa',
+                        backgroundColor: 'rgba(167, 139, 250, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#a78bfa'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#1e293b' } }
+                    }
+                }
+            });
+        }
+
+        // Render Column Visibility Dropdown Menu
+        function renderColumnVisibilityMenu() {
+            const menu = document.getElementById('col-menu-content');
+            menu.innerHTML = '';
+
+            state.columns.forEach(col => {
+                const label = document.createElement('label');
+                label.className = "flex items-center space-x-2 text-xs text-slate-300 hover:text-white cursor-pointer py-1 px-1 rounded hover:bg-slate-800";
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = "checkbox";
+                checkbox.checked = state.visibleCols.includes(col);
+                checkbox.className = "rounded border-slate-700 text-sky-500 focus:ring-sky-500 bg-slate-950";
+
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        if (!state.visibleCols.includes(col)) state.visibleCols.push(col);
+                    } else {
+                        state.visibleCols = state.visibleCols.filter(c => c !== col);
+                    }
+                    document.getElementById('visible-cols-count').textContent = state.visibleCols.length;
+                    renderTable();
+                });
+
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(col));
+                menu.appendChild(label);
+            });
+
+            document.getElementById('visible-cols-count').textContent = state.visibleCols.length;
+        }
+
+        // Render Data Table Header & Rows
+        function renderTable() {
+            const headerRow = document.getElementById('table-header-row');
+            const tbody = document.getElementById('table-body-rows');
+
+            headerRow.innerHTML = '';
+            tbody.innerHTML = '';
+
+            // Render Visible Column Headers
+            state.visibleCols.forEach(col => {
+                const th = document.createElement('th');
+                th.className = "p-3 whitespace-nowrap cursor-pointer hover:bg-slate-900 transition";
+                th.innerHTML = `${col} <i class="fa-solid fa-sort text-slate-600 text-[10px] ml-1"></i>`;
+                th.addEventListener('click', () => sortTableByColumn(col));
+                headerRow.appendChild(th);
+            });
+
+            // Calculate Pagination
+            const totalRows = state.filteredRows.length;
+            let startIdx = 0;
+            let endIdx = totalRows;
+
+            if (state.pageSize > 0) {
+                const totalPages = Math.ceil(totalRows / state.pageSize) || 1;
+                if (state.currentPage > totalPages) state.currentPage = totalPages;
+
+                startIdx = (state.currentPage - 1) * state.pageSize;
+                endIdx = Math.min(startIdx + state.pageSize, totalRows);
+
+                document.getElementById('pagination-text').textContent = `Página ${state.currentPage} de ${totalPages}`;
+                document.getElementById('btn-prev-page').disabled = state.currentPage <= 1;
+                document.getElementById('btn-next-page').disabled = state.currentPage >= totalPages;
+            } else {
+                document.getElementById('pagination-text').textContent = "Todas las filas desglosadas";
+                document.getElementById('btn-prev-page').disabled = true;
+                document.getElementById('btn-next-page').disabled = true;
+            }
+
+            document.getElementById('table-info-summary').textContent = `Mostrando ${totalRows ? startIdx + 1 : 0} - ${endIdx} de ${totalRows} registros`;
+
+            // Render Table Body Rows
+            const rowsToRender = state.filteredRows.slice(startIdx, endIdx);
+
+            rowsToRender.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = idx % 2 === 0 ? "bg-slate-900/40 hover:bg-slate-800/60 transition" : "bg-slate-950 hover:bg-slate-800/60 transition";
+
+                state.visibleCols.forEach(col => {
+                    const td = document.createElement('td');
+                    td.className = "p-3 whitespace-nowrap border-b border-slate-800/40";
+                    const val = row[col];
+
+                    // Formatting status badges
+                    if (typeof val === 'string' && ['completado', 'sí', 'exitoso', 'activo'].includes(val.toLowerCase())) {
+                        td.innerHTML = `<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-md font-medium text-[11px] border border-emerald-500/30">${val}</span>`;
+                    } else if (typeof val === 'string' && ['pendiente', 'no', 'escalado', 'inactivo'].includes(val.toLowerCase())) {
+                        td.innerHTML = `<span class="bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded-md font-medium text-[11px] border border-rose-500/30">${val}</span>`;
+                    } else {
+                        td.textContent = val !== undefined && val !== null ? val : '';
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Sort Data Table by Column
+        let sortAsc = true;
+        let lastSortCol = '';
+        function sortTableByColumn(col) {
+            if (lastSortCol === col) {
+                sortAsc = !sortAsc;
+            } else {
+                sortAsc = true;
+                lastSortCol = col;
+            }
+
+            state.filteredRows.sort((a, b) => {
+                let valA = a[col];
+                let valB = b[col];
+
+                if (valA === undefined || valA === null) return 1;
+                if (valB === undefined || valB === null) return -1;
+
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return sortAsc ? valA - valB : valB - valA;
+                }
+
+                return sortAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+            });
+
+            renderTable();
+        }
+
+        // Populate Selectors for Pivot Tab
+        function renderPivotSelectors() {
+            const groupSelect = document.getElementById('pivot-group-col');
+            const metricSelect = document.getElementById('pivot-metric-col');
+
+            populateSelectWithOptions(groupSelect, state.columns, state.textCols[0] || state.columns[0]);
+            populateSelectWithOptions(metricSelect, state.numericCols.length ? state.numericCols : state.columns, state.numericCols[0] || state.columns[0]);
+        }
+
+        // Calculate and Render Pivot Table
+        function renderPivotTable() {
+            const groupCol = document.getElementById('pivot-group-col').value;
+            const metricCol = document.getElementById('pivot-metric-col').value;
+            const calcType = document.getElementById('pivot-calc-type').value;
+
+            if (!groupCol) return;
+
+            document.getElementById('pivot-metric-header').textContent = `Métrica (${calcType.toUpperCase()}: ${metricCol})`;
+
+            const groups = {};
+            const totalRows = state.filteredRows.length;
+
+            state.filteredRows.forEach(r => {
+                const key = r[groupCol] !== undefined && r[groupCol] !== null ? r[groupCol] : 'Sin Categoy';
+                if (!groups[key]) groups[key] = { count: 0, values: [] };
+
+                groups[key].count++;
+                const val = parseFloat(r[metricCol]);
+                if (!isNaN(val)) groups[key].values.push(val);
+            });
+
+            const tbody = document.getElementById('pivot-table-body');
+            tbody.innerHTML = '';
+
+            Object.keys(groups).sort().forEach(key => {
+                const g = groups[key];
+                const pct = totalRows ? ((g.count / totalRows) * 100).toFixed(1) : 0;
+                
+                let resVal = 'N/A';
+                if (g.values.length > 0) {
+                    if (calcType === 'count') resVal = g.count;
+                    else if (calcType === 'sum') resVal = g.values.reduce((a, b) => a + b, 0).toFixed(2);
+                    else if (calcType === 'avg') resVal = (g.values.reduce((a, b) => a + b, 0) / g.values.length).toFixed(2);
+                    else if (calcType === 'min') resVal = Math.min(...g.values).toFixed(2);
+                    else if (calcType === 'max') resVal = Math.max(...g.values).toFixed(2);
+                } else if (calcType === 'count') {
+                    resVal = g.count;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-slate-200">${key}</td>
+                    <td class="p-3 text-sky-400">${g.count}</td>
+                    <td class="p-3 text-slate-400">${pct}%</td>
+                    <td class="p-3 font-bold text-amber-400">${resVal}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Setup Global Event Listeners
+        function setupEventListeners() {
+            // File Upload via Input
+            document.getElementById('excel-file-input').addEventListener('change', handleFileSelect);
+
+            // Drag & Drop File Handling
+            const dropZone = document.getElementById('drop-zone');
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-sky-500', 'bg-sky-500/10');
+            });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('border-sky-500', 'bg-sky-500/10');
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-sky-500', 'bg-sky-500/10');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    processExcelFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            // Global Search Input
+            document.getElementById('global-search').addEventListener('input', (e) => {
+                state.globalSearch = e.target.value.trim();
+                applyFilters();
+            });
+
+            // Clear Filters Button
+            document.getElementById('btn-clear-filters').addEventListener('click', () => {
+                state.filters = {};
+                state.globalSearch = '';
+                document.getElementById('global-search').value = '';
+                
+                // Reset select dropdowns
+                document.querySelectorAll('#dynamic-filters-grid select').forEach(s => s.value = '');
+                applyFilters();
+            });
+
+            // Reset Default Data Button
+            document.getElementById('btn-reset-data').addEventListener('click', () => {
+                initAppWithData(DEFAULT_SAMPLE_DATA, "Datos de Ejemplo (REPORTE ANALISIS OPERACIÓN)");
+            });
+
+            // Export Filtered Table to Excel / CSV
+            document.getElementById('btn-export-excel').addEventListener('click', () => {
+                if (!state.filteredRows.length) return;
+                const worksheet = XLSX.utils.json_to_sheet(state.filteredRows);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte_Filtrado");
+                XLSX.writeFile(workbook, "REPORTE_ANALISIS_OPERACION_FILTRADO.xlsx");
+            });
+
+            // Tab Switching Navigation
+            const tabs = [
+                { btn: 'tab-btn-dashboard', content: 'tab-content-dashboard', name: 'dashboard' },
+                { btn: 'tab-btn-table', content: 'tab-content-table', name: 'table' },
+                { btn: 'tab-btn-pivot', content: 'tab-content-pivot', name: 'pivot' }
+            ];
+
+            tabs.forEach(t => {
+                document.getElementById(t.btn).addEventListener('click', () => {
+                    tabs.forEach(item => {
+                        document.getElementById(item.btn).classList.remove('tab-active', 'text-slate-200');
+                        document.getElementById(item.btn).classList.add('text-slate-400');
+                        document.getElementById(item.content).classList.add('hidden');
+                    });
+                    document.getElementById(t.btn).classList.add('tab-active', 'text-slate-200');
+                    document.getElementById(t.content).classList.remove('hidden');
+                    state.activeTab = t.name;
+                });
+            });
+
+            // Column Visibility Menu Toggle
+            const btnColMenu = document.getElementById('btn-toggle-col-menu');
+            const colMenuContent = document.getElementById('col-menu-content');
+            btnColMenu.addEventListener('click', (e) => {
+                e.stopPropagation();
+                colMenuContent.classList.toggle('hidden');
+            });
+            document.addEventListener('click', () => colMenuContent.classList.add('hidden'));
+            colMenuContent.addEventListener('click', (e) => e.stopPropagation());
+
+            // Pagination Controls
+            document.getElementById('page-size-selector').addEventListener('change', (e) => {
+                state.pageSize = parseInt(e.target.value, 10);
+                state.currentPage = 1;
+                renderTable();
+            });
+
+            document.getElementById('btn-prev-page').addEventListener('click', () => {
+                if (state.currentPage > 1) {
+                    state.currentPage--;
+                    renderTable();
+                }
+            });
+
+            document.getElementById('btn-next-page').addEventListener('click', () => {
+                state.currentPage++;
+                renderTable();
+            });
+
+            // Recalculate Pivot Table
+            document.getElementById('btn-recalc-pivot').addEventListener('click', renderPivotTable);
+        }
+
+        // Handle File Selector
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files && files[0]) {
+                processExcelFile(files[0]);
+            }
+        }
+
+        // Parse Excel / CSV using SheetJS
+        function processExcelFile(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    // Populate sheet selector if multiple sheets exist
+                    const sheetContainer = document.getElementById('sheet-selector-container');
+                    const sheetSelect = document.getElementById('sheet-selector');
+                    sheetSelect.innerHTML = '';
+
+                    if (workbook.SheetNames.length > 1) {
+                        sheetContainer.classList.remove('hidden');
+                        workbook.SheetNames.forEach(sheetName => {
+                            const opt = document.createElement('option');
+                            opt.value = sheetName;
+                            opt.textContent = sheetName;
+                            sheetSelect.appendChild(opt);
+                        });
+
+                        sheetSelect.onchange = () => {
+                            loadSheetData(workbook, sheetSelect.value, file.name);
+                        };
+                    } else {
+                        sheetContainer.classList.add('hidden');
+                    }
+
+                    loadSheetData(workbook, workbook.SheetNames[0], file.name);
+
+                } catch (err) {
+                    alert("Error al procesar el archivo Excel. Asegúrate de que sea un formato válido (.xls, .xlsx, .csv).");
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Load specific sheet rows
+        function loadSheetData(workbook, sheetName, fileName) {
+            const worksheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+            initAppWithData(rows, `${fileName} [Hoja: ${sheetName}]`);
+        }
+    </script>
+</body>
+</html>

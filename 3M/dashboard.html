@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torre de Control - KPI Comex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/jsvectormap.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/jsvectormap"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <a href="../index.html" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; margin-bottom: 14px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 8px; color: #60a5fa; text-decoration: none; font-size: 12px; font-weight: 700; transition: all 0.2s ease;">
+        <span>← Volver al Portal de Proyectos</span>
+      </a>
+      <div class="brand-logo-container">
+        <div class="brand-logo-icon">✈️</div>
+        <div>
+          <div class="brand-eyebrow">Comercio Exterior</div>
+          <h2>Torre de Control</h2>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-menu">
+      <button class="menu-btn active" data-tab="tab-procesos">📋 Procesos</button>
+      <button class="menu-btn" data-tab="tab-agilidad">⏱️ Agilidad</button>
+      <button class="menu-btn" data-tab="tab-facturacion">💰 Facturación</button>
+      <button class="menu-btn" data-tab="tab-inspeccion">🔍 Inspección</button>
+      <button class="menu-btn" data-tab="tab-registros">📝 Registros</button>
+      <button class="menu-btn" data-tab="tab-coo">🌐 COO</button>
+      <button class="menu-btn" data-tab="tab-datos">📊 Datos Detallados</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="theme-toggle-container">
+        <span>Tema Oscuro</span>
+        <button class="theme-toggle-btn" id="themeToggle">🌙</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="content-area">
+    <!-- 2. Botón Flotante Limpiar Filtros -->
+    <div id="activeFiltersBadge">
+      <span id="activeFiltersText">Filtros Activos</span>
+      <button class="clear-filters-btn" id="clearFiltersBtn" title="Limpiar Filtros">✕</button>
+    </div>
+
+    <!-- 3. Tooltip Personalizado -->
+    <div id="custom-tooltip">
+      <div class="tooltip-title"></div>
+      <div class="tooltip-body"></div>
+    </div>
+
+    <div id="uploadZone" style="display: none;"></div>
+
+    <div id="dashboard">
+      <div class="top-action-bar">
+        <a href="../index.html" class="print-report-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa; font-weight: 700;">🏠 Volver a Proyectos</a>
+        <button class="print-report-btn" id="presentationModeBtn">Modo Presentación</button>
+        <button class="print-report-btn" id="printReportBtn">Exportar PDF / Imprimir</button>
+      </div>
+
+      <!-- FILTERS (SLICERS STYLE) -->
+      <div id="filters">
+        <div class="filter-group">
+          <span class="filter-label">Año</span>
+          <div class="chip-row" id="chipYear"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Administración</span>
+          <div class="chip-row" id="chipAdmin"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Línea de negocio</span>
+          <div class="chip-row" id="chipLinea"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Modo de transporte</span>
+          <div class="chip-row" id="chipModo"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Fecha apertura DO</span>
+          <div class="date-inputs">
+            <input type="date" id="dateFrom">
+            <input type="date" id="dateTo">
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: PROCESOS -->
+      <div class="tab-pane active" id="tab-procesos">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="assets/img/logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title" id="activeTabTitle">INDICADORES DE GESTION</div>
+          <div class="pbi-brand-box"><img src="assets/img/logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">Vista Consolidada Mensual</div>
+
+        <div style="display: grid; grid-template-columns: 2.5fr 1fr; gap: 16px; margin-bottom: 16px;">
+          <div class="chart-panel">
+            <h4>Documento de Transporte / Mes</h4>
+            <div class="chart-wrap tall"><canvas id="chartDocsMes"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack" style="justify-content: center;">
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valTTAgilidadProc">0,00</span>
+                <span class="kpi-lbl">Tiempo Agilidad</span>
+              </div>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valTTFacturaProc">0,00</span>
+                <span class="kpi-lbl">TT Facturación</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>Promedio de Tiempo Agilidad</h4>
+            <div class="chart-wrap"><canvas id="chartPromAgilidadProc"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Promedio de Tiempo Facturación</h4>
+            <div class="chart-wrap"><canvas id="chartPromFacturaProc"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Promedio de Tiempo Inspección</h4>
+            <div class="chart-wrap"><canvas id="chartPromInspeccionProc"></canvas></div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>Distribución por modo de transporte</h4>
+            <div class="chart-wrap"><canvas id="chartModo"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Volumen por administración</h4>
+            <div class="chart-wrap"><canvas id="chartAdmin"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Volumen por línea de negocio</h4>
+            <div class="chart-wrap"><canvas id="chartLinea"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: AGILIDAD -->
+      <div class="tab-pane" id="tab-agilidad">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="assets/img/logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">INDICADOR AGILIDAD</div>
+          <div class="pbi-brand-box"><img src="assets/img/logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">META: AEREO 2 DIAS; MARITIMO 5 DIAS</div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>Indicador Agilidad</h4>
+            <div class="chart-wrap tall"><canvas id="chartPromAgilidad"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Cumplimiento Agilidad</h4>
+            <div class="chart-wrap"><canvas id="chartCumpleAgilidad"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valTTAgilidad">0,00</span>
+                <span class="kpi-lbl">TT Agilidad</span>
+              </div>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle green">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valDTAgilidad">0</span>
+                <span class="kpi-lbl">DT Agilidad</span>
+              </div>
+            </div>
+            <div class="pbi-table-panel">
+              <h4>Justificaciones Operaciones</h4>
+              <div class="pbi-table-scroll" style="max-height: 150px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Mes</th>
+                      <th>Responsable</th>
+                      <th>Causal</th>
+                      <th>Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblJustAgilidadBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-2col-equal">
+          <div class="chart-panel">
+            <h4>Justificación Agilidad</h4>
+            <div class="chart-wrap"><canvas id="chartJustAgilidad"></canvas></div>
+          </div>
+          <div class="pbi-table-panel">
+            <h4>Registros Filtrados (Agilidad)</h4>
+            <div class="pbi-table-scroll" style="max-height: 240px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>DO</th>
+                    <th>DO 3M</th>
+                    <th>Documento de transporte</th>
+                    <th>Cumple Agilidad</th>
+                    <th>Responsable / Causal</th>
+                    <th>Justificación</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDetalleAgilidadBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: FACTURACION -->
+      <div class="tab-pane" id="tab-facturacion">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="assets/img/logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">INDICADOR FACTURACIÓN</div>
+          <div class="pbi-brand-box"><img src="assets/img/logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">META: AEREO 2 DIAS; MARITIMO 5 DIAS</div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>Indicador Facturación</h4>
+            <div class="chart-wrap tall"><canvas id="chartPromFactura"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Cumplimiento Facturación</h4>
+            <div class="chart-wrap"><canvas id="chartCumpleFactura"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle orange">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valTTFactura">0,00</span>
+                <span class="kpi-lbl">TT Facturación</span>
+              </div>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle purple">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valDTFactura">0</span>
+                <span class="kpi-lbl">DT Facturación</span>
+              </div>
+            </div>
+            <div class="pbi-table-panel">
+              <h4>Justificaciones Facturación (Actualizado)</h4>
+              <div class="pbi-table-scroll" style="max-height: 150px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Mes</th>
+                      <th>Responsable</th>
+                      <th>Causal</th>
+                      <th>Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblJustFacturaBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-2col-equal">
+          <div class="chart-panel">
+            <h4>Justificación Facturación (Actualizado)</h4>
+            <div class="chart-wrap"><canvas id="chartJustFactura"></canvas></div>
+          </div>
+          <div class="pbi-table-panel">
+            <h4>Registros Filtrados (Facturación)</h4>
+            <div class="pbi-table-scroll" style="max-height: 240px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>DO</th>
+                    <th>DO 3M</th>
+                    <th>Documento de transporte</th>
+                    <th>Cumple Facturación</th>
+                    <th>Responsable / Causal</th>
+                    <th>Justificación</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDetalleFacturaBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: INSPECCION -->
+      <div class="tab-pane" id="tab-inspeccion">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="assets/img/logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">INDICADOR INSPECCIONES</div>
+          <div class="pbi-brand-box"><img src="assets/img/logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">META: INSPECCIÓN EFICIENTE</div>
+
+        <div class="pbi-grid-inspeccion">
+          <div class="chart-panel">
+            <h4>Promedio de Tiempo Inspección</h4>
+            <div class="chart-wrap tall"><canvas id="chartPromInspeccion"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle teal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valTTInspeccion">0,00</span>
+                <span class="kpi-lbl">Tiempo Inspección</span>
+              </div>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  <path d="M9 10h6"></path><path d="M9 14h6"></path><path d="M9 18h6"></path>
+                </svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valDTInspeccion">0</span>
+                <span class="kpi-lbl">Documento Transporte</span>
+              </div>
+            </div>
+            <div class="chart-panel" style="padding: 12px; flex: 1; display: flex; flex-direction: column; min-height: 250px;">
+              <h4 style="text-align: center;">DT Inspecciones</h4>
+              <div class="chart-wrap" style="flex: 1; min-height: 200px;"><canvas id="chartCumpleInspeccion"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-table-panel" style="margin-top: 16px;">
+          <h4>Registros Filtrados (Inspección)</h4>
+          <div class="pbi-table-scroll" style="max-height: 250px;">
+            <table id="tblDetalleInspeccion" class="pbi-table">
+              <thead>
+                <tr>
+                  <th>DO</th>
+                  <th>IDENTIFICACION DE LA OPERACION</th>
+                  <th>NUMERO DE DOCUMENTO DE TRANSPORTE</th>
+                  <th>Cumple</th>
+                  <th>TIEMPO</th>
+                  <th>JUSTIFICACION</th>
+                </tr>
+              </thead>
+              <tbody id="tblDetalleInspeccionBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: REGISTROS -->
+      <div class="tab-pane" id="tab-registros">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="assets/img/logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">REGISTROS / LICENCIAS DE IMPORTACION</div>
+          <div class="pbi-brand-box"><img src="assets/img/logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">Gestión Institucional de Vistos Buenos</div>
+
+        <div class="pbi-grid-3col">
+          <div class="chart-panel">
+            <h4>SKU - Registros por Mes</h4>
+            <div class="chart-wrap tall"><canvas id="chartRegistrosMesBar"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Estado</h4>
+            <div class="chart-wrap"><canvas id="chartRegistrosEstadoDona"></canvas></div>
+          </div>
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valRegTiempo">0,00</span>
+                <span class="kpi-lbl">Tiempo</span>
+              </div>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle orange">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  <path d="M9 10h6"></path><path d="M9 14h6"></path><path d="M9 18h6"></path>
+                </svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valRegSKU">0</span>
+                <span class="kpi-lbl">SKU</span>
+              </div>
+            </div>
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle purple">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  <path d="M9 10h6"></path><path d="M9 14h6"></path><path d="M9 18h6"></path>
+                </svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valRegNoReg">0</span>
+                <span class="kpi-lbl">No. REGISTRO</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pbi-grid-2col-equal">
+          <div class="chart-panel" style="position: relative;">
+            <svg style="position: absolute; top: 12px; left: 12px; width: 28px; height: 28px; color: var(--pbi-blue);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <h4 style="text-align: center;">Promedio Tiempo Aprobación</h4>
+            <div class="chart-wrap tall"><canvas id="chartRegistrosTiempoLine"></canvas></div>
+          </div>
+          <div class="pbi-table-panel" style="padding-top: 24px;">
+            <div class="pbi-table-scroll" style="max-height: 320px;">
+              <table style="font-size: 11px;">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>No. REGISTRO</th>
+                    <th>VistoBueno</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDetalleRegistrosBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: COO -->
+      <div class="tab-pane" id="tab-coo">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="assets/img/logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">BENEFICIO COO (CERTIFICADO DE ORIGEN)</div>
+          <div class="pbi-brand-box"><img src="assets/img/logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">Mapeo Global de Impacto Económico</div>
+
+        <div class="coo-layout">
+          <div class="coo-left">
+            <div class="coo-filters-panel">
+              <div class="coo-filter-group">
+                <h5>MES</h5>
+                <div class="coo-filter-list" id="cooFilterMes"></div>
+              </div>
+              <div class="coo-filter-group">
+                <h5>PAIS DE ORIGEN</h5>
+                <div class="coo-filter-list" id="cooFilterPais"></div>
+              </div>
+              <div class="coo-filter-group">
+                <h5>SUBPARTIDA</h5>
+                <div class="coo-filter-list" id="cooFilterSubpartida"></div>
+              </div>
+            </div>
+            <div class="coo-map-container">
+              <div id="cooWorldMap" style="width:100%; height:100%;"></div>
+            </div>
+          </div>
+
+          <div class="pbi-kpi-stack">
+            <div class="pbi-kpi-mini-card">
+              <div class="kpi-icon-circle green">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-val" id="valCOOTotal" style="color:var(--pbi-blue); font-size:32px;">$ 0</span>
+                <span class="kpi-lbl" style="font-weight:700;">AHORRO TOTAL USD</span>
+              </div>
+            </div>
+            <div class="pbi-table-panel">
+              <div class="pbi-table-scroll" style="max-height: 280px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mes</th>
+                      <th>Subpartida</th>
+                      <th>Ahorro en USD</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblDetalleCOOBody"></tbody>
+                </table>
+              </div>
+              <div class="coo-table-total" id="cooTableTotal"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: DATOS DETALLADOS -->
+      <div class="tab-pane" id="tab-datos">
+        <div class="premium-table-toolbar">
+          <div class="table-search-box-premium">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="tableSearchInput" placeholder="Buscar registros...">
+          </div>
+          <div class="table-sheet-selector-premium">
+            <select id="tableSheetSelect">
+              <option value="indicadores">Indicadores (DOs)</option>
+              <option value="coo">COO (Ahorros)</option>
+              <option value="registros">Registros (Vistos Buenos)</option>
+            </select>
+          </div>
+          <div style="flex: 1;"></div>
+          <div class="table-rows-info-premium">
+            <span id="tableRowsInfoText">0 registros</span>
+          </div>
+          <button class="btn-premium-export" id="btnExportExcel">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Exportar a Excel
+          </button>
+        </div>
+
+        <div class="pbi-table-panel premium-table-wrapper">
+          <table class="premium-data-table modern-table" id="premiumDataTable">
+            <thead>
+              <tr id="premiumDataTableHeader"></tr>
+            </thead>
+            <tbody id="premiumDataTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="premium-pagination" id="premiumPagination">
+          <!-- Paginator generated via JS -->
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <div class="custom-toast" id="customToast">
+    <span id="toastIcon">ℹ️</span>
+    <span id="toastMessage">Notificación</span>
+  </div>
+
+  <script src="js/default_data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/tab_procesos.js"></script>
+  <script src="js/tab_agilidad.js"></script>
+  <script src="js/tab_facturacion.js"></script>
+  <script src="js/tab_inspeccion.js"></script>
+  <script src="js/tab_registros.js"></script>
+</body>
+
+</html>

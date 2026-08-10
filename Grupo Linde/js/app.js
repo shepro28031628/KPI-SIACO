@@ -486,8 +486,8 @@ function parseIndicadoresGrouped(wb) {
     // Common fields
     out.do = getStr(1); // Col B
     out.nit = getStr(2); // Col C
-    out.administracion = getStr(3) || getStr(7); // Col D (index 3: RAZON_SOCIAL - Empresa)
-    out.empresa = getStr(3);
+    out.administracion = getStr(0); // COLUMNA A solicitada por el usuario
+    out.empresa = getStr(0); // COLUMNA A
     out.id_operacion = getStr(4); // Col E
     out.num_doc_trans = getStr(5); // Col F
     out.documentodetransporte = getStr(5);
@@ -763,7 +763,8 @@ function getYearsForRows(rows) {
 
         const defaultPaths = [
           { primary: 'data/REPORTE.xlsx', fallback: 'REPORTE.xlsx' },
-          { primary: 'data/ahorro arrancel.xlsx', fallback: 'ahorro arrancel.xlsx', altFallback: 'data/ahorro arancel.xlsx' }
+          { primary: 'data/ahorro arrancel.xlsx', fallback: 'ahorro arrancel.xlsx', altFallback: 'data/ahorro arancel.xlsx' },
+          { primary: 'data/Reporte linde VUCE.xlsx', fallback: 'Reporte linde VUCE.xlsx' }
         ];
         
         try {
@@ -870,8 +871,8 @@ function getYearsForRows(rows) {
           let fileReporte, fileStatus, fileIT;
           results.forEach(res => {
             const upperName = res.name.toUpperCase();
-            if (upperName.includes('REPORTE')) fileReporte = res;
-            else if (upperName.includes('STATUS')) fileStatus = res;
+            if (upperName.includes('VUCE') || upperName.includes('STATUS')) fileStatus = res;
+            else if (upperName.includes('REPORTE')) fileReporte = res;
             else if (upperName.includes('AHORRO') || upperName.includes('ARANCEL') || upperName.includes('IT')) fileIT = res;
           });
 
@@ -924,18 +925,36 @@ function getYearsForRows(rows) {
             if (fileStatus && fileStatus.wb) {
               const wbStatus = fileStatus.wb;
               const statusSheetName = wbStatus.SheetNames.find(n => n.toLowerCase().includes('rim') || n.toLowerCase().includes('data')) || wbStatus.SheetNames[0];
-              const statusRaw = XLSX.utils.sheet_to_json(wbStatus.Sheets[statusSheetName], { defval: null });
+              const sheetStatus = wbStatus.Sheets[statusSheetName];
+              const rawMatrix = XLSX.utils.sheet_to_json(sheetStatus, { header: 1, defval: null });
+              
+              const normKey = (k) => k ? String(k).toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "") : '';
+              
+              let headerIdx = 0;
+              for (let i = 0; i < Math.min(rawMatrix.length, 20); i++) {
+                 if (rawMatrix[i] && rawMatrix[i].some(c => normKey(c) === 'noregistro' || normKey(c) === 'fechadecreacion' || normKey(c).includes('registro'))) {
+                     headerIdx = i;
+                     break;
+                 }
+              }
+              const headers = (rawMatrix[headerIdx] || []).map(normKey);
+              
+              const statusRaw = [];
+              for (let i = headerIdx + 1; i < rawMatrix.length; i++) {
+                 const row = rawMatrix[i];
+                 if (!row || !row.length) continue;
+                 const obj = {};
+                 headers.forEach((h, idx) => { if (h) obj[h] = row[idx]; });
+                 statusRaw.push(obj);
+              }
 
-              App.raw.registros = statusRaw.map(r => {
-                const normKey = (k) => k.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
-                const nr = {};
-                for (let k in r) nr[normKey(k)] = r[k];
+              App.raw.registros = statusRaw.map(nr => {
                 const getV = (...keys) => {
                   for (let k of keys) if (nr[k] !== undefined && nr[k] !== null && nr[k] !== '') return nr[k];
                   return null;
                 };
 
-                const d1 = parseExcelDateSafe(getV('fechasolicitudrimenviadaaar', 'fechasolicitud'));
+                const d1 = parseExcelDateSafe(getV('fechadecreacion', 'fechasolicitudrimenviadaaar', 'fechasolicitud'));
                 const d2 = parseExcelDateSafe(getV('fechafinalizacionrevisionrimar', 'aprobacion', 'fechafinalizacionrevisionrimdear'));
                 let t = 0, monthStr = '';
                 if (d1 && d2) t = getWorkingDays(d1, d2);
@@ -956,7 +975,7 @@ function getYearsForRows(rows) {
 
                 return {
                   sku: getV('producto', 'pedido'),
-                  noregistro: getV('registroaprobado', 'noregistro', 'documento') || 'PENDIENTE',
+                  noregistro: getV('noregistro', 'registroaprobado', 'documento') || 'PENDIENTE',
                   vistobueno: getV('vobo'),
                   estado: estadoCalculado,
                   tiempo: t,
@@ -965,7 +984,7 @@ function getYearsForRows(rows) {
                   fechaaprobacion: d2,
                   razones: getV('razonnegacon', 'razonrequerimiento', 'observacionparasiaco')
                 };
-              }).filter(r => r.sku);
+              }).filter(r => r.sku || (r.noregistro && r.noregistro !== 'PENDIENTE') || r.mes);
             } else if (fileReporte.wb && fileReporte.wb.SheetNames.map(n => n.toLowerCase().trim()).includes('registros')) {
               App.raw.registros = normalizeRows(safeSheet(fileReporte.wb, 'Registros'));
             } else {
@@ -1067,6 +1086,28 @@ function getYearsForRows(rows) {
     // MODULE: FILTER ENGINE
     // ==========================================
     const FilterEngine = {
+      saveFilters() {
+        const filtersObj = {
+          admin: Array.from(App.filters.admin),
+          linea: Array.from(App.filters.linea),
+          modo: Array.from(App.filters.modo),
+          year: Array.from(App.filters.year)
+        };
+        localStorage.setItem('siaco_filters', JSON.stringify(filtersObj));
+      },
+      loadFilters() {
+        try {
+          const saved = JSON.parse(localStorage.getItem('siaco_filters'));
+          if (saved) {
+            App.filters.admin = new Set(saved.admin || []);
+            App.filters.linea = new Set(saved.linea || []);
+            App.filters.modo = new Set(saved.modo || []);
+            App.filters.year = new Set(saved.year || []);
+            return true;
+          }
+        } catch(e) {}
+        return false;
+      },
       initFilters() {
         const admins = uniqueSorted(App.raw.indicadores.map(r => r['administracion']));
         const lineas = uniqueSorted(App.raw.indicadores.map(r => r['lineadenegocio']));
@@ -1076,15 +1117,18 @@ function getYearsForRows(rows) {
           return (d instanceof Date && !isNaN(d)) ? d.getFullYear().toString() : null;
         }));
 
-        App.filters.admin = new Set();
-        App.filters.linea = new Set();
-        App.filters.modo = new Set();
-        App.filters.year = new Set();
+        if (!this.loadFilters()) {
+          App.filters.admin = new Set();
+          App.filters.linea = new Set();
+          App.filters.modo = new Set();
+          App.filters.year = new Set();
+        }
 
         this.chipRow(document.getElementById('chipAdmin'), admins, 'admin');
         this.chipRow(document.getElementById('chipLinea'), lineas, 'linea');
-        this.chipRow(document.getElementById('chipModo'), modos, 'modo');
-        this.chipRow(document.getElementById('chipYear'), years, 'year');
+        this.chipRow(document.getElementById('chipTransport'), modos, 'modo');
+        
+        this.renderDynamicFilters('tab-procesos'); // Initial load
 
         const dates = App.raw.indicadores.map(r => r['fechaaperturado']).filter(d => d instanceof Date && !isNaN(d));
         if (dates.length) {
@@ -1103,6 +1147,11 @@ function getYearsForRows(rows) {
         this.updateBadge();
       },
       clearAllFilters() {
+        localStorage.removeItem('siaco_filters');
+        App.filters.admin = new Set();
+        App.filters.linea = new Set();
+        App.filters.modo = new Set();
+        App.filters.year = new Set();
         this.initFilters();
         if (App.chartFilters) {
           for (const key in App.chartFilters) {
@@ -1111,6 +1160,34 @@ function getYearsForRows(rows) {
         }
         ChartManager.renderAll();
         this.updateBadge();
+      },
+      renderDynamicFilters(tabId) {
+        const filterGroupTransport = document.getElementById('filterGroupTransport');
+        const labelYear = document.getElementById('labelYear');
+        
+        if (tabId === 'tab-registros') {
+          if (filterGroupTransport) filterGroupTransport.style.display = 'none';
+          if (labelYear) labelYear.textContent = 'Mes';
+          
+          const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+          const allMonths = (App.raw.registros || []).map(r => {
+            const d = r['fechasolicitud'] || r['fechaaprobacion'];
+            return (d instanceof Date && !isNaN(d)) ? monthNames[d.getMonth()] : null;
+          }).filter(Boolean);
+          const years = monthNames.filter(m => allMonths.includes(m));
+          if (years.length === 0) years.push(monthNames[new Date().getMonth()]);
+          this.chipRow(document.getElementById('chipYear'), years, 'year');
+        } else {
+          if (filterGroupTransport) filterGroupTransport.style.display = '';
+          if (labelYear) labelYear.textContent = 'Año';
+          
+          const years = uniqueSorted(App.raw.indicadores.map(r => {
+            const d = r['fechaaperturado'];
+            return (d instanceof Date && !isNaN(d)) ? d.getFullYear().toString() : null;
+          }));
+          if (years.length === 0) years.push(new Date().getFullYear().toString());
+          this.chipRow(document.getElementById('chipYear'), years, 'year');
+        }
       },
       updateBadge() {
         const badge = document.getElementById('activeFiltersBadge');
@@ -1161,6 +1238,8 @@ function getYearsForRows(rows) {
             if (b.classList.contains('active')) App.filters[filterKey].add(v);
             else App.filters[filterKey].delete(v);
             ChartManager.renderAll();
+            FilterEngine.saveFilters();
+            FilterEngine.updateBadge();
           });
           chipsContainer.appendChild(b);
           App.filters[filterKey].add(v);
@@ -1171,12 +1250,16 @@ function getYearsForRows(rows) {
           chipsContainer.querySelectorAll('.chip').forEach(chip => {
             chip.classList.add('active'); App.filters[filterKey].add(chip.dataset.value);
           });
+          FilterEngine.saveFilters();
+          FilterEngine.updateBadge();
           ChartManager.renderAll();
         });
         btnNone.addEventListener('click', () => {
           chipsContainer.querySelectorAll('.chip').forEach(chip => {
             chip.classList.remove('active'); App.filters[filterKey].delete(chip.dataset.value);
           });
+          FilterEngine.saveFilters();
+          FilterEngine.updateBadge();
           ChartManager.renderAll();
         });
       },
@@ -1191,8 +1274,17 @@ function getYearsForRows(rows) {
           if (App.filters.modo.size && !App.filters.modo.has(r['mododetransporte'])) return false;
           const d = (dateField ? r[dateField] : null) || r['fechaaperturado'];
           if (App.filters.year && App.filters.year.size) {
-            const yrStr = (d instanceof Date && !isNaN(d)) ? d.getFullYear().toString() : '';
-            if (!App.filters.year.has(yrStr)) return false;
+            const activeTab = document.querySelector('.menu-btn.active');
+            const isRegistros = activeTab && activeTab.dataset.tab === 'tab-registros';
+            
+            if (isRegistros) {
+              const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+              const yrStr = (d instanceof Date && !isNaN(d)) ? monthNames[d.getMonth()] : '';
+              if (!App.filters.year.has(yrStr)) return false;
+            } else {
+              const yrStr = (d instanceof Date && !isNaN(d)) ? d.getFullYear().toString() : '';
+              if (!App.filters.year.has(yrStr)) return false;
+            }
           }
           if (from && d instanceof Date && d < from) return false;
           if (to && d instanceof Date && d >= new Date(to.getTime() + 86400000)) return false;
@@ -1635,15 +1727,17 @@ function getYearsForRows(rows) {
     // ==========================================
     const CoreEvents = {
       init() {
-        document.querySelectorAll('.menu-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            btn.classList.add('active');
-            const pane = document.getElementById(btn.dataset.tab); 
+        // Init active tab based on window.location
+        const currentPage = window.location.pathname.split('/').pop() || 'procesos.html';
+        const activeBtn = document.querySelector(`.sidebar-menu .menu-btn[href="${currentPage}"]`) || document.querySelector('.sidebar-menu .menu-btn');
+        if (activeBtn) {
+            document.querySelectorAll('.sidebar-menu .menu-btn').forEach(b => b.classList.remove('active'));
+            activeBtn.classList.add('active');
+            FilterEngine.renderDynamicFilters(activeBtn.dataset.tab);
+            
+            const pane = document.getElementById(activeBtn.dataset.tab); 
             if (pane) {
               pane.classList.add('active');
-              // 1. Stagger Animations
               let delay = 0;
               pane.querySelectorAll('.chart-panel, .pbi-kpi-mini-card, .pbi-table-panel').forEach(el => {
                 el.classList.remove('animate-fade-in-up');
@@ -1653,9 +1747,7 @@ function getYearsForRows(rows) {
                 delay += 0.05;
               });
             }
-            ChartManager.renderAll();
-          });
-        });
+        }
 
         // 4. Inyectar botones de exportación individual
         document.querySelectorAll('.chart-panel').forEach(panel => {
@@ -1677,12 +1769,18 @@ function getYearsForRows(rows) {
           }
         });
 
-        document.getElementById('tableSheetSelect').addEventListener('change', (e) => {
-          App.tableState.activeSheet = e.target.value; App.tableState.currentPage = 1; renderTable();
-        });
-        document.getElementById('tableSearchInput').addEventListener('input', (e) => {
-          App.tableState.searchQuery = e.target.value.toLowerCase().trim(); App.tableState.currentPage = 1; renderTable();
-        });
+        const sheetSelect = document.getElementById('tableSheetSelect');
+        if (sheetSelect) {
+          sheetSelect.addEventListener('change', (e) => {
+            App.tableState.activeSheet = e.target.value; App.tableState.currentPage = 1; renderTable();
+          });
+        }
+        const searchInput = document.getElementById('tableSearchInput');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            App.tableState.searchQuery = e.target.value.toLowerCase().trim(); App.tableState.currentPage = 1; renderTable();
+          });
+        }
         if (els.printBtn) {
           els.printBtn.addEventListener('click', () => {
             const currentActiveBtn = document.querySelector('.sidebar-menu .menu-btn.active');
@@ -1724,18 +1822,24 @@ function getYearsForRows(rows) {
           });
         }
 
-        document.getElementById('btnExportExcel').addEventListener('click', () => {
-          const data = App.raw[App.tableState.activeSheet] || [];
-          if (!data.length) return;
-          const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, App.tableState.activeSheet);
-          XLSX.writeFile(wb, `Reporte_${App.tableState.activeSheet}.xlsx`);
-        });
+        const btnExportExcel = document.getElementById('btnExportExcel');
+        if (btnExportExcel) {
+          btnExportExcel.addEventListener('click', () => {
+            const data = App.raw[App.tableState.activeSheet] || [];
+            if (!data.length) return;
+            const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, App.tableState.activeSheet);
+            XLSX.writeFile(wb, `Reporte_${App.tableState.activeSheet}.xlsx`);
+          });
+        }
 
-        document.getElementById('presentationModeBtn').addEventListener('click', () => {
-          document.body.classList.toggle('presentation-mode');
-          if (App.worldMapInstance) setTimeout(() => App.worldMapInstance.updateSize(), 150);
-        });
+        const presentationModeBtn = document.getElementById('presentationModeBtn');
+        if (presentationModeBtn) {
+          presentationModeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('presentation-mode');
+            if (App.worldMapInstance) setTimeout(() => App.worldMapInstance.updateSize(), 150);
+          });
+        }
       }
     };
 

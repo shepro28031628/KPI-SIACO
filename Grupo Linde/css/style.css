@@ -371,8 +371,8 @@
 
   .chip {
     font-size: 11px;
-    background-color: #ffffff;
-    border: 1px solid #edebe9;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color, #edebe9);
     color: var(--text-main);
     padding: 4px 8px;
     border-radius: 2px;
@@ -385,7 +385,8 @@
   }
 
   .chip.active {
-    background-color: #f3f2f1;
+    background-color: var(--pbi-blue);
+    color: #ffffff !important;
     border-color: var(--pbi-blue);
     font-weight: 600;
   }

@@ -6,6 +6,16 @@ ChartManager.renderRegistros = function() {
   if (!App.chartFilters.registros) App.chartFilters.registros = { label: null, month: null };
 
   let donutFilteredRows = [...baseRows];
+  
+  if (App.filters && App.filters.year && App.filters.year.size) {
+    const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    donutFilteredRows = donutFilteredRows.filter(r => {
+      let mIdx = -1;
+      const d = r['fechasolicitud'] || r['fechaaprobacion'];
+      if (d instanceof Date && !isNaN(d)) mIdx = d.getMonth();
+      return mIdx !== -1 && App.filters.year.has(monthNames[mIdx].charAt(0).toUpperCase() + monthNames[mIdx].slice(1));
+    });
+  }
   if (App.chartFilters.registros.month) {
     donutFilteredRows = donutFilteredRows.filter(r => {
       let mIdx = monthOrder.indexOf((r['mes'] || '').toString().toLowerCase().trim());
@@ -17,7 +27,7 @@ ChartManager.renderRegistros = function() {
     });
   }
 
-  let lineFilteredRows = [...baseRows];
+  let lineFilteredRows = [...donutFilteredRows];
   if (App.chartFilters.registros.label) {
     lineFilteredRows = lineFilteredRows.filter(r => String(r['estado']).toUpperCase() === App.chartFilters.registros.label.toUpperCase());
   }
@@ -25,10 +35,7 @@ ChartManager.renderRegistros = function() {
   let fullyFilteredRows = lineFilteredRows.filter(r => donutFilteredRows.includes(r));
 
   if (document.getElementById('valRegTiempo')) document.getElementById('valRegTiempo').textContent = avg(fullyFilteredRows.map(r => r['tiempo'])).toFixed(2).replace('.', ',');
-  if (document.getElementById('valRegSKU')) {
-    const skuStrings = fullyFilteredRows.map(r => r['sku'] !== null && r['sku'] !== undefined ? String(r['sku']).trim() : '');
-    document.getElementById('valRegSKU').textContent = fmtInt(uniqueSorted(skuStrings).length);
-  }
+
   if (document.getElementById('valRegNoReg')) document.getElementById('valRegNoReg').textContent = fmtInt(fullyFilteredRows.length);
 
   this.barChart('chartRegistrosEstadoDona', countBy(donutFilteredRows, 'estado'), 'doughnut', (label) => {
@@ -40,7 +47,7 @@ ChartManager.renderRegistros = function() {
     this.renderRegistros();
   }, App.chartFilters.registros.label);
 
-  const skuByMonthSets = Array.from({ length: 12 }, () => new Set());
+
   const regByMonth = Array(12).fill(0);
   const timeSums = Array(12).fill(0), timeCounts = Array(12).fill(0);
 
@@ -51,7 +58,7 @@ ChartManager.renderRegistros = function() {
       if (d instanceof Date && !isNaN(d)) mIdx = d.getMonth();
     }
     if (mIdx !== -1) {
-      if (r['sku']) skuByMonthSets[mIdx].add(String(r['sku']).trim());
+
       regByMonth[mIdx]++;
       if (isNum(r['tiempo'])) { timeSums[mIdx] += r['tiempo']; timeCounts[mIdx]++; }
     }
@@ -77,7 +84,6 @@ ChartManager.renderRegistros = function() {
       data: {
         labels: monthOrder,
         datasets: [
-          { label: 'SKU', data: skuByMonthSets.map(s => s.size), backgroundColor: PALETTE[0] },
           { label: 'No. REGISTRO', data: regByMonth, type: 'line', borderColor: PALETTE[2], fill: false }
         ]
       },
@@ -114,7 +120,7 @@ ChartManager.renderRegistros = function() {
       }
     });
   }
-  this.renderSubTable('tblDetalleRegistrosBody', fullyFilteredRows, ['sku', 'noregistro', 'vistobueno', 'estado']);
+  this.renderSubTable('tblDetalleRegistrosBody', fullyFilteredRows, ['noregistro']);
 }
 
 

@@ -1128,7 +1128,9 @@ function getYearsForRows(rows) {
         this.chipRow(document.getElementById('chipLinea'), lineas, 'linea');
         this.chipRow(document.getElementById('chipTransport'), modos, 'modo');
         
-        this.renderDynamicFilters('tab-procesos'); // Initial load
+        const activeBtn = document.querySelector('.sidebar-menu .menu-btn.active');
+        const currentTab = activeBtn ? activeBtn.dataset.tab : 'tab-procesos';
+        this.renderDynamicFilters(currentTab); // Initial load based on current page
 
         const dates = App.raw.indicadores.map(r => r['fechaaperturado']).filter(d => d instanceof Date && !isNaN(d));
         if (dates.length) {

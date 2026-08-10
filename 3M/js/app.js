@@ -99,6 +99,7 @@ if (typeof Chart !== 'undefined') {
 const els = {
   uploadZone: document.getElementById('uploadZone'),
   fileInput: document.getElementById('fileInput'),
+  hiddenFileInput: document.getElementById('hiddenFileInput'),
   fileBtn: document.getElementById('fileBtn'),
   uploadStatus: document.getElementById('uploadStatus'),
   uploadError: document.getElementById('uploadError'),
@@ -741,6 +742,11 @@ function getYearsForRows(rows) {
             if (e.target.files.length > 0) this.queueFiles(Array.from(e.target.files));
           });
         }
+        if (els.hiddenFileInput) {
+          els.hiddenFileInput.addEventListener('change', e => {
+            if (e.target.files.length > 0) this.queueFiles(Array.from(e.target.files));
+          });
+        }
 
         if (els.uploadZone) {
           ['dragenter', 'dragover'].forEach(ev => els.uploadZone.addEventListener(ev, e => {
@@ -775,6 +781,7 @@ function getYearsForRows(rows) {
         }
         if (els.fileBtn) els.fileBtn.style.display = 'inline-block';
         if (els.fileInput) els.fileInput.value = '';
+        if (els.hiddenFileInput) els.hiddenFileInput.value = '';
       },
       async queueFiles(newFiles) {
         els.uploadError.style.display = 'none';
@@ -986,6 +993,16 @@ function getYearsForRows(rows) {
           }
 
           LocalDB.save('lastSession', { raw: App.raw, fileName: files.map(f => f.name).join(', ') });
+          
+          // Generar default_data.js automáticamente al subir archivos
+          const dataStr = "// Pre-built dataset\nwindow.DEFAULT_DATA = " + JSON.stringify({raw: App.raw});
+          const blob = new Blob([dataStr], {type: "text/javascript"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = "default_data.js";
+          a.click();
+
           FilterEngine.initFilters();
           ChartManager.renderAll();
 

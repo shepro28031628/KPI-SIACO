@@ -1693,3 +1693,9 @@ body.printing-all-tabs #tab-inspeccion {
     background-color: var(--primary-color, #0284c7);
     color: #ffffff;
   }
+
+
+/* Ocultar pestaña de inspeccion por el momento */
+a.menu-btn[data-tab="tab-inspeccion"] {
+  display: none !important;
+}

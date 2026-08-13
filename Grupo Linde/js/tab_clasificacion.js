@@ -55,8 +55,23 @@ ChartManager.renderClasificacion = function() {
                 responsive: true,
                 maintainAspectRatio: false,
                 indexAxis: 'y', // Horizontal bar chart
+                layout: {
+                    padding: {
+                        right: 30 // add space for datalabels
+                    }
+                },
                 plugins: {
                     legend: { display: false },
+                    datalabels: {
+                        display: true,
+                        anchor: 'end',
+                        align: 'right',
+                        color: '#605e5c',
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        }
+                    },
                     tooltip: {
                         callbacks: {
                             title: (context) => topRestrictions[context[0].dataIndex].name

@@ -58,11 +58,94 @@ ChartManager.renderRegistros = function() {
       if (d instanceof Date && !isNaN(d)) mIdx = d.getMonth();
     }
     if (mIdx !== -1) {
-
       regByMonth[mIdx]++;
-      if (isNum(r['tiempo'])) { timeSums[mIdx] += r['tiempo']; timeCounts[mIdx]++; }
     }
   });
+
+  const vuceData = App.raw.vuceRegistros || [];
+  if (vuceData.length > 1) {
+    const isYearFiltered = App.filters && App.filters.year && App.filters.year.size > 0;
+
+    for (let i = 1; i < vuceData.length; i++) {
+      const row = vuceData[i];
+      if (!row) continue;
+      
+      // Columna D (index 3) y Columna F (index 5)
+      let valD = row[3];
+      let valF = row[5];
+
+      let fechaCreacionObj = null;
+      if (valD instanceof Date) {
+          fechaCreacionObj = valD;
+      } else if (typeof valD === 'string') {
+          const parts = valD.split('-');
+          if (parts.length === 3) fechaCreacionObj = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+          else {
+              const parsed = Date.parse(valD);
+              if(!isNaN(parsed)) fechaCreacionObj = new Date(parsed);
+          }
+      } else if (typeof valD === 'number') {
+          fechaCreacionObj = new Date(Math.round((valD - 25569) * 86400 * 1000));
+      }
+
+      let fechaRegistro = null;
+      
+      if (valF && typeof valF === 'string' && valF.includes('REG-')) {
+        const match = valF.match(/-(\d{8})[A-Z]?$/);
+        if (match) {
+          const dateStr = match[1]; 
+          const year = parseInt(dateStr.substring(0, 4), 10);
+          const month = parseInt(dateStr.substring(4, 6), 10) - 1;
+          const day = parseInt(dateStr.substring(6, 8), 10);
+          fechaRegistro = new Date(year, month, day);
+        }
+      }
+      
+      if (!fechaRegistro || isNaN(fechaRegistro)) {
+        if (valF instanceof Date) {
+            fechaRegistro = valF;
+        } else if (typeof valF === 'number') {
+            fechaRegistro = new Date(Math.round((valF - 25569) * 86400 * 1000));
+        } else if (typeof valF === 'string') {
+            const parts = valF.split('-');
+            if (parts.length === 3) fechaRegistro = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+            else {
+                const parsed = Date.parse(valF);
+                if(!isNaN(parsed)) fechaRegistro = new Date(parsed);
+            }
+        }
+      }
+
+      if (fechaCreacionObj && !isNaN(fechaCreacionObj) && fechaRegistro && !isNaN(fechaRegistro)) {
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const monthName = monthNames[fechaCreacionObj.getMonth()];
+        
+        // En la pestaña registros, el filtro "year" de la interfaz en realidad almacena los Meses
+        if (isYearFiltered && !App.filters.year.has(monthName)) continue;
+
+        let t = 0;
+        if (typeof getWorkingDays === 'function') {
+            t = getWorkingDays(fechaCreacionObj, fechaRegistro);
+        } else {
+            const diffTime = Math.abs(fechaRegistro - fechaCreacionObj);
+            t = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        }
+
+        const mIdx = fechaCreacionObj.getMonth();
+        if (mIdx >= 0 && mIdx < 12) {
+            timeSums[mIdx] += t;
+            timeCounts[mIdx]++;
+        }
+      }
+    }
+  }
+
+  const totalVuceTime = timeSums.reduce((acc, val) => acc + val, 0);
+  const totalVuceCount = timeCounts.reduce((acc, val) => acc + val, 0);
+  const avgVuce = totalVuceCount > 0 ? (totalVuceTime / totalVuceCount) : 0;
+  if (document.getElementById('valRegTiempo')) {
+    document.getElementById('valRegTiempo').textContent = avgVuce.toFixed(2).replace('.', ',');
+  }
 
   const handleMonthClick = (e, activeElements, chart) => {
     if (activeElements.length > 0) {

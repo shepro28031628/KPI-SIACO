@@ -1,6 +1,6 @@
 // ---------- Global State ----------
 const App = {
-  raw: { indicadores: [], coo: [], registros: [], razones: [] },
+  raw: { indicadores: [], coo: [], registros: [], razones: [], vuceRegistros: [] },
   charts: {},
   filters: { admin: new Set(), linea: new Set(), modo: new Set(), year: new Set(), from: null, to: null },
   tableState: { activeSheet: 'indicadores', searchQuery: '', currentPage: 1, pageSize: 10, sortCol: null, sortAsc: true },
@@ -745,7 +745,7 @@ function getYearsForRows(rows) {
           els.uploadZone.style.display = 'block';
           els.resetBtn.style.display = 'none';
           this.resetUploadState();
-          App.raw = { indicadores: [], coo: [], registros: [], razones: [] };
+          App.raw = { indicadores: [], coo: [], registros: [], razones: [], vuceRegistros: [] };
           LocalDB.clear();
         });
       },
@@ -985,6 +985,13 @@ function getYearsForRows(rows) {
                   razones: getV('razonnegacon', 'razonrequerimiento', 'observacionparasiaco')
                 };
               }).filter(r => r.sku || (r.noregistro && r.noregistro !== 'PENDIENTE') || r.mes);
+
+              // Extract Registros sheet from VUCE if available
+              if (wbStatus.SheetNames.includes('Registros')) {
+                  const sheetVuceReg = wbStatus.Sheets['Registros'];
+                  App.raw.vuceRegistros = XLSX.utils.sheet_to_json(sheetVuceReg, { header: 1, defval: null });
+              }
+
             } else if (fileReporte.wb && fileReporte.wb.SheetNames.map(n => n.toLowerCase().trim()).includes('registros')) {
               App.raw.registros = normalizeRows(safeSheet(fileReporte.wb, 'Registros'));
             } else {

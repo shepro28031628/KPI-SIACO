@@ -150,7 +150,10 @@ ChartManager.renderClasificacion = function() {
                 layout: { padding: { right: 30 } },
                 plugins: {
                     legend: { display: false },
-                    datalabels: { display: true, anchor: 'end', align: 'right', color: '#605e5c', font: { weight: 'bold', size: 11 } },
+                    datalabels: { 
+                        display: function(ctx) { return ctx.dataset.data[ctx.dataIndex] > 0; }, 
+                        anchor: 'end', align: 'right', color: '#605e5c', font: { weight: 'bold', size: 11 } 
+                    },
                     tooltip: { callbacks: { title: (context) => topRestrictions[context[0].dataIndex].name } }
                 },
                 scales: {
@@ -184,18 +187,21 @@ ChartManager.renderClasificacion = function() {
         });
 
         const colors = ['#118DFF', '#12239E', '#E66C37', '#6B007B', '#E044A7', '#00B8AA', '#F2C80F'];
-        let colorIdx = 0;
+        const companyColors = {};
+        const allCompanies = Array.from(new Set(window.CLASIFICACION_RAW_DATA.datos.map(d => d.cliente))).sort();
+        allCompanies.forEach((c, i) => companyColors[c] = colors[i % colors.length]);
+
         const datasets = Object.keys(productsByCompanyAndMonth).map(company => {
             const companyData = productsByCompanyAndMonth[company];
             const datasetData = sortedMonths.map(my => companyData[my] ? companyData[my].size : 0);
+            const total = datasetData.reduce((a, b) => a + b, 0);
             const dataset = {
-                label: company.length > 30 ? company.substring(0, 30) + '...' : company,
+                label: (company.length > 30 ? company.substring(0, 30) + '...' : company) + ` (${total})`,
                 data: datasetData,
-                backgroundColor: colors[colorIdx % colors.length],
-                borderColor: colors[colorIdx % colors.length],
+                backgroundColor: companyColors[company] || '#118DFF',
+                borderColor: companyColors[company] || '#118DFF',
                 borderWidth: 1, borderRadius: 4
             };
-            colorIdx++;
             return dataset;
         });
 
@@ -206,14 +212,17 @@ ChartManager.renderClasificacion = function() {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
                     legend: { display: true, position: 'top' },
-                    datalabels: { display: true, anchor: 'end', align: 'top', color: '#605e5c', font: { weight: 'bold', size: 10 } },
+                    datalabels: { 
+                        display: function(ctx) { return ctx.dataset.data[ctx.dataIndex] > 0; },
+                        anchor: 'end', align: 'top', color: '#605e5c', font: { weight: 'bold', size: 10 } 
+                    },
                     tooltip: { callbacks: { title: (context) => sortedMonths[context[0].dataIndex] } }
                 },
                 scales: {
                     x: { grid: { display: false } },
-                    y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { stepSize: 1 } }
+                    y: { beginAtZero: true, grace: '20%', grid: { color: '#f0f0f0' }, ticks: { stepSize: 1 } }
                 },
-                layout: { padding: { top: 20 } }
+                layout: { padding: { top: 30 } }
             }
         });
         if (!window.App) window.App = { charts: {} };

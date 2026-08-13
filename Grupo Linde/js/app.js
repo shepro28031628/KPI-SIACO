@@ -1200,28 +1200,8 @@ function getYearsForRows(rows) {
       },
       updateBadge() {
         const badge = document.getElementById('activeFiltersBadge');
-        const text = document.getElementById('activeFiltersText');
-        if (!badge || !text) return;
-        
-        let activeCount = 0;
-        if (App.filters.admin.size > 0) activeCount += App.filters.admin.size;
-        if (App.filters.linea.size > 0) activeCount += App.filters.linea.size;
-        if (App.filters.modo.size > 0) activeCount += App.filters.modo.size;
-        if (App.filters.year.size > 0) activeCount += App.filters.year.size;
-        
-        if (App.chartFilters) {
-          for (const key in App.chartFilters) {
-            const f = App.chartFilters[key];
-            if (f.label) activeCount++;
-            if (f.month && f.year) activeCount++;
-          }
-        }
-        
-        if (activeCount > 0) {
-          text.textContent = `${activeCount} Filtro${activeCount > 1 ? 's' : ''} Activo${activeCount > 1 ? 's' : ''}`;
-          badge.style.display = 'flex';
-        } else {
-          badge.style.display = 'none';
+        if (badge) {
+            badge.style.display = 'none';
         }
       },
       chipRow(container, values, filterKey) {

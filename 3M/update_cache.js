@@ -75,7 +75,8 @@ async function updateCache() {
   const filePaths = [
     'data/REPORTE.xls',
     'data/STATUS.xlsx',
-    'data/ahorro arancel.xls'
+    'data/ahorro arancel.xls',
+    'data/PLANEACION 3M2.xlsx'
   ];
 
   const files = [];

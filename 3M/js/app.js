@@ -1,6 +1,6 @@
 // ---------- Global State ----------
 const App = {
-  raw: { indicadores: [], coo: [], registros: [], razones: [] },
+  raw: { indicadores: [], coo: [], registros: [], razones: [], dtas: [] },
   charts: {},
   filters: { admin: new Set(), linea: new Set(), modo: new Set(), year: new Set(), from: null, to: null },
   tableState: { activeSheet: 'indicadores', searchQuery: '', currentPage: 1, pageSize: 10, sortCol: null, sortAsc: true },
@@ -551,6 +551,70 @@ function parseIndicadoresGrouped(wb) {
   }).filter(r => r !== null && r.do && String(r.do).trim() !== '' && !String(r.do).toUpperCase().includes('TRAZABILIDAD') && !String(r.do).toUpperCase().includes('FECHA DE CREACION'));
 }
 
+function parseDTA(wb) {
+  if (!wb || !wb.SheetNames) return [];
+  const sheetName = wb.SheetNames.find(n => n.toUpperCase().includes('DTA')) || wb.SheetNames[0];
+  if (!sheetName) return [];
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, raw: true, defval: null });
+  if (rows.length < 2) return [];
+
+  const parseDtaDate = (v) => {
+    if (!v || v === '0000-00-00' || v === 'N/A' || String(v).trim() === '') return null;
+    if (typeof v === 'number') {
+      const d = new Date((v - 25569) * 86400 * 1000);
+      return (d instanceof Date && !isNaN(d) && d.getFullYear() > 2000) ? d : null;
+    }
+    const d = parseExcelDateSafe(v);
+    return (d instanceof Date && !isNaN(d) && d.getFullYear() > 2000) ? d : null;
+  };
+
+  const diffDays = (dEnd, dStart) => {
+    if (dEnd instanceof Date && !isNaN(dEnd) && dStart instanceof Date && !isNaN(dStart)) {
+      return Math.round((dEnd.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24));
+    }
+    return null;
+  };
+
+  const data = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || (!r[2] && !r[3])) continue;
+
+    const fLlegada = parseDtaDate(r[7]);     // Col H: ATA / Llegada Real
+    const fFinalizacionMV = parseDtaDate(r[8]); // Col I: Finalización MV
+    const fLiberacion = parseDtaDate(r[9]);   // Col J: Liberación
+    const fRetiroPuerto = parseDtaDate(r[10]);// Col K: Retiro Puerto
+    const fIngresoZF = parseDtaDate(r[11]);   // Col L: Ingreso ZF
+    const fLevante = parseDtaDate(r[14]);     // Col O: Levante
+    const fEtiquetado = parseDtaDate(r[15]);  // Col P: Finalización Etiquetado
+
+    data.push({
+      lineadenegocio: r[0] ? String(r[0]).trim() : 'PROVEEDORES COMPANY',
+      administracion: r[1] ? String(r[1]).trim() : 'BOG',
+      do: r[2] ? String(r[2]).trim() : '',
+      documentodetransporte: r[3] ? String(r[3]).trim() : '',
+      idoperacion: r[4] ? String(r[4]).trim() : '',
+      proveedor: r[5] ? String(r[5]).trim() : '',
+      deposito: r[6] ? String(r[6]).trim() : '',
+      fecharealdellegada: fLlegada,
+      fechafinalizacionmv: fFinalizacionMV,
+      fechaliberacion: fLiberacion,
+      fecharetiropuerto: fRetiroPuerto,
+      fechaingresozf: fIngresoZF,
+      estado: r[12] ? String(r[12]).trim() : '',
+      manejo: r[13] ? String(r[13]).trim() : 'TRANSITO-DTA',
+      fechadelevante: fLevante,
+      fechafinalizacionetiquetado: fEtiquetado,
+      // Días métricas solicitadas por el usuario:
+      dias_llegada_a_liberacion: diffDays(fLiberacion, fLlegada), // G2: Col J - Col H
+      dias_llegada_a_ingresozf: diffDays(fIngresoZF, fLlegada),   // G3: Col L - Col H
+      dias_ingresozf_a_levante: diffDays(fLevante, fIngresoZF),   // G4: Col O - Col L
+      dias_ingresozf_a_etiquetado: diffDays(fEtiquetado, fIngresoZF) // G6: Col P - Col L
+    });
+  }
+  return data;
+}
+
 function normalizeKey(str) {
   if (typeof str !== 'string') return '';
   return str.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
@@ -1002,15 +1066,25 @@ function getYearsForRows(rows) {
               } else if (arancelVal > 0) {
                 ahorro = Math.max(0, (base * arancelVal / 100 - liq) / tasa);
               }
-
               return {
-                paisdeorigen: nr['paisorigen'] || nr['pais'] || '',
-                subpartida: sub,
-                ahorroenusd: nr['ahorroenusd'] !== undefined ? parseFloat(nr['ahorroenusd']) : ahorro,
+                do: nr['do'] || nr['pedido'],
+                fecha: dLev,
                 mes: mesStr,
-                anio: anioVal
+                anio: anioVal,
+                subpartida: sub,
+                acuerdo: acuerdo,
+                arancel: arancelVal,
+                base: base,
+                liquidado: liq,
+                ahorro: ahorro
               };
-            }).filter(r => r.paisdeorigen && r.mes);
+            }).filter(r => r.do);
+
+            // Parsear Planeación / DTA si está presente
+            const fileDTA = results.find(r => r.name.toUpperCase().includes('PLANEACION') || r.name.toUpperCase().includes('DTA'));
+            if (fileDTA && fileDTA.wb) {
+              App.raw.dtas = parseDTA(fileDTA.wb);
+            }
           }
 
           LocalDB.save('lastSession', { raw: App.raw, fileName: files.map(f => f.name).join(', ') });
@@ -1184,6 +1258,7 @@ function getYearsForRows(rows) {
           else if (tabId === 'tab-inspeccion' && typeof this.renderInspeccion === 'function') this.renderInspeccion();
           else if (tabId === 'tab-registros' && typeof this.renderRegistros === 'function') this.renderRegistros();
           else if (tabId === 'tab-coo' && typeof this.renderCOO === 'function') this.renderCOO();
+          else if (tabId === 'tab-dtas' && typeof this.renderDTAS === 'function') this.renderDTAS();
           else if (tabId === 'tab-datos' && typeof renderTable === 'function') renderTable();
           
           if (FilterEngine && typeof FilterEngine.updateBadge === 'function') {

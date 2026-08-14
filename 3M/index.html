@@ -531,14 +531,112 @@
 
       <!-- TAB: DTAS -->
       <div class="tab-pane no-print" id="tab-dtas">
-        <div class="dashboard-header" style="margin-bottom: 20px;">
-          <div>
-            <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--pbi-dark);">Módulo DTAS</h2>
-            <p style="color: var(--text-muted); font-size: 0.875rem;">Análisis y control de operaciones DTAS</p>
+        <!-- KPI Cards Superiores -->
+        <div class="kpi-row" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <div class="kpi-card">
+            <div class="kpi-icon-circle blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-val" id="valDtaTotalOps">0</span>
+              <span class="kpi-lbl">Total Operaciones DTA</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-circle blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-val" id="valDtaAvgLlegadaLib">0,00 d</span>
+              <span class="kpi-lbl">Prom. Llegada vs Liberación</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-circle green">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-val" id="valDtaAvgLlegadaZF">0,00 d</span>
+              <span class="kpi-lbl">Prom. Llegada vs Ingreso ZF</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-circle orange">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-val" id="valDtaAvgZfLevante">0,00 d</span>
+              <span class="kpi-lbl">Prom. Días ZF vs Levante</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-circle purple">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-val" id="valDtaAvgZfEtiquetado">0,00 d</span>
+              <span class="kpi-lbl">Prom. Días ZF vs Etiquetado</span>
+            </div>
           </div>
         </div>
-        <div id="dtasContentContainer" style="display: flex; flex-direction: column; gap: 20px;">
-          <!-- Aquí se renderizarán los KPIs, gráficos y tablas DTAS -->
+
+        <!-- FILA 1 DE GRÁFICAS (1, 2, 3) -->
+        <div class="pbi-grid-3col" style="margin-bottom: 20px;">
+          <div class="chart-panel">
+            <h4>1. Planeación: Análisis Documento de Transporte</h4>
+            <div class="chart-wrap"><canvas id="chartDtaDocTrans"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>2. Llegada Real vs Liberación (Días)</h4>
+            <div class="chart-wrap"><canvas id="chartDtaLlegadaLiberacion"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>3. Llegada Real vs Ingreso a ZF (Días)</h4>
+            <div class="chart-wrap"><canvas id="chartDtaLlegadaIngresoZF"></canvas></div>
+          </div>
+        </div>
+
+        <!-- FILA 2 DE GRÁFICAS (4, 5, 6) -->
+        <div class="pbi-grid-3col" style="margin-bottom: 20px;">
+          <div class="chart-panel">
+            <h4>4. Días en Zona Franca vs Levante</h4>
+            <div class="chart-wrap"><canvas id="chartDtaZfLevante"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>5. Días Ingreso ZF vs Etiquetado y Levante</h4>
+            <div class="chart-wrap"><canvas id="chartDtaIngresoEtiquetado"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>6. Finalización Etiquetado vs Ingreso ZF</h4>
+            <div class="chart-wrap"><canvas id="chartDtaFinalEtiquetadoZF"></canvas></div>
+          </div>
+        </div>
+
+        <!-- TABLA DE TRAZABILIDAD DTAS -->
+        <div class="pbi-table-panel" style="background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 16px;">
+          <h4 style="margin-bottom: 12px; font-weight: 700; color: var(--text-main);">Detalle de Operaciones DTAS (PLANEACIÓN 2026)</h4>
+          <div class="pbi-table-scroll" style="max-height: 400px; overflow-y: auto;">
+            <table class="pbi-sub-table">
+              <thead>
+                <tr>
+                  <th>DO</th>
+                  <th>Doc. Transporte</th>
+                  <th>Proveedor</th>
+                  <th>F. Llegada</th>
+                  <th>F. Liberación</th>
+                  <th>F. Ingreso ZF</th>
+                  <th>F. Levante</th>
+                  <th>F. Etiquetado</th>
+                  <th>Llegada-Lib</th>
+                  <th>Llegada-ZF</th>
+                  <th>ZF-Levante</th>
+                  <th>ZF-Etiquetado</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDtas"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -595,6 +693,8 @@
   <script src="js/tab_facturacion.js"></script>
   <script src="js/tab_inspeccion.js"></script>
   <script src="js/tab_registros.js"></script>
+  <script src="js/tab_coo.js"></script>
+  <script src="js/tab_dtas.js"></script>
 </body>
 
 </html>

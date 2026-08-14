@@ -32,7 +32,7 @@ El dashboard está dividido analíticamente en las siguientes áreas de enfoque:
 | ⚡ | **Agilidad** | Análisis detallado de tiempos operativos (*Total Time*, *Despacho Time*) y justificaciones de retrasos. |
 | 💳 | **Facturación** | Seguimiento exhaustivo a las métricas de cumplimiento y tiempos en procesos de facturación. |
 | 🔍 | **Inspección** | Análisis sobre la cantidad de revisiones físicas, cruce de información y evaluación de los aforos. |
-| 📝 | **Registros** | Medición de la gestión de registros documentales y SKUs, identificando picos y cuellos de botella. |
+| 📝 | **Registros** | Medición del tiempo de aprobación (Columna Q frente a Columna S de `STATUS.xlsx`) en días hábiles, evolución mensual con valores destacados y métricas de SKUs. |
 | 🌎 | **COO (Ahorros)** | Mapa térmico mundial (interactivo) de ahorros arancelarios en USD, detallando orígenes y subpartidas. |
 | 🗄️ | **Datos Detallados** | Consola de auditoría tipo "Data Table" con búsquedas dinámicas, ordenamiento, *badges* inteligentes y paginación. |
 
@@ -49,15 +49,24 @@ El sistema ha sido construido bajo una arquitectura *Frontend-Only* (cliente) qu
 
 <br>
 
-## 📂 Guía de Uso (Carga de Archivos)
+## 📂 Guía de Uso y Actualización de Datos
 
-Para alimentar la base de datos local de la Torre de Control, arrastra o selecciona los **3 reportes madre** exportados desde tu sistema:
+Para alimentar o actualizar la base de datos de la Torre de Control:
 
-1. 📄 `REPORTE.xls` *(o xlsx)*
-2. 📄 `STATUS.xlsx`
-3. 📄 `ahorro arancel.xls` *(o xlsx)*
+### Opción 1: Actualización de archivos en `data/` (Recomendada)
+Coloca tus archivos actualizados en la carpeta `3M/data/`:
+1. 📄 `STATUS.xlsx` *(Registros, fechas de solicitud y aprobación)*
+2. 📄 `REPORTE.xls` *(Indicadores y procesos)*
+3. 📄 `ahorro arancel.xls` *(Certificados de origen / COO)*
 
-> **💡 Pro-Tip:** Selecciona todos los archivos al mismo tiempo usando `Ctrl` o arrastrándolos juntos sobre el área de carga. ¡El motor consolidará la data automáticamente!
+Luego ejecuta en la terminal dentro de `3M`:
+```bash
+node update_cache.js
+```
+Esto regenerará automáticamente la caché precompilada en `js/default_data.js`.
+
+### Opción 2: Carga interactiva en el navegador
+Arrastra o selecciona los 3 archivos corporativos directamente sobre la zona de carga del dashboard.
 
 <br>
 

@@ -3,9 +3,10 @@
 
 Bienvenido al repositorio oficial del **Portal Central de Comercio Exterior (COMEX)** para la gestión y monitoreo de indicadores de desempeño (KPIs), tiempos de agilidad, facturación, inspecciones y beneficios de licencias/COO.
 
-Este proyecto consolida los dashboards de comercio exterior para dos líneas principales:
-1. **Proyecto 3M** (`./3M/index.html`)
-2. **Proyecto Grupo Linde** (`./Grupo Linde/index.html`)
+Este proyecto consolida los dashboards de comercio exterior para las líneas operativas:
+1. **Proyecto 3M** (`./3M/index.html`) - Torre de control, gestión de registros, tiempos de aprobación, procesos y ahorros COO.
+2. **Proyecto Grupo Linde** (`./Grupo Linde/index.html` / `./Grupo Linde/registros.html`) - Gestión de indicadores, agilidad, facturación y VUCE.
+3. **Kpi Grupo** (`./Kpi Grupo/index.html`)
 
 ---
 
@@ -43,21 +44,24 @@ El proyecto está diseñado y estructurado para publicarse de forma estática en
 ## 📁 Estructura del Proyecto
 
 ```text
-SAMY-REPRE/
+KPI-SIACO/
 ├── index.html            # Portal Central / Hub principal (Selección de Proyectos)
-├── css/
-│   └── portal.css        # Estilos visuales Dark Mode Glassmorphism del portal
+├── css/                  # Estilos visuales del portal
 ├── 3M/                   # Dashboard completo para el Proyecto 3M
-│   ├── index.html
-│   ├── dashboard.html
-│   ├── css/
-│   ├── js/
-│   └── data/
+│   ├── index.html        # Vista interactiva principal
+│   ├── dashboard.html    # Vista directa del dashboard
+│   ├── data/             # Archivos Excel fuentes (STATUS.xlsx, REPORTE.xls, etc.)
+│   ├── js/               # Lógica, renderizado de gráficos y default_data.js
+│   └── update_cache.js   # Script para procesar Excels y actualizar caché local
 ├── Grupo Linde/          # Dashboard completo para el Proyecto Grupo Linde
 │   ├── index.html
-│   ├── dashboard.html
-│   ├── css/
-│   └── js/
+│   ├── registros.html    # Módulo de registros
+│   ├── procesos.html     # Módulo de procesos
+│   ├── agilidad.html     # Módulo de agilidad
+│   ├── facturacion.html  # Módulo de facturación
+│   ├── inspeccion.html   # Módulo de inspección
+│   └── coo.html          # Módulo COO
+├── Kpi Grupo/            # Módulo adicional de indicadores
 ├── .gitignore            # Archivos ignorados para Git
 └── README.md             # Documentación principal del proyecto
 ```

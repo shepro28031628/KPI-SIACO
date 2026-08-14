@@ -690,7 +690,7 @@ function getYearsForRows(rows) {
   return years;
 }
 
-      function getLineDatasets(rows, years, field, dateField = null, useSum = false, multiplier = 1, requiredField = null) {
+      function getLineDatasets(rows, years, field, dateField = null, useSum = false, multiplier = 1, requiredField = null, customColors = null) {
         const datasets = [];
         years.forEach((yr, idx) => {
           const data = Array(12).fill(null);
@@ -723,8 +723,13 @@ function getYearsForRows(rows) {
           }
 
           let color = PALETTE[idx % PALETTE.length];
-          if (yr === 2025) color = '#0ea5e9';
-          if (yr === 2026) color = '#1e3a8a';
+          if (customColors) {
+            if (customColors[yr]) color = customColors[yr];
+            else if (Array.isArray(customColors) && customColors[idx]) color = customColors[idx];
+          } else {
+            if (yr === 2025) color = '#0ea5e9';
+            if (yr === 2026) color = '#1e3a8a';
+          }
 
           datasets.push({
             label: yr.toString(),

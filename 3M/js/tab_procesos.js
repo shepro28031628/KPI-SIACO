@@ -61,14 +61,17 @@ ChartManager.renderProcesos = function() {
           const rowsAereo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('AEREO'));
           const rowsMaritimo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('MARIT'));
 
-          // 1. Gráfico Aéreo (Levante - Llegada Real)
-          this.renderLineChart('chartTiempoAereo', getLineDatasets(rowsAereo, years, 'tiempolevantellegada', 'fechadelevante'));
+          // 1. Gráfico Aéreo (Tonos Azules Cielo / Cyan)
+          const colorsAereo = { 2025: '#38bdf8', 2026: '#0284c7' };
+          this.renderLineChart('chartTiempoAereo', getLineDatasets(rowsAereo, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsAereo));
 
-          // 2. Gráfico Marítimo (Levante - Llegada Real)
-          this.renderLineChart('chartTiempoMaritimo', getLineDatasets(rowsMaritimo, years, 'tiempolevantellegada', 'fechadelevante'));
+          // 2. Gráfico Marítimo (Tonos Teal / Verde Marino)
+          const colorsMaritimo = { 2025: '#2dd4bf', 2026: '#0f766e' };
+          this.renderLineChart('chartTiempoMaritimo', getLineDatasets(rowsMaritimo, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsMaritimo));
 
-          // 3. Gráfico Total / Consolidado (Levante - Llegada Real)
-          this.renderLineChart('chartTiempoGeneral', getLineDatasets(rowsValidos, years, 'tiempolevantellegada', 'fechadelevante'));
+          // 3. Gráfico Total / Consolidado (Tonos Púrpura / Índigo)
+          const colorsGeneral = { 2025: '#a855f7', 2026: '#6b21a8' };
+          this.renderLineChart('chartTiempoGeneral', getLineDatasets(rowsValidos, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsGeneral));
         };
 
 

@@ -491,6 +491,18 @@ function parseIndicadoresGrouped(wb) {
     // BASE: Fecha de levante = Columna I (index 8)
     out.fechadelevante = getDate(8);
 
+    // BASE: Fecha real de llegada = Columna AX (index 49)
+    out.fecharealdellegada = getDate(49);
+
+    // Diferencia en días: Columna I (Levante) - Columna AX (Llegada Real)
+    if (out.fechadelevante instanceof Date && !isNaN(out.fechadelevante) && out.fechadelevante.getFullYear() > 2000 &&
+        out.fecharealdellegada instanceof Date && !isNaN(out.fecharealdellegada) && out.fecharealdellegada.getFullYear() > 2000) {
+      const diffMs = out.fechadelevante.getTime() - out.fecharealdellegada.getTime();
+      out.tiempolevantellegada = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    } else {
+      out.tiempolevantellegada = null;
+    }
+
     // AGILIDAD
     out.tiempoagilidad = getNum(14); // Col O
     out.cumpleagilidad = getStr(16); // Col Q
@@ -536,7 +548,7 @@ function parseIndicadoresGrouped(wb) {
     out.tipodedeclaracion = getStr(7) || getStr(8);
 
     return out;
-  }).filter(r => r !== null);
+  }).filter(r => r !== null && r.do && String(r.do).trim() !== '' && !String(r.do).toUpperCase().includes('TRAZABILIDAD') && !String(r.do).toUpperCase().includes('FECHA DE CREACION'));
 }
 
 function normalizeKey(str) {

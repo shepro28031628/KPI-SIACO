@@ -50,9 +50,25 @@ ChartManager.renderProcesos = function() {
           if (elValAgilidad) elValAgilidad.textContent = avgVal('tiempoagilidad').toFixed(2).replace('.', ',');
           if (elValFactura) elValFactura.textContent = avgVal('tiempofacturacion').toFixed(2).replace('.', ',');
 
-          this.renderLineChart('chartPromAgilidadProc', getLineDatasets(rows, years, 'tiempoagilidad', 'fechadelevante'));
-          this.renderLineChart('chartPromFacturaProc', getLineDatasets(rows, years, 'tiempofacturacion', 'fechadelevante'));
-          this.renderLineChart('chartPromInspeccionProc', getLineDatasets(rows.filter(r => isNum(r.tiempoinspeccion) && numVal(r.tiempoinspeccion) > 0), years, 'tiempoinspeccion', 'fechadelevante'));
+          // Filtros estrictos: NO tener en cuenta vacíos en Fecha de Levante ni en Fecha Real de Llegada
+          const rowsValidos = rows.filter(r => 
+            r.fechadelevante instanceof Date && !isNaN(r.fechadelevante) && r.fechadelevante.getFullYear() > 2000 &&
+            r.fecharealdellegada instanceof Date && !isNaN(r.fecharealdellegada) && r.fecharealdellegada.getFullYear() > 2000 &&
+            r.tiempolevantellegada !== null && typeof r.tiempolevantellegada === 'number' && !isNaN(r.tiempolevantellegada) &&
+            r.tiempolevantellegada >= 0
+          );
+          
+          const rowsAereo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('AEREO'));
+          const rowsMaritimo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('MARIT'));
+
+          // 1. Gráfico Aéreo (Levante - Llegada Real)
+          this.renderLineChart('chartTiempoAereo', getLineDatasets(rowsAereo, years, 'tiempolevantellegada', 'fechadelevante'));
+
+          // 2. Gráfico Marítimo (Levante - Llegada Real)
+          this.renderLineChart('chartTiempoMaritimo', getLineDatasets(rowsMaritimo, years, 'tiempolevantellegada', 'fechadelevante'));
+
+          // 3. Gráfico Total / Consolidado (Levante - Llegada Real)
+          this.renderLineChart('chartTiempoGeneral', getLineDatasets(rowsValidos, years, 'tiempolevantellegada', 'fechadelevante'));
         };
 
 

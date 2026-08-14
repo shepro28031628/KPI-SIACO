@@ -6,10 +6,10 @@ ChartManager.renderInspeccion = function() {
             chartJust: null, tblJust: null, tblDetalle: 'tblDetalleInspeccionBody',
             columnasTabla: ['do_b', 'id_operacion', 'num_doc_trans', 'cumpleinspeccion', 'tiempoinspeccion', 'justificacioninspeccion'],
             tblFilterField: 'cumpleinspeccion', tblFilterValue: 'SI',
-            campoFecha: 'fechadelevante', campoRazonMes: null, campoRazonJust: null, mod: 'inspeccion', requiredField: 'detalleinspeccion',
-            dtFilterField: 'detalleinspeccion', keepDonaBlanks: true, dtRequiresFechaLevante: true
+            campoFecha: 'fechadelevante', campoRazonMes: null, campoRazonJust: null, mod: 'inspeccion', requiredField: 'cumpleinspeccion',
+            dtFilterField: 'cumpleinspeccion', keepDonaBlanks: true, dtRequiresFechaLevante: true
           });
-        }
+        };
         ChartManager.renderCOO = function() {
           const allCooRows = App.raw.coo.filter(r => r['mes'] !== null && r['mes'] !== undefined);
           const uniqueMes = [...new Set(allCooRows.map(r => r['mes']).filter(Boolean))].sort((a, b) => {

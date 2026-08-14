@@ -1075,29 +1075,7 @@ function getYearsForRows(rows) {
       },
       updateBadge() {
         const badge = document.getElementById('activeFiltersBadge');
-        const text = document.getElementById('activeFiltersText');
-        if (!badge || !text) return;
-        
-        let activeCount = 0;
-        if (App.filters.admin.size > 0) activeCount += App.filters.admin.size;
-        if (App.filters.linea.size > 0) activeCount += App.filters.linea.size;
-        if (App.filters.modo.size > 0) activeCount += App.filters.modo.size;
-        if (App.filters.year.size > 0) activeCount += App.filters.year.size;
-        
-        if (App.chartFilters) {
-          for (const key in App.chartFilters) {
-            const f = App.chartFilters[key];
-            if (f.label) activeCount++;
-            if (f.month && f.year) activeCount++;
-          }
-        }
-        
-        if (activeCount > 0) {
-          text.textContent = `${activeCount} Filtro${activeCount > 1 ? 's' : ''} Activo${activeCount > 1 ? 's' : ''}`;
-          badge.style.display = 'flex';
-        } else {
-          badge.style.display = 'none';
-        }
+        if (badge) badge.style.display = 'none';
       },
       chipRow(container, values, filterKey) {
         container.innerHTML = '';
@@ -1624,37 +1602,42 @@ function getYearsForRows(rows) {
             document.body.classList.add('printing-all-tabs');
             document.body.classList.add('presentation-mode');
 
-            // 2. Forzar el renderizado completo de TODAS las pestañas
-            if (ChartManager && typeof ChartManager.forceRenderEverything === 'function') {
-              ChartManager.forceRenderEverything();
-            }
-
-            // Redimensionar todas las instancias de gráficos
-            if (App.charts) {
-              Object.values(App.charts).forEach(ch => {
-                if (ch && typeof ch.resize === 'function') ch.resize();
-              });
-            }
-
-            // 3. Dar tiempo para que el navegador dibuje los canvas en el DOM antes de imprimir
+            // 2. Dar 50ms para que el DOM aplique las reglas de impresión y luego renderizar/redimensionar gráficos
             setTimeout(() => {
-              window.print();
+              if (ChartManager && typeof ChartManager.forceRenderEverything === 'function') {
+                ChartManager.forceRenderEverything();
+              }
+
+              if (App.charts) {
+                Object.values(App.charts).forEach(ch => {
+                  if (ch && typeof ch.resize === 'function') ch.resize();
+                });
+              }
+
+              if (App.worldMapInstance && typeof App.worldMapInstance.updateSize === 'function') {
+                App.worldMapInstance.updateSize();
+              }
+
+              // 3. Dar tiempo al motor del navegador para pintar los canvas antes de llamar a print
               setTimeout(() => {
-                document.body.classList.remove('printing-all-tabs');
-                document.body.classList.remove('presentation-mode');
-                if (currentActiveBtn) {
-                  document.querySelectorAll('.sidebar-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
-                  currentActiveBtn.classList.add('active');
-                }
-                if (currentActivePane) {
-                  document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-                  currentActivePane.classList.add('active');
-                }
-                if (ChartManager && typeof ChartManager.renderAll === 'function') {
-                  ChartManager.renderAll();
-                }
-              }, 400);
-            }, 500);
+                window.print();
+                setTimeout(() => {
+                  document.body.classList.remove('printing-all-tabs');
+                  document.body.classList.remove('presentation-mode');
+                  if (currentActiveBtn) {
+                    document.querySelectorAll('.sidebar-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
+                    currentActiveBtn.classList.add('active');
+                  }
+                  if (currentActivePane) {
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                    currentActivePane.classList.add('active');
+                  }
+                  if (ChartManager && typeof ChartManager.renderAll === 'function') {
+                    ChartManager.renderAll();
+                  }
+                }, 400);
+              }, 500);
+            }, 60);
           });
         }
 
@@ -1809,7 +1792,7 @@ function getYearsForRows(rows) {
         App.charts[id] = new Chart(canvasEl, {
           type: 'line',
           data: {
-            labels: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
             datasets: datasets.map(ds => {
               if (activeMonth || activeYear) {
                  // Dim datasets or points? With Chart.js lines, it's easier to just pass through, or maybe highlight.
@@ -1820,7 +1803,7 @@ function getYearsForRows(rows) {
           },
           options: {
             responsive: true, maintainAspectRatio: false,
-            layout: { padding: { top: 20, right: 20 } },
+            layout: { padding: { top: 10, right: 10, bottom: 0, left: 0 } },
             onClick: (e, activeElements) => {
               if (activeElements.length > 0 && clickHandler) {
                 const datasetIndex = activeElements[0].datasetIndex;
@@ -1835,30 +1818,29 @@ function getYearsForRows(rows) {
             plugins: {
               legend: {
                 position: 'top',
-                labels: { usePointStyle: true, boxWidth: 6, font: { size: 12 } },
-                title: { display: true, text: 'Año', font: { weight: 'bold', size: 13 } }
+                labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } },
+                title: { display: false }
               },
               datalabels: {
                 display: true,
                 align: 'top',
                 color: '#605e5c',
-                font: { size: 10, weight: '600' },
+                font: { size: 9, weight: '600' },
                 formatter: (val) => val !== null ? val.toString().replace('.', ',') : ''
               }
             },
             scales: {
               x: {
-                title: { display: true, text: 'Mes', font: { weight: 'bold', color: '#333' } },
-                ticks: { maxRotation: 45, minRotation: 45 },
-                grid: { display: false }
+                grid: { display: false },
+                ticks: { maxRotation: 0, minRotation: 0, font: { size: 9 } }
               },
               y: {
-                title: { display: true, text: yAxisTitle, font: { weight: 'bold', color: '#333' } },
                 beginAtZero: true,
-                grid: { borderDash: [2, 2], color: '#e5e7eb' }
+                grid: { color: 'rgba(0,0,0,0.05)' },
+                ticks: { font: { size: 9 } }
               }
             }
           }
         });
-      }
+      };
 window.ChartManager = ChartManager;

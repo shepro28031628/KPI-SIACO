@@ -52,8 +52,8 @@ ChartManager.renderProcesos = function() {
 
           this.renderLineChart('chartPromAgilidadProc', getLineDatasets(rows, years, 'tiempoagilidad', 'fechadelevante'));
           this.renderLineChart('chartPromFacturaProc', getLineDatasets(rows, years, 'tiempofacturacion', 'fechadelevante'));
-          this.renderLineChart('chartPromInspeccionProc', getLineDatasets(rows, years, 'tiempoinspeccion', 'fechadelevante', false, 1, 'detalleinspeccion'));
-        }
+          this.renderLineChart('chartPromInspeccionProc', getLineDatasets(rows.filter(r => isNum(r.tiempoinspeccion) && numVal(r.tiempoinspeccion) > 0), years, 'tiempoinspeccion', 'fechadelevante'));
+        };
 
 
 

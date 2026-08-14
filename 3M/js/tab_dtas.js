@@ -53,17 +53,35 @@ ChartManager.renderDTAS = function() {
   const docKeys = Object.keys(docGroups).sort((a, b) => docGroups[b].count - docGroups[a].count);
   const topDocs = docKeys.slice(0, 12); // Top 12 documentos de transporte
 
+  const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+  // Helper para calcular promedios mensuales
+  const getMonthlyAvg = (field, dateField = 'fecharealdellegada') => {
+    const sums = Array(12).fill(0);
+    const counts = Array(12).fill(0);
+    rows.forEach(r => {
+      let d = r[dateField];
+      if (!d) d = r.fecharealdellegada || r.fechaliberacion || r.fechaingresozf || r.fechadelevante;
+      if (d instanceof Date && !isNaN(d)) {
+        const m = d.getMonth();
+        const v = r[field];
+        if (v !== null && typeof v === 'number' && !isNaN(v) && v >= 0) {
+          sums[m] += v;
+          counts[m]++;
+        }
+      }
+    });
+    return sums.map((s, m) => counts[m] > 0 ? parseFloat((s / counts[m]).toFixed(1)) : 0);
+  };
+
   // ==========================================
   // GRÁFICA 1: Planeación - Documentos de Transporte por Mes de Levante (Col D y Col O)
   // ==========================================
   destroyChart('chartDtaDocTrans');
   const elG1 = document.getElementById('chartDtaDocTrans');
   if (elG1 && typeof Chart !== 'undefined') {
-    const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const monthlyDocs = Array(12).fill(0);
     const monthlyDOs = Array(12).fill(0);
-
-    // Agrupar por mes según Fecha de Levante (Columna O)
     const docsByMonth = Array.from({ length: 12 }, () => new Set());
     rows.forEach(r => {
       const d = r.fechadelevante instanceof Date && !isNaN(r.fechadelevante) ? r.fechadelevante : null;
@@ -100,40 +118,43 @@ ChartManager.renderDTAS = function() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 10 } },
         plugins: {
-          legend: { position: 'top', labels: { boxWidth: 10, font: { size: 9.5 } } },
+          legend: { 
+            position: 'top', 
+            align: 'end',
+            labels: { boxWidth: 10, padding: 12, font: { size: 9.5, weight: '600' } } 
+          },
           datalabels: {
             display: true,
             anchor: 'end',
             align: 'top',
+            offset: 2,
             color: '#005ebb',
-            font: { weight: 'bold', size: 9 },
+            font: { weight: 'bold', size: 9.5 },
             formatter: (v) => v > 0 ? v : ''
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 9.5 } } },
-          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true }
+          x: { grid: { display: false }, ticks: { font: { size: 9.5 }, maxRotation: 0, minRotation: 0 } },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, grace: '30%' }
         }
       }
     });
   }
 
   // ==========================================
-  // GRÁFICA 2: Fecha Real de Llegada (H) vs Liberación (J)
+  // GRÁFICA 2: Fecha Real de Llegada (H) vs Liberación (J) por Mes
   // ==========================================
   destroyChart('chartDtaLlegadaLiberacion');
   const elG2 = document.getElementById('chartDtaLlegadaLiberacion');
   if (elG2 && typeof Chart !== 'undefined') {
-    const dataG2 = topDocs.map(d => {
-      const vals = docGroups[d].g2;
-      return vals.length ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
-    });
+    const dataG2 = getMonthlyAvg('dias_llegada_a_liberacion', 'fecharealdellegada');
 
     App.charts.chartDtaLlegadaLiberacion = new Chart(elG2, {
       type: 'bar',
       data: {
-        labels: topDocs,
+        labels: MONTHS_ES,
         datasets: [{
           label: 'Días Promedio (Liberación - Llegada)',
           data: dataG2,
@@ -144,40 +165,39 @@ ChartManager.renderDTAS = function() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 12 } },
         plugins: {
           legend: { display: false },
           datalabels: {
             display: true,
             anchor: 'end',
             align: 'top',
+            offset: 2,
             color: '#0284c7',
-            font: { weight: 'bold', size: 9.5 },
-            formatter: (v) => v > 0 ? v + ' d' : '0 d'
+            font: { weight: 'bold', size: 9 },
+            formatter: (v) => v > 0 ? v.toString().replace('.', ',') + ' d' : ''
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
-          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true }
+          x: { grid: { display: false }, ticks: { font: { size: 9.5 }, maxRotation: 0, minRotation: 0 } },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, grace: '25%' }
         }
       }
     });
   }
 
   // ==========================================
-  // GRÁFICA 3: Fecha Real de Llegada (H) vs Ingreso ZF (L)
+  // GRÁFICA 3: Fecha Real de Llegada (H) vs Ingreso ZF (L) por Mes
   // ==========================================
   destroyChart('chartDtaLlegadaIngresoZF');
   const elG3 = document.getElementById('chartDtaLlegadaIngresoZF');
   if (elG3 && typeof Chart !== 'undefined') {
-    const dataG3 = topDocs.map(d => {
-      const vals = docGroups[d].g3;
-      return vals.length ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
-    });
+    const dataG3 = getMonthlyAvg('dias_llegada_a_ingresozf', 'fecharealdellegada');
 
     App.charts.chartDtaLlegadaIngresoZF = new Chart(elG3, {
       type: 'bar',
       data: {
-        labels: topDocs,
+        labels: MONTHS_ES,
         datasets: [{
           label: 'Días Promedio (Ingreso ZF - Llegada)',
           data: dataG3,
@@ -188,147 +208,128 @@ ChartManager.renderDTAS = function() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 12 } },
         plugins: {
           legend: { display: false },
           datalabels: {
             display: true,
             anchor: 'end',
             align: 'top',
+            offset: 2,
             color: '#059669',
-            font: { weight: 'bold', size: 9.5 },
-            formatter: (v) => v > 0 ? v + ' d' : '0 d'
+            font: { weight: 'bold', size: 9 },
+            formatter: (v) => v > 0 ? v.toString().replace('.', ',') + ' d' : ''
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
-          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true }
+          x: { 
+            grid: { display: false }, 
+            ticks: { font: { size: 9.5 }, maxRotation: 0, minRotation: 0 } 
+          },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, grace: '25%' }
         }
       }
     });
   }
 
   // ==========================================
-  // GRÁFICA 4: Días en Zona Franca vs Levante (Col O - Col L)
+  // GRÁFICA 4: Días en Zona Franca vs Levante (Col O - Col L) por Mes
   // ==========================================
   destroyChart('chartDtaZfLevante');
   const elG4 = document.getElementById('chartDtaZfLevante');
   if (elG4 && typeof Chart !== 'undefined') {
-    const dataG4 = topDocs.map(d => {
-      const vals = docGroups[d].g4;
-      return vals.length ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
-    });
+    const dataG4 = getMonthlyAvg('dias_ingresozf_a_levante', 'fechadelevante');
 
     App.charts.chartDtaZfLevante = new Chart(elG4, {
-      type: 'line',
+      type: 'bar',
       data: {
-        labels: topDocs,
+        labels: MONTHS_ES,
         datasets: [{
-          label: 'Días en ZF hasta Levante',
+          label: 'Días Promedio (Levante - Ingreso ZF)',
           data: dataG4,
-          borderColor: '#ea580c',
           backgroundColor: '#ea580c',
-          tension: 0.3,
-          borderWidth: 2.5,
-          pointRadius: 4,
-          fill: false
+          borderRadius: 4
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 12 } },
         plugins: {
           legend: { display: false },
           datalabels: {
             display: true,
             anchor: 'end',
             align: 'top',
+            offset: 2,
             color: '#ea580c',
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
-            borderRadius: 3,
-            padding: 2,
-            font: { weight: 'bold', size: 9.5 },
-            formatter: (v) => v > 0 ? v + ' d' : '0 d'
+            font: { weight: 'bold', size: 9 },
+            formatter: (v) => v > 0 ? v.toString().replace('.', ',') + ' d' : ''
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
-          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true }
+          x: { grid: { display: false }, ticks: { font: { size: 9.5 }, maxRotation: 0, minRotation: 0 } },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, grace: '25%' }
         }
       }
     });
   }
 
   // ==========================================
-  // GRÁFICA 5: Comparativo Ingreso ZF vs Etiquetado y Levante
+  // GRÁFICA 5: Días de Ingreso a Zona Franca vs Etiquetado (Col P - Col L) por Mes
   // ==========================================
   destroyChart('chartDtaIngresoEtiquetado');
   const elG5 = document.getElementById('chartDtaIngresoEtiquetado');
   if (elG5 && typeof Chart !== 'undefined') {
-    const dataEtiquetado = topDocs.map(d => {
-      const vals = docGroups[d].g6;
-      return vals.length ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
-    });
-    const dataLevante = topDocs.map(d => {
-      const vals = docGroups[d].g4;
-      return vals.length ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
-    });
+    const dataEtiquetado = getMonthlyAvg('dias_ingresozf_a_etiquetado', 'fechaingresozf');
 
     App.charts.chartDtaIngresoEtiquetado = new Chart(elG5, {
       type: 'bar',
       data: {
-        labels: topDocs,
-        datasets: [
-          {
-            label: 'Días hasta Etiquetado (P - L)',
-            data: dataEtiquetado,
-            backgroundColor: '#7c3aed',
-            borderRadius: 4
-          },
-          {
-            label: 'Días hasta Levante (O - L)',
-            data: dataLevante,
-            backgroundColor: '#f59e0b',
-            borderRadius: 4
-          }
-        ]
+        labels: MONTHS_ES,
+        datasets: [{
+          label: 'Días Promedio (Ingreso ZF a Etiquetado)',
+          data: dataEtiquetado,
+          backgroundColor: '#7c3aed',
+          borderRadius: 4
+        }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 12 } },
         plugins: {
-          legend: { position: 'top', labels: { boxWidth: 10, font: { size: 9.5 } } },
+          legend: { display: false },
           datalabels: {
             display: true,
             anchor: 'end',
             align: 'top',
-            color: '#1e293b',
-            font: { weight: 'bold', size: 8.5 },
-            formatter: (v) => v > 0 ? v : ''
+            offset: 2,
+            color: '#7c3aed',
+            font: { weight: 'bold', size: 9 },
+            formatter: (v) => v > 0 ? v.toString().replace('.', ',') + ' d' : ''
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
-          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true }
+          x: { grid: { display: false }, ticks: { font: { size: 9.5 }, maxRotation: 0, minRotation: 0 } },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, grace: '25%' }
         }
       }
     });
   }
 
   // ==========================================
-  // GRÁFICA 6: Fecha Finalización Etiquetado (P) - Fecha Ingreso ZF (L)
+  // GRÁFICA 6: Fecha Finalización Etiquetado (P) - Fecha Ingreso ZF (L) por Mes
   // ==========================================
   destroyChart('chartDtaFinalEtiquetadoZF');
   const elG6 = document.getElementById('chartDtaFinalEtiquetadoZF');
   if (elG6 && typeof Chart !== 'undefined') {
-    const dataG6 = topDocs.map(d => {
-      const vals = docGroups[d].g6;
-      return vals.length ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
-    });
+    const dataG6 = getMonthlyAvg('dias_ingresozf_a_etiquetado', 'fechafinalizacionetiquetado');
 
     App.charts.chartDtaFinalEtiquetadoZF = new Chart(elG6, {
       type: 'bar',
       data: {
-        labels: topDocs,
+        labels: MONTHS_ES,
         datasets: [{
           label: 'Días Etiquetado en ZF (Col P - Col L)',
           data: dataG6,
@@ -339,20 +340,22 @@ ChartManager.renderDTAS = function() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 12 } },
         plugins: {
           legend: { display: false },
           datalabels: {
             display: true,
             anchor: 'end',
             align: 'top',
+            offset: 2,
             color: '#db2777',
-            font: { weight: 'bold', size: 9.5 },
-            formatter: (v) => v > 0 ? v + ' d' : '0 d'
+            font: { weight: 'bold', size: 9 },
+            formatter: (v) => v > 0 ? v.toString().replace('.', ',') + ' d' : ''
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
-          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true }
+          x: { grid: { display: false }, ticks: { font: { size: 9.5 }, maxRotation: 0, minRotation: 0 } },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, grace: '25%' }
         }
       }
     });

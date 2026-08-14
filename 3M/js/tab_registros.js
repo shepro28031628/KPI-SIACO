@@ -96,25 +96,73 @@ ChartManager.renderRegistros = function() {
 
   destroyChart('chartRegistrosTiempoLine');
   if (document.getElementById('chartRegistrosTiempoLine') && typeof Chart !== 'undefined') {
+    const ctxCanvas = document.getElementById('chartRegistrosTiempoLine').getContext('2d');
+    let gradient = null;
+    if (ctxCanvas) {
+      gradient = ctxCanvas.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, 'rgba(14, 165, 233, 0.25)');
+      gradient.addColorStop(1, 'rgba(14, 165, 233, 0.01)');
+    }
+
+    const monthLabelsFormatted = monthOrder.map(m => m.charAt(0).toUpperCase() + m.slice(1));
+    const timeData = timeSums.map((s, i) => timeCounts[i] ? parseFloat((s / timeCounts[i]).toFixed(2)) : null);
+
     App.charts.chartRegistrosTiempoLine = new Chart(document.getElementById('chartRegistrosTiempoLine'), {
       type: 'line',
       data: {
-        labels: monthOrder,
-        datasets: [{ label: 'Promedio Tiempo Aprobación', data: timeSums.map((s, i) => timeCounts[i] ? parseFloat((s / timeCounts[i]).toFixed(2)) : null), borderColor: PALETTE[0], fill: false }]
+        labels: monthLabelsFormatted,
+        datasets: [{
+          label: 'Promedio Tiempo Aprobación (días)',
+          data: timeData,
+          borderColor: '#0284c7',
+          backgroundColor: gradient || 'rgba(14, 165, 233, 0.1)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 3,
+          pointRadius: 6,
+          pointHoverRadius: 9,
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#0284c7',
+          pointBorderWidth: 3,
+          spanGaps: true
+        }]
       },
       options: { 
-        responsive: true, maintainAspectRatio: false,
+        responsive: true,
+        maintainAspectRatio: false,
         onClick: (e, act) => handleMonthClick(e, act, App.charts.chartRegistrosTiempoLine),
         plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { boxWidth: 12, font: { weight: '600', size: 12 } }
+          },
           datalabels: {
-            color: '#333', anchor: 'end', align: 'bottom',
-            formatter: v => v > 0 ? String(v).replace('.', ',') : ''
+            display: true,
+            align: 'top',
+            anchor: 'end',
+            offset: 6,
+            color: '#0f172a',
+            font: { weight: 'bold', size: 11 },
+            formatter: v => (v !== null && v > 0) ? `${v.toFixed(1).replace('.', ',')} d` : ''
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { weight: '600', size: 11 } }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0, 0, 0, 0.06)' },
+            ticks: {
+              callback: v => v + ' d'
+            }
           }
         }
       }
     });
   }
-  this.renderSubTable('tblDetalleRegistrosBody', fullyFilteredRows, ['sku', 'noregistro', 'vistobueno', 'estado']);
 }
 
 

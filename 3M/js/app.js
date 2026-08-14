@@ -918,10 +918,14 @@ function getYearsForRows(rows) {
                 return null;
               };
 
-              const d1 = parseExcelDateSafe(getV('fechasolicitudrimenviadaaar', 'fechasolicitud'));
-              const d2 = parseExcelDateSafe(getV('fechafinalizacionrevisionrimar', 'aprobacion', 'fechafinalizacionrevisionrimdear'));
+              // Columna S: Fecha de Solicitud (F. SOLICITUD RIM ENVIADA AR)
+              const d1 = parseExcelDateSafe(getV('fsolicitudrimenviadaar', 'fechasolicitudrimenviadaaar', 'fechasolicitud'));
+              // Columna Q: Fecha de Aprobación (APROBACION)
+              const d2 = parseExcelDateSafe(getV('aprobacion', 'fechaaprobacion'));
               let t = 0, monthStr = '';
-              if (d1 && d2) t = getWorkingDays(d1, d2);
+              if (d1 && d2) {
+                t = getWorkingDays(d1, d2);
+              }
               if (d2 instanceof Date && !isNaN(d2)) {
                 const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
                 monthStr = monthNames[d2.getMonth()];

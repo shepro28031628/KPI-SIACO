@@ -1620,12 +1620,20 @@ function getYearsForRows(rows) {
             const currentActiveBtn = document.querySelector('.sidebar-menu .menu-btn.active');
             const currentActivePane = document.querySelector('.tab-pane.active');
 
-            // 1. Activar clase global de impresión
+            // 1. Activar clases de impresión y modo presentación
             document.body.classList.add('printing-all-tabs');
+            document.body.classList.add('presentation-mode');
 
             // 2. Forzar el renderizado completo de TODAS las pestañas
             if (ChartManager && typeof ChartManager.forceRenderEverything === 'function') {
               ChartManager.forceRenderEverything();
+            }
+
+            // Redimensionar todas las instancias de gráficos
+            if (App.charts) {
+              Object.values(App.charts).forEach(ch => {
+                if (ch && typeof ch.resize === 'function') ch.resize();
+              });
             }
 
             // 3. Dar tiempo para que el navegador dibuje los canvas en el DOM antes de imprimir
@@ -1633,6 +1641,7 @@ function getYearsForRows(rows) {
               window.print();
               setTimeout(() => {
                 document.body.classList.remove('printing-all-tabs');
+                document.body.classList.remove('presentation-mode');
                 if (currentActiveBtn) {
                   document.querySelectorAll('.sidebar-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
                   currentActiveBtn.classList.add('active');
@@ -1644,8 +1653,8 @@ function getYearsForRows(rows) {
                 if (ChartManager && typeof ChartManager.renderAll === 'function') {
                   ChartManager.renderAll();
                 }
-              }, 500);
-            }, 600);
+              }, 400);
+            }, 500);
           });
         }
 

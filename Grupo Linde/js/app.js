@@ -1775,19 +1775,31 @@ function getYearsForRows(rows) {
             const currentActiveBtn = document.querySelector('.sidebar-menu .menu-btn.active');
             const currentActivePane = document.querySelector('.tab-pane.active');
 
-            // 1. Activar clase global de impresión
+            // 1. Activar clases globales de impresión y presentación
             document.body.classList.add('printing-all-tabs');
+            document.body.classList.add('presentation-mode');
 
             // 2. Renderizar todas las vistas
-            if (typeof renderProcesos === 'function') renderProcesos();
-            if (typeof renderAgilidad === 'function') renderAgilidad();
-            if (typeof renderFacturacion === 'function') renderFacturacion();
-            if (typeof renderInspeccion === 'function') renderInspeccion();
-            if (typeof renderRegistros === 'function') renderRegistros();
-            if (typeof renderCOO === 'function') renderCOO();
-            if (typeof renderTable === 'function') renderTable();
-            if (window.ChartManager && typeof window.ChartManager.renderAll === 'function') {
-              window.ChartManager.renderAll();
+            if (window.ChartManager && typeof window.ChartManager.forceRenderEverything === 'function') {
+              window.ChartManager.forceRenderEverything();
+            } else {
+              if (typeof renderProcesos === 'function') renderProcesos();
+              if (typeof renderAgilidad === 'function') renderAgilidad();
+              if (typeof renderFacturacion === 'function') renderFacturacion();
+              if (typeof renderInspeccion === 'function') renderInspeccion();
+              if (typeof renderRegistros === 'function') renderRegistros();
+              if (typeof renderCOO === 'function') renderCOO();
+              if (typeof renderTable === 'function') renderTable();
+              if (window.ChartManager && typeof window.ChartManager.renderAll === 'function') {
+                window.ChartManager.renderAll();
+              }
+            }
+
+            // Redimensionar todas las instancias de gráficos
+            if (App.charts) {
+              Object.values(App.charts).forEach(ch => {
+                if (ch && typeof ch.resize === 'function') ch.resize();
+              });
             }
 
             // 3. Ejecutar window.print() y restaurar estado
@@ -1795,6 +1807,7 @@ function getYearsForRows(rows) {
               window.print();
               setTimeout(() => {
                 document.body.classList.remove('printing-all-tabs');
+                document.body.classList.remove('presentation-mode');
                 if (currentActiveBtn) {
                   document.querySelectorAll('.sidebar-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
                   currentActiveBtn.classList.add('active');
@@ -1807,7 +1820,7 @@ function getYearsForRows(rows) {
                   window.ChartManager.renderAll();
                 }
               }, 400);
-            }, 300);
+            }, 500);
           });
         }
 

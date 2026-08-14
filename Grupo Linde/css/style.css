@@ -1481,22 +1481,30 @@ body.printing-all-tabs #tab-inspeccion {
 
   /* Encabezados y tarjetas adaptadas para caber en 1 página */
   .powerbi-header {
-    background: #f1f5f9 !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #0f172a !important;
-    padding: 4px 8px !important;
-    margin-bottom: 6px !important;
+    background: #005EBB !important;
+    border: 1px solid #004d99 !important;
+    color: #ffffff !important;
+    padding: 6px 12px !important;
+    margin-bottom: 4px !important;
+    border-radius: 6px !important;
+  }
+
+  .powerbi-header img {
+    filter: brightness(0) invert(1) !important;
   }
 
   .powerbi-title {
-    color: #0f172a !important;
+    color: #ffffff !important;
     font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
   }
 
   .powerbi-goal-tag {
     margin-bottom: 6px !important;
-    padding: 2px 6px !important;
-    font-size: 9px !important;
+    padding: 3px 8px !important;
+    font-size: 9.5px !important;
+    font-weight: 600 !important;
   }
 
   .chart-panel {

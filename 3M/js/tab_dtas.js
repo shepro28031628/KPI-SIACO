@@ -54,39 +54,66 @@ ChartManager.renderDTAS = function() {
   const topDocs = docKeys.slice(0, 12); // Top 12 documentos de transporte
 
   // ==========================================
-  // GRÁFICA 1: Planeación - Análisis Documento de Transporte (Columna D)
+  // GRÁFICA 1: Planeación - Documentos de Transporte por Mes de Levante (Col D y Col O)
   // ==========================================
   destroyChart('chartDtaDocTrans');
   const elG1 = document.getElementById('chartDtaDocTrans');
   if (elG1 && typeof Chart !== 'undefined') {
+    const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const monthlyDocs = Array(12).fill(0);
+    const monthlyDOs = Array(12).fill(0);
+
+    // Agrupar por mes según Fecha de Levante (Columna O)
+    const docsByMonth = Array.from({ length: 12 }, () => new Set());
+    rows.forEach(r => {
+      const d = r.fechadelevante instanceof Date && !isNaN(r.fechadelevante) ? r.fechadelevante : null;
+      if (d) {
+        const m = d.getMonth();
+        monthlyDOs[m]++;
+        if (r.documentodetransporte) docsByMonth[m].add(r.documentodetransporte);
+      }
+    });
+
+    for (let m = 0; m < 12; m++) {
+      monthlyDocs[m] = docsByMonth[m].size;
+    }
+
     App.charts.chartDtaDocTrans = new Chart(elG1, {
       type: 'bar',
       data: {
-        labels: topDocs,
-        datasets: [{
-          label: 'Operaciones (DOs)',
-          data: topDocs.map(d => docGroups[d].count),
-          backgroundColor: '#005ebb',
-          borderRadius: 4
-        }]
+        labels: MONTHS_ES,
+        datasets: [
+          {
+            label: 'Doc. Transporte (Col D)',
+            data: monthlyDocs,
+            backgroundColor: '#005ebb',
+            borderRadius: 4
+          },
+          {
+            label: 'Total DOs (Col C)',
+            data: monthlyDOs,
+            backgroundColor: '#0284c7',
+            borderRadius: 4
+          }
+        ]
       },
       options: {
-        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend: { position: 'top', labels: { boxWidth: 10, font: { size: 9.5 } } },
           datalabels: {
             display: true,
             anchor: 'end',
-            align: 'right',
+            align: 'top',
             color: '#005ebb',
-            font: { weight: 'bold', size: 10 }
+            font: { weight: 'bold', size: 9 },
+            formatter: (v) => v > 0 ? v : ''
           }
         },
         scales: {
-          x: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true },
-          y: { grid: { display: false }, ticks: { font: { size: 9.5 } } }
+          x: { grid: { display: false }, ticks: { font: { size: 9.5 } } },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true }
         }
       }
     });

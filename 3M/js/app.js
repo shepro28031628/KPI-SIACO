@@ -218,7 +218,13 @@ function reviveDates(obj) {
 
 function autoLoad() {
   if (window.DEFAULT_DATA && window.DEFAULT_DATA.raw) {
-    App.raw = reviveDates(window.DEFAULT_DATA.raw);
+    App.raw = reviveDates(JSON.parse(JSON.stringify(window.DEFAULT_DATA.raw)));
+    if (!App.raw.dtas) App.raw.dtas = [];
+    if (!App.raw.coo) App.raw.coo = [];
+    if (!App.raw.registros) App.raw.registros = [];
+    if (!App.raw.indicadores) App.raw.indicadores = [];
+    if (!App.raw.razones) App.raw.razones = [];
+
     FilterEngine.initFilters();
     ChartManager.renderAll();
     
@@ -1245,14 +1251,11 @@ function getYearsForRows(rows) {
         if (typeof this.renderCOO === 'function') this.renderCOO();
         if (typeof renderTable === 'function') renderTable();
       },
-      renderAll() {
-        if (this._rafId) cancelAnimationFrame(this._rafId);
-        this._rafId = requestAnimationFrame(() => {
-          this._rafId = null;
-          const activeBtn = document.querySelector('.menu-btn.active');
-          if (!activeBtn) return;
-          const tabId = activeBtn.dataset.tab;
+      renderAll(targetTab = null) {
+        const activeBtn = document.querySelector('.menu-btn.active');
+        const tabId = targetTab || (activeBtn ? activeBtn.dataset.tab : 'tab-procesos');
 
+        try {
           if (tabId === 'tab-procesos' && typeof this.renderProcesos === 'function') this.renderProcesos();
           else if (tabId === 'tab-agilidad' && typeof this.renderAgilidad === 'function') this.renderAgilidad();
           else if (tabId === 'tab-facturacion' && typeof this.renderFacturacion === 'function') this.renderFacturacion();
@@ -1261,11 +1264,13 @@ function getYearsForRows(rows) {
           else if (tabId === 'tab-coo' && typeof this.renderCOO === 'function') this.renderCOO();
           else if (tabId === 'tab-dtas' && typeof this.renderDTAS === 'function') this.renderDTAS();
           else if (tabId === 'tab-datos' && typeof renderTable === 'function') renderTable();
-          
-          if (FilterEngine && typeof FilterEngine.updateBadge === 'function') {
-            FilterEngine.updateBadge();
-          }
-        });
+        } catch (err) {
+          console.error(`Error en renderizado de pestaña ${tabId}:`, err);
+        }
+        
+        if (FilterEngine && typeof FilterEngine.updateBadge === 'function') {
+          FilterEngine.updateBadge();
+        }
       },
       renderSubTable(tbodyId, rows, fields, mod = '') {
         const tbody = document.getElementById(tbodyId);
@@ -1656,7 +1661,7 @@ function getYearsForRows(rows) {
                 delay += 0.05;
               });
             }
-            ChartManager.renderAll();
+            ChartManager.renderAll(btn.dataset.tab);
           });
         });
 

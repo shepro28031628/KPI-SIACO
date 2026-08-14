@@ -1,95 +1,165 @@
+// ==========================================
+// MÓDULO INSPECCIÓN
+// ==========================================
 ChartManager.renderInspeccion = function() {
+  const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  
+  // Obtener filas según filtros globales
+  const rows = FilterEngine.filteredIndicadores();
 
-          this.renderModuloKPI({
-            campoTiempo: 'tiempoinspeccion', campoCumplimiento: 'cumpleinspeccion', campoJustificacion: 'justificacioninspeccion',
-            elTT: 'valTTInspeccion', elDT: 'valDTInspeccion', chartLinea: 'chartPromInspeccion', chartDona: 'chartCumpleInspeccion',
-            chartJust: null, tblJust: null, tblDetalle: null,
-            columnasTabla: null,
-            tblFilterField: 'cumpleinspeccion', tblFilterValue: 'SI',
-            campoFecha: 'fechadelevante', campoRazonMes: null, campoRazonJust: null, mod: 'inspeccion', requiredField: 'cumpleinspeccion',
-            dtFilterField: 'cumpleinspeccion', keepDonaBlanks: true, dtRequiresFechaLevante: true
-          });
-        };
-        ChartManager.renderCOO = function() {
-          const allCooRows = App.raw.coo.filter(r => r['mes'] !== null && r['mes'] !== undefined);
-          const uniqueMes = [...new Set(allCooRows.map(r => r['mes']).filter(Boolean))].sort((a, b) => {
-            const m = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-            return m.indexOf(a) - m.indexOf(b);
-          });
-          const uniquePais = [...new Set(allCooRows.map(r => r['paisdeorigen']).filter(Boolean))].sort();
-          const uniqueSub = [...new Set(allCooRows.map(r => r['subpartida']).filter(Boolean))].sort();
+  // Filtrar operaciones que tuvieron inspección
+  const inspRows = rows.filter(r => (r.cumpleinspeccion === 'SI' || (r.tiempoinspeccion !== null && r.tiempoinspeccion > 0)) && r.fechadelevante);
 
-          if (!App._cooFilters) App._cooFilters = { mes: new Set(), pais: new Set(), sub: new Set() };
+  // 1. Tarjetas KPI
+  const avgTiempo = inspRows.length > 0 ? (inspRows.reduce((a, b) => a + (b.tiempoinspeccion || 0), 0) / inspRows.length) : 0;
+  const totalDT = inspRows.length;
 
-          const renderFilterList = (containerId, items, filterSet) => {
-            const el = document.getElementById(containerId); if (!el) return;
-            el.innerHTML = '';
-            items.forEach(item => {
-              const label = document.createElement('label'); label.className = 'coo-filter-item';
-              const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = filterSet.has(item);
-              cb.addEventListener('change', () => {
-                if (cb.checked) filterSet.add(item); else filterSet.delete(item);
-                ChartManager.renderCOO();
-              });
-              label.appendChild(cb); label.appendChild(document.createTextNode(item));
-              el.appendChild(label);
-            });
-          };
-          renderFilterList('cooFilterMes', uniqueMes, App._cooFilters.mes);
-          renderFilterList('cooFilterPais', uniquePais, App._cooFilters.pais);
-          renderFilterList('cooFilterSubpartida', uniqueSub, App._cooFilters.sub);
+  const elTT = document.getElementById('valTTInspeccion');
+  if (elTT) elTT.textContent = avgTiempo.toFixed(2).replace('.', ',');
 
-          let rows = allCooRows;
-          if (App._cooFilters.mes.size) rows = rows.filter(r => App._cooFilters.mes.has(r['mes']));
-          if (App._cooFilters.pais.size) rows = rows.filter(r => App._cooFilters.pais.has(r['paisdeorigen']));
-          if (App._cooFilters.sub.size) rows = rows.filter(r => App._cooFilters.sub.has(r['subpartida']));
+  const elDT = document.getElementById('valDTInspeccion');
+  if (elDT) elDT.textContent = totalDT.toString();
 
-          const total = sum(rows.map(r => r['ahorroenusd']));
-          if (document.getElementById('valCOOTotal')) document.getElementById('valCOOTotal').textContent = fmtUSD(total);
+  // 2. Gráfico 1: Promedio de Tiempo Inspección por Mes
+  const elProm = document.getElementById('chartPromInspeccion');
+  if (elProm && typeof Chart !== 'undefined') {
+    destroyChart('chartPromInspeccion');
 
-          const tblCOO = document.getElementById('tblDetalleCOOBody');
-          if (tblCOO) {
-            tblCOO.innerHTML = '';
-            if (rows.length > 0) {
-              const fragment = document.createDocumentFragment();
-              rows.forEach(r => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${r['mes'] || '-'}</td><td>${r['subpartida'] || '-'}</td><td style="text-align:right">${fmtUSD(r['ahorroenusd'] || 0)}</td>`;
-                fragment.appendChild(tr);
-              });
-              tblCOO.appendChild(fragment);
-            } else { tblCOO.innerHTML = '<tr><td colspan="3" style="text-align:center;">No hay datos</td></tr>'; }
-          }
-          if (document.getElementById('cooTableTotal')) document.getElementById('cooTableTotal').innerHTML = `<strong>Total</strong> <strong>${fmtUSD(total)}</strong>`;
+    // Agrupar por mes y año
+    const monthlySum2025 = Array(12).fill(0);
+    const monthlyCount2025 = Array(12).fill(0);
+    const monthlySum2026 = Array(12).fill(0);
+    const monthlyCount2026 = Array(12).fill(0);
 
-          const ISO2_MAP = { 'BR': 'BR', 'DE': 'DE', 'FR': 'FR', 'KR': 'KR', 'MX': 'MX', 'PL': 'PL', 'US': 'US', 'CHINA': 'CN', 'CN': 'CN', 'COLOMBIA': 'CO', 'CO': 'CO', 'INDIA': 'IN', 'IN': 'IN', 'JAPON': 'JP', 'JP': 'JP' };
-          const byPaisISO = {};
-          rows.forEach(r => {
-            const clean = String(r['paisdeorigen']).toUpperCase().replace(/[^A-Z]/g, '');
-            const iso = ISO2_MAP[clean] || (clean.length === 2 ? clean : null);
-            if (iso) byPaisISO[iso] = (byPaisISO[iso] || 0) + (isNum(r['ahorroenusd']) ? r['ahorroenusd'] : 0);
-          });
-
-          const mapEl = document.getElementById('cooWorldMap');
-          if (mapEl && typeof jsVectorMap !== 'undefined') {
-            if (App.worldMapInstance) { App.worldMapInstance.destroy(); App.worldMapInstance = null; }
-            mapEl.innerHTML = '';
-            try {
-              App.worldMapInstance = new jsVectorMap({
-                selector: '#cooWorldMap', map: 'world', backgroundColor: 'transparent',
-                zoomButtons: false, zoomOnScroll: false, draggable: false,
-                regionStyle: { initial: { fill: '#dde4ec', stroke: '#b0bec5', strokeWidth: 0.4 } },
-                series: { regions: [{ attribute: 'fill', scale: { low: '#a8d5ba', high: '#1b5e20' }, values: byPaisISO, min: 0, max: Math.max(...Object.values(byPaisISO), 1) }] },
-                onRegionTooltipShow(event, tooltip, code) {
-                  if (byPaisISO[code] !== undefined) tooltip.text(`<strong>${code}</strong><br>Ahorro: ${fmtUSD(byPaisISO[code])}`, true);
-                }
-              });
-            } catch (e) { console.warn('Map render error', e); }
-          }
+    inspRows.forEach(r => {
+      const d = r.fechadelevante instanceof Date ? r.fechadelevante : parseExcelDateSafe(r.fechadelevante);
+      if (d instanceof Date && !isNaN(d)) {
+        const m = d.getMonth();
+        const y = d.getFullYear();
+        const t = typeof r.tiempoinspeccion === 'number' ? r.tiempoinspeccion : parseFloat(r.tiempoinspeccion) || 0;
+        if (y === 2025) {
+          monthlySum2025[m] += t;
+          monthlyCount2025[m]++;
+        } else if (y === 2026) {
+          monthlySum2026[m] += t;
+          monthlyCount2026[m]++;
         }
+      }
+    });
 
+    const data2025 = monthlySum2025.map((s, i) => monthlyCount2025[i] > 0 ? parseFloat((s / monthlyCount2025[i]).toFixed(2)) : null);
+    const data2026 = monthlySum2026.map((s, i) => monthlyCount2026[i] > 0 ? parseFloat((s / monthlyCount2026[i]).toFixed(2)) : null);
 
+    const has2025 = data2025.some(v => v !== null);
+    const datasets = [];
 
+    if (has2025) {
+      datasets.push({
+        label: '2025',
+        data: data2025,
+        borderColor: '#0284c7',
+        backgroundColor: 'rgba(2, 132, 199, 0.12)',
+        tension: 0.35,
+        spanGaps: true,
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointBackgroundColor: '#0284c7',
+        fill: false
+      });
+    }
 
+    datasets.push({
+      label: '2026',
+      data: data2026,
+      borderColor: '#005ebb',
+      backgroundColor: 'rgba(0, 94, 187, 0.12)',
+      tension: 0.35,
+      spanGaps: true,
+      borderWidth: 3,
+      pointRadius: 6,
+      pointBackgroundColor: '#005ebb',
+      fill: true
+    });
 
+    App.charts.chartPromInspeccion = new Chart(elProm, {
+      type: 'line',
+      data: {
+        labels: MONTHS_ES,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 20, right: 15, left: 10, bottom: 5 } },
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: { boxWidth: 12, padding: 12, font: { size: 10.5, weight: '600' } }
+          },
+          datalabels: {
+            display: true,
+            anchor: 'end',
+            align: 'top',
+            offset: 4,
+            color: '#005ebb',
+            backgroundColor: 'rgba(255, 255, 255, 0.92)',
+            borderRadius: 4,
+            padding: { top: 2, bottom: 2, left: 5, right: 5 },
+            font: { weight: 'bold', size: 9.5 },
+            formatter: (v) => v !== null && v > 0 ? v.toFixed(2).replace('.', ',') + ' d' : ''
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0, minRotation: 0 } },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, grace: '30%' }
+        }
+      }
+    });
+  }
 
+  // 3. Gráfico 2: DT Inspecciones (Dona con valores claros y legibles)
+  const elDona = document.getElementById('chartCumpleInspeccion');
+  if (elDona && typeof Chart !== 'undefined') {
+    destroyChart('chartCumpleInspeccion');
+
+    const totalOps = rows.length;
+    const conInsp = totalDT;
+    const sinInsp = Math.max(0, totalOps - conInsp);
+
+    App.charts.chartCumpleInspeccion = new Chart(elDona, {
+      type: 'doughnut',
+      data: {
+        labels: ['Con Inspección', 'Sin Inspección'],
+        datasets: [{
+          data: [conInsp, sinInsp],
+          backgroundColor: ['#005ebb', '#38bdf8'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: 10 },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 12, padding: 14, font: { size: 10, weight: '600' } }
+          },
+          datalabels: {
+            display: true,
+            color: '#ffffff',
+            font: { weight: 'bold', size: 10 },
+            formatter: (v, ctx) => {
+              const sumTotal = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = sumTotal > 0 ? ((v / sumTotal) * 100).toFixed(1).replace('.', ',') + '%' : '';
+              return v > 0 ? `${v}\n(${pct})` : '';
+            }
+          }
+        },
+        cutout: '58%'
+      }
+    });
+  }
+};

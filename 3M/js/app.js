@@ -1067,18 +1067,19 @@ function getYearsForRows(rows) {
                 ahorro = Math.max(0, (base * arancelVal / 100 - liq) / tasa);
               }
               return {
-                do: nr['do'] || nr['pedido'],
+                do: nr['doimp'] || nr['do'] || nr['pedido'],
+                paisdeorigen: nr['paisorigen'] || nr['pais'] || nr['paisdeorigen'] || '',
+                subpartida: sub,
+                ahorroenusd: ahorro,
                 fecha: dLev,
                 mes: mesStr,
                 anio: anioVal,
-                subpartida: sub,
                 acuerdo: acuerdo,
                 arancel: arancelVal,
                 base: base,
-                liquidado: liq,
-                ahorro: ahorro
+                liquidado: liq
               };
-            }).filter(r => r.do);
+            }).filter(r => r.paisdeorigen && r.mes);
 
             // Parsear Planeación / DTA si está presente
             const fileDTA = results.find(r => r.name.toUpperCase().includes('PLANEACION') || r.name.toUpperCase().includes('DTA'));

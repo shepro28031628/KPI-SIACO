@@ -42,6 +42,7 @@
       <button class="menu-btn" data-tab="tab-inspeccion">🔍 Inspección</button>
       <button class="menu-btn" data-tab="tab-registros">📝 Registros</button>
       <button class="menu-btn" data-tab="tab-coo">🌐 COO</button>
+      <button class="menu-btn" data-tab="tab-dtas">📑 DTAS</button>
       <button class="menu-btn" data-tab="tab-datos">📊 Datos Detallados</button>
     </div>
     <div class="sidebar-footer">
@@ -525,6 +526,19 @@
               <div class="coo-table-total" id="cooTableTotal"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- TAB: DTAS -->
+      <div class="tab-pane" id="tab-dtas">
+        <div class="dashboard-header" style="margin-bottom: 20px;">
+          <div>
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--pbi-dark);">Módulo DTAS</h2>
+            <p style="color: var(--text-muted); font-size: 0.875rem;">Análisis y control de operaciones DTAS</p>
+          </div>
+        </div>
+        <div id="dtasContentContainer" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Aquí se renderizarán los KPIs, gráficos y tablas DTAS -->
         </div>
       </div>
 

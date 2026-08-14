@@ -360,32 +360,4 @@ ChartManager.renderDTAS = function() {
       }
     });
   }
-
-  // ==========================================
-  // TABLA DETALLADA DE DTAS
-  // ==========================================
-  const tbody = document.getElementById('tbodyDtas');
-  if (tbody) {
-    tbody.innerHTML = '';
-    rows.forEach(r => {
-      const tr = document.createElement('tr');
-      const fmtD = (d) => (d instanceof Date && !isNaN(d)) ? fmtDateUTC(d) : '-';
-      tr.innerHTML = `
-        <td><strong>${r.do || '-'}</strong></td>
-        <td>${r.documentodetransporte || '-'}</td>
-        <td>${r.proveedor || '-'}</td>
-        <td>${fmtD(r.fecharealdellegada)}</td>
-        <td>${fmtD(r.fechaliberacion)}</td>
-        <td>${fmtD(r.fechaingresozf)}</td>
-        <td>${fmtD(r.fechadelevante)}</td>
-        <td>${fmtD(r.fechafinalizacionetiquetado)}</td>
-        <td><span class="badge ${r.dias_llegada_a_liberacion <= 5 ? 'badge-ok' : 'badge-warn'}">${r.dias_llegada_a_liberacion !== null ? r.dias_llegada_a_liberacion + ' d' : '-'}</span></td>
-        <td><span class="badge ${r.dias_llegada_a_ingresozf <= 10 ? 'badge-ok' : 'badge-warn'}">${r.dias_llegada_a_ingresozf !== null ? r.dias_llegada_a_ingresozf + ' d' : '-'}</span></td>
-        <td><span class="badge ${r.dias_ingresozf_a_levante <= 30 ? 'badge-ok' : 'badge-danger'}">${r.dias_ingresozf_a_levante !== null ? r.dias_ingresozf_a_levante + ' d' : '-'}</span></td>
-        <td><span class="badge ${r.dias_ingresozf_a_etiquetado <= 25 ? 'badge-ok' : 'badge-danger'}">${r.dias_ingresozf_a_etiquetado !== null ? r.dias_ingresozf_a_etiquetado + ' d' : '-'}</span></td>
-        <td><span class="badge badge-ok">${r.estado || 'PROCESADO'}</span></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
 };

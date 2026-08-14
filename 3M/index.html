@@ -584,58 +584,31 @@
         <div class="pbi-grid-3col" style="margin-bottom: 20px;">
           <div class="chart-panel">
             <h4>1. Planeación: Documentos de Transporte por Mes de Levante</h4>
-            <div class="chart-wrap"><canvas id="chartDtaDocTrans"></canvas></div>
+            <div class="chart-wrap" style="min-height: 250px;"><canvas id="chartDtaDocTrans"></canvas></div>
           </div>
           <div class="chart-panel">
             <h4>2. Llegada Real vs Liberación (Días)</h4>
-            <div class="chart-wrap"><canvas id="chartDtaLlegadaLiberacion"></canvas></div>
+            <div class="chart-wrap" style="min-height: 250px;"><canvas id="chartDtaLlegadaLiberacion"></canvas></div>
           </div>
           <div class="chart-panel">
             <h4>3. Llegada Real vs Ingreso a ZF (Días)</h4>
-            <div class="chart-wrap"><canvas id="chartDtaLlegadaIngresoZF"></canvas></div>
+            <div class="chart-wrap" style="min-height: 250px;"><canvas id="chartDtaLlegadaIngresoZF"></canvas></div>
           </div>
         </div>
 
         <!-- FILA 2 DE GRÁFICAS (4, 5, 6) -->
-        <div class="pbi-grid-3col" style="margin-bottom: 20px;">
+        <div class="pbi-grid-3col">
           <div class="chart-panel">
             <h4>4. Días en Zona Franca vs Levante</h4>
-            <div class="chart-wrap"><canvas id="chartDtaZfLevante"></canvas></div>
+            <div class="chart-wrap" style="min-height: 250px;"><canvas id="chartDtaZfLevante"></canvas></div>
           </div>
           <div class="chart-panel">
             <h4>5. Días Ingreso ZF vs Etiquetado</h4>
-            <div class="chart-wrap"><canvas id="chartDtaIngresoEtiquetado"></canvas></div>
+            <div class="chart-wrap" style="min-height: 250px;"><canvas id="chartDtaIngresoEtiquetado"></canvas></div>
           </div>
           <div class="chart-panel">
             <h4>6. Finalización Etiquetado vs Ingreso ZF (Col P - Col L)</h4>
-            <div class="chart-wrap"><canvas id="chartDtaFinalEtiquetadoZF"></canvas></div>
-          </div>
-        </div>
-
-        <!-- TABLA DE TRAZABILIDAD DTAS -->
-        <div class="pbi-table-panel" style="background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 16px;">
-          <h4 style="margin-bottom: 12px; font-weight: 700; color: var(--text-main);">Detalle de Operaciones DTAS (PLANEACIÓN 2026)</h4>
-          <div class="pbi-table-scroll" style="max-height: 400px; overflow-y: auto;">
-            <table class="pbi-sub-table">
-              <thead>
-                <tr>
-                  <th>DO</th>
-                  <th>Doc. Transporte</th>
-                  <th>Proveedor</th>
-                  <th>F. Llegada</th>
-                  <th>F. Liberación</th>
-                  <th>F. Ingreso ZF</th>
-                  <th>F. Levante</th>
-                  <th>F. Etiquetado</th>
-                  <th>Llegada-Lib</th>
-                  <th>Llegada-ZF</th>
-                  <th>ZF-Levante</th>
-                  <th>ZF-Etiquetado</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyDtas"></tbody>
-            </table>
+            <div class="chart-wrap" style="min-height: 250px;"><canvas id="chartDtaFinalEtiquetadoZF"></canvas></div>
           </div>
         </div>
       </div>

@@ -1835,14 +1835,18 @@ function getYearsForRows(rows) {
             plugins: {
               legend: {
                 position: 'top',
-                labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } },
+                labels: { usePointStyle: true, boxWidth: 8, font: { size: 10.5, weight: '600' } },
                 title: { display: false }
               },
               datalabels: {
                 display: true,
                 align: 'top',
-                color: '#605e5c',
-                font: { size: 9, weight: '600' },
+                offset: 2,
+                color: (ctx) => ctx.dataset.borderColor || '#0f172a',
+                backgroundColor: 'rgba(255, 255, 255, 0.85)',
+                borderRadius: 3,
+                padding: { top: 1, bottom: 1, left: 3, right: 3 },
+                font: { size: 9, weight: '700' },
                 formatter: (val) => val !== null ? val.toString().replace('.', ',') : ''
               }
             },

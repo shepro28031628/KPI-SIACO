@@ -61,16 +61,16 @@ ChartManager.renderProcesos = function() {
           const rowsAereo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('AEREO'));
           const rowsMaritimo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('MARIT'));
 
-          // 1. Gráfico Aéreo (Tonos Azules Cielo / Cyan)
-          const colorsAereo = { 2025: '#38bdf8', 2026: '#0284c7' };
+          // 1. Gráfico Aéreo: Azul Cielo (2025) vs Azul Marino Profundo (2026)
+          const colorsAereo = { 2025: '#0284c7', 2026: '#0c4a6e' };
           this.renderLineChart('chartTiempoAereo', getLineDatasets(rowsAereo, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsAereo));
 
-          // 2. Gráfico Marítimo (Tonos Teal / Verde Marino)
-          const colorsMaritimo = { 2025: '#2dd4bf', 2026: '#0f766e' };
+          // 2. Gráfico Marítimo: Verde Esmeralda (2025) vs Verde Marino Oscuro (2026)
+          const colorsMaritimo = { 2025: '#059669', 2026: '#064e3b' };
           this.renderLineChart('chartTiempoMaritimo', getLineDatasets(rowsMaritimo, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsMaritimo));
 
-          // 3. Gráfico Total / Consolidado (Tonos Púrpura / Índigo)
-          const colorsGeneral = { 2025: '#a855f7', 2026: '#6b21a8' };
+          // 3. Gráfico Total / Consolidado: Naranja Ámbar (2025) vs Azul Corporativo (2026)
+          const colorsGeneral = { 2025: '#ea580c', 2026: '#1e3a8a' };
           this.renderLineChart('chartTiempoGeneral', getLineDatasets(rowsValidos, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsGeneral));
         };
 

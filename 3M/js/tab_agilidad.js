@@ -1,4 +1,4 @@
-﻿ChartManager.renderAgilidad = function() {
+ChartManager.renderAgilidad = function() {
 
           this.renderModuloKPI({
             campoTiempo: 'tiempoagilidad', campoCumplimiento: 'cumpleagilidad', campoJustificacion: 'responsableagilidad',
@@ -6,7 +6,7 @@
             campoFecha: 'fechadelevante',
             elTT: 'valTTAgilidad', elDT: 'valDTAgilidad', chartLinea: 'chartPromAgilidad', chartDona: 'chartCumpleAgilidad',
             chartJust: 'chartJustAgilidad', tblJust: 'tblJustAgilidadBody', tblDetalle: 'tblDetalleAgilidadBody',
-            columnasTabla: ['do', 'do3m', 'documentodetransporte', 'cumpleagilidad', 'responsableagilidad', 'justificacionagilidad'],
+            columnasTabla: ['responsableagilidad', 'justificacionagilidad'],
             campoRazonMes: 'mes', campoRazonJust: 'justificacionesoperaciones', mod: 'agilidad'
           });
         }

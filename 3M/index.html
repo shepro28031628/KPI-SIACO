@@ -686,44 +686,25 @@
           </div>
         </div>
 
-        <!-- Fila de Gráficos -->
-        <div class="pbi-grid-3col" style="margin-bottom: 20px;">
-          <div class="chart-panel">
-            <h4>Distribución por Estado de Producto</h4>
-            <div class="chart-wrap" style="min-height: 260px;"><canvas id="chartClasifEstados"></canvas></div>
+        <!-- Fila Superior: 2 Gráficos de Torta (50% - 50%) -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px;">
+          <div class="chart-panel" style="min-height: 380px; display: flex; flex-direction: column;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #1e293b;">Distribución por Estado de Producto</h4>
+            <div class="chart-wrap" style="flex: 1; min-height: 310px; position: relative;"><canvas id="chartClasifEstados"></canvas></div>
           </div>
-          <div class="chart-panel">
-            <h4>Tendencia de Restricciones Legales</h4>
-            <div class="chart-wrap" style="min-height: 260px;"><canvas id="chartClasifTendenciaRestr"></canvas></div>
-          </div>
-          <div class="chart-panel">
-            <h4>Proporción con Restricción Legal</h4>
-            <div class="chart-wrap" style="min-height: 260px;"><canvas id="chartClasifAplica"></canvas></div>
+          <div class="chart-panel" style="min-height: 380px; display: flex; flex-direction: column;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #1e293b;">Proporción con Restricción Legal</h4>
+            <div class="chart-wrap" style="flex: 1; min-height: 310px; position: relative;"><canvas id="chartClasifAplica"></canvas></div>
           </div>
         </div>
 
-        <!-- Tabla de Detalle -->
-        <div class="pbi-table-panel" style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 16px; margin-bottom: 20px;">
+        <!-- Fila Inferior: Tendencia de Restricciones Legales (Ancho Completo) -->
+        <div class="chart-panel" style="min-height: 380px; display: flex; flex-direction: column; margin-bottom: 25px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">Detalle de SKUs, Estados y Restricciones Legales</h4>
-            <span class="pbi-badge badge-blue" id="clasifTableCount" style="font-size: 12px; font-weight: 700;">0 SKUs</span>
+            <h4 style="font-size: 15px; font-weight: 700; margin: 0; color: #1e293b;">Tendencia de Restricciones Legales (Frecuencia por Tipo de Restricción)</h4>
+            <span class="pbi-badge badge-blue" style="font-size: 11px; font-weight: 700;">Restricciones Aplicables</span>
           </div>
-          <div class="pbi-table-scroll" style="max-height: 380px; overflow-y: auto;">
-            <table class="modern-table" style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="background: #f8fafc; text-align: left; position: sticky; top: 0; z-index: 1;">
-                  <th style="padding: 10px;">Código Producto (SKU)</th>
-                  <th style="padding: 10px;">Estado Producto</th>
-                  <th style="padding: 10px;">Mes</th>
-                  <th style="padding: 10px;">Fecha Creación</th>
-                  <th style="padding: 10px;">Fecha Clasificación</th>
-                  <th style="padding: 10px; text-align: center;">¿Aplica Restricción?</th>
-                  <th style="padding: 10px;">Restricciones Legales</th>
-                </tr>
-              </thead>
-              <tbody id="tblClasifBody"></tbody>
-            </table>
-          </div>
+          <div class="chart-wrap" style="flex: 1; min-height: 310px; position: relative;"><canvas id="chartClasifTendenciaRestr"></canvas></div>
         </div>
       </div>
 
@@ -776,16 +757,16 @@
     <span id="toastMessage">Notificación</span>
   </div>
 
-  <script src="js/default_data.js?v=20260821_4"></script>
-  <script src="js/app.js?v=20260821_4"></script>
-  <script src="js/tab_procesos.js?v=20260821_4"></script>
-  <script src="js/tab_agilidad.js?v=20260821_4"></script>
-  <script src="js/tab_facturacion.js?v=20260821_4"></script>
-  <script src="js/tab_inspeccion.js?v=20260821_4"></script>
-  <script src="js/tab_registros.js?v=20260821_4"></script>
-  <script src="js/tab_coo.js?v=20260821_4"></script>
-  <script src="js/tab_dtas.js?v=20260821_4"></script>
-  <script src="js/tab_clasificacion.js?v=20260821_4"></script>
+  <script src="js/default_data.js?v=20260821_6"></script>
+  <script src="js/app.js?v=20260821_6"></script>
+  <script src="js/tab_procesos.js?v=20260821_6"></script>
+  <script src="js/tab_agilidad.js?v=20260821_6"></script>
+  <script src="js/tab_facturacion.js?v=20260821_6"></script>
+  <script src="js/tab_inspeccion.js?v=20260821_6"></script>
+  <script src="js/tab_registros.js?v=20260821_6"></script>
+  <script src="js/tab_coo.js?v=20260821_6"></script>
+  <script src="js/tab_dtas.js?v=20260821_6"></script>
+  <script src="js/tab_clasificacion.js?v=20260821_6"></script>
 </body>
 
 </html>

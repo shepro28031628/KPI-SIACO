@@ -149,7 +149,7 @@ ChartManager.renderClasificacion = function() {
     document.getElementById('valClasifConRestriccion').textContent = `${skusConRestr} (${pctConRestr}%)`;
   }
 
-  // 2. Gráfico 1: Distribución por Estado del Producto
+  // 2. Gráfico 1: Distribución por Estado del Producto (Torta con Valores y Porcentajes)
   const countEstados = {};
   rowsGenerales.forEach(r => {
     const est = r.estado || 'SIN ESTADO';
@@ -161,6 +161,7 @@ ChartManager.renderClasificacion = function() {
   if (ctxEstados && typeof Chart !== 'undefined') {
     const labels = Object.keys(countEstados);
     const dataValues = Object.values(countEstados);
+    const totalEst = dataValues.reduce((a, b) => a + b, 0);
     const stateColors = {
       'COMPLETO': '#10b981',
       'CLASIFICADO': '#0284c7',
@@ -171,7 +172,7 @@ ChartManager.renderClasificacion = function() {
     const bgColors = labels.map(l => stateColors[l] || '#64748b');
 
     App.charts.chartClasifEstados = new Chart(ctxEstados, {
-      type: 'doughnut',
+      type: 'pie',
       data: {
         labels: labels,
         datasets: [{
@@ -184,21 +185,133 @@ ChartManager.renderClasificacion = function() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '62%',
+        layout: { padding: 15 },
         plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } },
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 14,
+              font: { size: 12, weight: '600' },
+              generateLabels: (chart) => {
+                const data = chart.data;
+                if (data.labels.length && data.datasets.length) {
+                  return data.labels.map((label, i) => {
+                    const val = data.datasets[0].data[i];
+                    const pct = totalEst > 0 ? ((val / totalEst) * 100).toFixed(1) : 0;
+                    return {
+                      text: `${label}: ${val} (${pct}%)`,
+                      fillStyle: data.datasets[0].backgroundColor[i],
+                      strokeStyle: '#ffffff',
+                      lineWidth: 1,
+                      index: i
+                    };
+                  });
+                }
+                return [];
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const val = ctx.raw || 0;
+                const pct = totalEst > 0 ? ((val / totalEst) * 100).toFixed(1) : 0;
+                return ` ${ctx.label}: ${val} SKUs (${pct}%)`;
+              }
+            }
+          },
           datalabels: {
             display: true,
             color: '#ffffff',
             font: { weight: 'bold', size: 12 },
-            formatter: (val) => val > 0 ? val : ''
+            formatter: (val) => {
+              if (val === 0) return '';
+              const pct = totalEst > 0 ? ((val / totalEst) * 100).toFixed(1) : 0;
+              return `${val}\n(${pct}%)`;
+            }
           }
         }
       }
     });
   }
 
-  // 3. Gráfico 2: Tendencia y Ranking de Restricciones Legales (Columna D)
+  // 3. Gráfico 2: Proporción de SKUs con Restricción Legal (Torta con Valores y Porcentajes)
+  let aplicaSi = 0;
+  let aplicaNo = 0;
+  enrichedRows.forEach(r => {
+    if (r.aplicaRestriccion === 'SI') aplicaSi++;
+    else aplicaNo++;
+  });
+  const totalAplica = aplicaSi + aplicaNo;
+
+  destroyChart('chartClasifAplica');
+  const ctxAplica = document.getElementById('chartClasifAplica');
+  if (ctxAplica && typeof Chart !== 'undefined') {
+    App.charts.chartClasifAplica = new Chart(ctxAplica, {
+      type: 'pie',
+      data: {
+        labels: ['Aplica Restricción (SÍ)', 'Sin Restricción (NO)'],
+        datasets: [{
+          data: [aplicaSi, aplicaNo],
+          backgroundColor: ['#ea580c', '#0284c7'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: 15 },
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 14,
+              font: { size: 12, weight: '600' },
+              generateLabels: (chart) => {
+                const data = chart.data;
+                if (data.labels.length && data.datasets.length) {
+                  return data.labels.map((label, i) => {
+                    const val = data.datasets[0].data[i];
+                    const pct = totalAplica > 0 ? ((val / totalAplica) * 100).toFixed(1) : 0;
+                    return {
+                      text: `${label}: ${val} (${pct}%)`,
+                      fillStyle: data.datasets[0].backgroundColor[i],
+                      strokeStyle: '#ffffff',
+                      lineWidth: 1,
+                      index: i
+                    };
+                  });
+                }
+                return [];
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const val = ctx.raw || 0;
+                const pct = totalAplica > 0 ? ((val / totalAplica) * 100).toFixed(1) : 0;
+                return ` ${ctx.label}: ${val} SKUs (${pct}%)`;
+              }
+            }
+          },
+          datalabels: {
+            display: true,
+            color: '#ffffff',
+            font: { weight: 'bold', size: 12 },
+            formatter: (val) => {
+              if (val === 0) return '';
+              const pct = totalAplica > 0 ? ((val / totalAplica) * 100).toFixed(1) : 0;
+              return `${val}\n(${pct}%)`;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 4. Gráfico 3: Tendencia y Frecuencia de Restricciones Legales (Barra Horizontal Ancha)
   const countRestricciones = {};
   const currentSKUs = new Set(rowsGenerales.map(r => r.sku));
   
@@ -221,113 +334,47 @@ ChartManager.renderClasificacion = function() {
       data: {
         labels: restrLabels.length > 0 ? restrLabels : ['Sin restricciones registradas'],
         datasets: [{
-          label: 'Frecuencia / Tendencia de Restricción',
+          label: 'Cantidad de SKUs con Restricción',
           data: restrValues.length > 0 ? restrValues : [0],
           backgroundColor: '#0284c7',
-          borderRadius: 4,
-          maxBarThickness: 28
+          hoverBackgroundColor: '#0369a1',
+          borderRadius: 6,
+          maxBarThickness: 34
         }]
       },
       options: {
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { right: 70, left: 10, top: 10, bottom: 10 } },
         plugins: {
           legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.raw} SKUs con esta restricción legal`
+            }
+          },
           datalabels: {
             display: true,
             anchor: 'end',
             align: 'right',
             color: '#1e293b',
-            font: { weight: 'bold', size: 11 },
-            formatter: (v) => v > 0 ? v : ''
+            font: { weight: 'bold', size: 12 },
+            formatter: (v) => v > 0 ? `${v} SKUs` : ''
           }
         },
         scales: {
-          x: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, ticks: { precision: 0 } },
-          y: { grid: { display: false }, ticks: { font: { size: 11 } } }
-        }
-      }
-    });
-  }
-
-  // 4. Gráfico 3: Proporción de SKUs con Restricción Legal (Aplica: Sí vs No)
-  let aplicaSi = 0;
-  let aplicaNo = 0;
-  enrichedRows.forEach(r => {
-    if (r.aplicaRestriccion === 'SI') aplicaSi++;
-    else aplicaNo++;
-  });
-
-  destroyChart('chartClasifAplica');
-  const ctxAplica = document.getElementById('chartClasifAplica');
-  if (ctxAplica && typeof Chart !== 'undefined') {
-    App.charts.chartClasifAplica = new Chart(ctxAplica, {
-      type: 'doughnut',
-      data: {
-        labels: ['Aplica Restricción (SÍ)', 'Sin Restricción (NO)'],
-        datasets: [{
-          data: [aplicaSi, aplicaNo],
-          backgroundColor: ['#ea580c', '#3b82f6'],
-          borderWidth: 2,
-          borderColor: '#ffffff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '60%',
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
-          datalabels: {
-            display: true,
-            color: '#ffffff',
-            font: { weight: 'bold', size: 12 },
-            formatter: (v) => v > 0 ? v : ''
+          x: {
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            beginAtZero: true,
+            ticks: { precision: 0, font: { size: 12 } }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { font: { size: 12, weight: '600' }, color: '#1e293b' }
           }
         }
       }
     });
-  }
-
-  // 5. Tabla de Detalle
-  const tbody = document.getElementById('tblClasifBody');
-  const countBadge = document.getElementById('clasifTableCount');
-  if (countBadge) countBadge.textContent = `${enrichedRows.length} SKUs`;
-
-  if (tbody) {
-    tbody.innerHTML = '';
-    if (enrichedRows.length > 0) {
-      const fragment = document.createDocumentFragment();
-      enrichedRows.forEach(r => {
-        const tr = document.createElement('tr');
-        
-        let stateBadgeClass = 'badge-blue';
-        if (r.estado === 'COMPLETO') stateBadgeClass = 'badge-green';
-        else if (r.estado === 'REQUERIDO') stateBadgeClass = 'badge-orange';
-        else if (r.estado === 'TIPIFICADO') stateBadgeClass = 'badge-purple';
-
-        let restrBadge = r.aplicaRestriccion === 'SI' 
-          ? `<span class="pbi-badge badge-orange" style="font-weight:700;">⚠️ SÍ APLICA</span>` 
-          : `<span class="pbi-badge badge-green">✓ NO</span>`;
-
-        const fCreacionStr = r.fechacreacion instanceof Date ? r.fechacreacion.toISOString().slice(0, 10) : (r.fechacreacion || '-');
-        const fClasifStr = r.fechaclasificacion instanceof Date ? r.fechaclasificacion.toISOString().slice(0, 10) : (r.fechaclasificacion || '-');
-
-        tr.innerHTML = `
-          <td><strong>${r.sku}</strong></td>
-          <td><span class="pbi-badge ${stateBadgeClass}">${r.estado}</span></td>
-          <td>${r.mes ? r.mes.charAt(0).toUpperCase() + r.mes.slice(1) : '-'}</td>
-          <td>${fCreacionStr}</td>
-          <td>${fClasifStr}</td>
-          <td style="text-align:center;">${restrBadge}</td>
-          <td><small style="color:var(--text-muted, #64748b);">${r.restricciones}</small></td>
-        `;
-        fragment.appendChild(tr);
-      });
-      tbody.appendChild(fragment);
-    } else {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">No se encontraron SKUs con los filtros seleccionados</td></tr>';
-    }
   }
 };

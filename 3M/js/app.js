@@ -1490,7 +1490,14 @@ function getYearsForRows(rows) {
         }, App.chartFilters[config.mod].month, App.chartFilters[config.mod].year);
 
         if (config.chartJust && document.getElementById(config.chartJust)) {
-          this.barChart(config.chartJust, countBy(fullyFilteredRows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === 'NO'), config.campoJustificacion), 'pie', null, null, 'right');
+          this.barChart(config.chartJust, countBy(fullyFilteredRows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === 'NO'), config.campoJustificacion), 'pie', (justLabel) => {
+            if (justLabel && App.chartFilters[config.mod].justLabel !== justLabel) {
+              App.chartFilters[config.mod].justLabel = justLabel;
+            } else {
+              App.chartFilters[config.mod].justLabel = null;
+            }
+            this.renderModuloKPI(config);
+          }, App.chartFilters[config.mod] ? App.chartFilters[config.mod].justLabel : null, 'right');
         }
 
         if (config.tblJust) {
@@ -1502,7 +1509,11 @@ function getYearsForRows(rows) {
             const from = fromVal ? parseUTCDate(fromVal) : null;
             const to = toVal ? parseUTCDate(toVal) : null;
 
-            const nonCompliant = fullyFilteredRows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === 'NO' && r[config.campoJustificacion]);
+            let nonCompliant = fullyFilteredRows.filter(r => String(r[config.campoCumplimiento]).toUpperCase() === 'NO' && r[config.campoJustificacion]);
+            if (App.chartFilters[config.mod] && App.chartFilters[config.mod].justLabel) {
+              const selJust = String(App.chartFilters[config.mod].justLabel).toUpperCase();
+              nonCompliant = nonCompliant.filter(r => String(r[config.campoJustificacion] || '').toUpperCase() === selJust);
+            }
 
             const grouped = {};
             nonCompliant.forEach(r => {
@@ -1557,6 +1568,13 @@ function getYearsForRows(rows) {
           let tableRows = fullyFilteredRows;
           if (config.tblFilterField && config.tblFilterValue) {
              tableRows = tableRows.filter(r => String(r[config.tblFilterField]).toUpperCase() === String(config.tblFilterValue).toUpperCase());
+          }
+          if (App.chartFilters[config.mod] && App.chartFilters[config.mod].justLabel) {
+             const selJust = String(App.chartFilters[config.mod].justLabel).toUpperCase();
+             tableRows = tableRows.filter(r => {
+               const val = r[config.campoJustificacion] || r['responsable' + config.mod] || r['responsable'];
+               return String(val || '').toUpperCase() === selJust;
+             });
           }
           this.renderSubTable(config.tblDetalle, tableRows, config.columnasTabla, config.mod);
         }
@@ -1896,6 +1914,14 @@ function getYearsForRows(rows) {
 
           if (activeFilter && l !== String(activeFilter).toUpperCase()) {
             return color + '40'; // Add transparency if not selected
+          }
+          return color;
+        });
+      } else if (activeFilter) {
+        bgColors = labels.map((label, idx) => {
+          const color = PALETTE[idx % PALETTE.length];
+          if (String(label).toUpperCase() !== String(activeFilter).toUpperCase()) {
+            return color + '40';
           }
           return color;
         });

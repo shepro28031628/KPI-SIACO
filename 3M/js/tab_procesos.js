@@ -68,10 +68,6 @@ ChartManager.renderProcesos = function() {
           // 2. Gráfico Marítimo: Verde Esmeralda (2025) vs Verde Marino Oscuro (2026)
           const colorsMaritimo = { 2025: '#059669', 2026: '#064e3b' };
           this.renderLineChart('chartTiempoMaritimo', getLineDatasets(rowsMaritimo, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsMaritimo));
-
-          // 3. Gráfico Total / Consolidado: Naranja Ámbar (2025) vs Azul Corporativo (2026)
-          const colorsGeneral = { 2025: '#ea580c', 2026: '#1e3a8a' };
-          this.renderLineChart('chartTiempoGeneral', getLineDatasets(rowsValidos, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsGeneral));
         };
 
 

@@ -60,6 +60,10 @@ ChartManager.renderProcesos = function() {
           
           const rowsAereo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('AEREO'));
           const rowsMaritimo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('MARIT'));
+          const rowsZF = rowsValidos.filter(r => {
+            const m = String(r.mododetransporte || '').toUpperCase();
+            return m === 'ZF' || m.includes('FRANCA') || m.includes('ZONA');
+          });
 
           // 1. Gráfico Aéreo: Azul Cielo (2025) vs Azul Marino Profundo (2026)
           const colorsAereo = { 2025: '#0284c7', 2026: '#0c4a6e' };
@@ -68,6 +72,10 @@ ChartManager.renderProcesos = function() {
           // 2. Gráfico Marítimo: Verde Esmeralda (2025) vs Verde Marino Oscuro (2026)
           const colorsMaritimo = { 2025: '#059669', 2026: '#064e3b' };
           this.renderLineChart('chartTiempoMaritimo', getLineDatasets(rowsMaritimo, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsMaritimo));
+
+          // 3. Gráfico Zona Franca: Ámbar Cálido (2025) vs Naranja Oscuro (2026)
+          const colorsZF = { 2025: '#f59e0b', 2026: '#b45309' };
+          this.renderLineChart('chartTiempoZF', getLineDatasets(rowsZF, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsZF));
         };
 
 

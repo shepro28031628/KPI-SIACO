@@ -943,7 +943,7 @@ function getYearsForRows(rows) {
             const upperName = res.name.toUpperCase();
             if (upperName.includes('REPORTE')) fileReporte = res;
             else if (upperName.includes('STATUS')) fileStatus = res;
-            else if (upperName.includes('AHORRO') || upperName.includes('ARANCEL') || upperName.includes('IT')) fileIT = res;
+            else if (upperName.includes('COO') || upperName.includes('AHORRO') || upperName.includes('ARANCEL') || upperName.includes('IT')) fileIT = res;
           });
 
           if (!fileReporte && files.length === 1) fileReporte = results[0];
@@ -1043,47 +1043,58 @@ function getYearsForRows(rows) {
 
             let itRaw = [];
             if (fileIT.tsvText) itRaw = parseTSV(fileIT.tsvText);
-            else if (fileIT.wb) itRaw = XLSX.utils.sheet_to_json(fileIT.wb.Sheets[fileIT.wb.SheetNames[0]], { defval: null });
+            else if (fileIT.wb) {
+              const sheetName = fileIT.wb.SheetNames.find(n => n.toUpperCase().trim() === 'COO') || fileIT.wb.SheetNames.find(n => n.toUpperCase().includes('COO')) || fileIT.wb.SheetNames[0];
+              itRaw = XLSX.utils.sheet_to_json(fileIT.wb.Sheets[sheetName], { defval: null });
+            }
 
             App.raw.coo = itRaw.map(r => {
               const normKey = (k) => k.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
               const nr = {};
               for (let k in r) nr[normKey(k)] = r[k];
-              const dLev = parseExcelDateSafe(nr['fechalev'] || nr['fecha'] || nr['fechaaperturado']);
-              let mesStr = '', anioVal = null;
-              if (dLev instanceof Date && !isNaN(dLev)) {
-                const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-                mesStr = monthNames[dLev.getMonth()]; anioVal = dLev.getFullYear();
+              
+              let mesStr = '';
+              if (nr['mes']) {
+                mesStr = String(nr['mes']).trim().toLowerCase();
+              } else {
+                const dLev = parseExcelDateSafe(nr['fechalev'] || nr['fecha'] || nr['fechaaperturado']);
+                if (dLev instanceof Date && !isNaN(dLev)) {
+                  const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                  mesStr = monthNames[dLev.getMonth()];
+                }
               }
-
-              const base = parseFloat(String(nr['basearancel'] || 0).replace(/[^0-9.-]/g, '')) || 0;
-              const tasa = parseFloat(String(nr['tasa'] || 1).replace(',', '.')) || 1;
-              const liq = parseFloat(String(nr['liqarancelpesos'] || 0).replace(/[^0-9.-]/g, '')) || 0;
-              const arancelVal = parseFloat(String(nr['arancel'] || 0).replace(/[^0-9.-]/g, '')) || 0;
-              const acuerdo = String(nr['acuerdo'] || '').trim();
 
               let ahorro = 0;
-              const sub = String(nr['subpartida'] || '').trim();
-              if (acuerdo !== '') {
-                let standardRate = 0.10;
-                if (sub.startsWith('61') || sub.startsWith('62') || sub.startsWith('63')) standardRate = 0.15;
-                else if (sub.startsWith('84') || sub.startsWith('85') || sub.startsWith('90')) standardRate = 0.05;
-                ahorro = (base * standardRate) / tasa;
-              } else if (arancelVal > 0) {
-                ahorro = Math.max(0, (base * arancelVal / 100 - liq) / tasa);
+              if (nr['ahorroenusd'] !== undefined && nr['ahorroenusd'] !== null && String(nr['ahorroenusd']).trim() !== '') {
+                ahorro = parseFloat(String(nr['ahorroenusd']).replace(/[^0-9.-]/g, '')) || 0;
+              } else if (nr['ahorro'] !== undefined && nr['ahorro'] !== null && String(nr['ahorro']).trim() !== '') {
+                ahorro = parseFloat(String(nr['ahorro']).replace(/[^0-9.-]/g, '')) || 0;
+              } else {
+                const base = parseFloat(String(nr['basearancel'] || 0).replace(/[^0-9.-]/g, '')) || 0;
+                const tasa = parseFloat(String(nr['tasa'] || 1).replace(',', '.')) || 1;
+                const liq = parseFloat(String(nr['liqarancelpesos'] || 0).replace(/[^0-9.-]/g, '')) || 0;
+                const arancelVal = parseFloat(String(nr['arancel'] || 0).replace(/[^0-9.-]/g, '')) || 0;
+                const acuerdo = String(nr['acuerdo'] || '').trim();
+                const sub = String(nr['subpartida'] || '').trim();
+                if (acuerdo !== '') {
+                  let standardRate = 0.10;
+                  if (sub.startsWith('61') || sub.startsWith('62') || sub.startsWith('63')) standardRate = 0.15;
+                  else if (sub.startsWith('84') || sub.startsWith('85') || sub.startsWith('90')) standardRate = 0.05;
+                  ahorro = (base * standardRate) / tasa;
+                } else if (arancelVal > 0) {
+                  ahorro = Math.max(0, (base * arancelVal / 100 - liq) / tasa);
+                }
               }
+
+              const paisVal = String(nr['paisdeorigen'] || nr['paisorigen'] || nr['pais'] || '').trim().toUpperCase();
+              const subpartidaVal = nr['subpartida'] !== undefined && nr['subpartida'] !== null ? String(nr['subpartida']).trim() : '';
+
               return {
                 do: nr['doimp'] || nr['do'] || nr['pedido'],
-                paisdeorigen: nr['paisorigen'] || nr['pais'] || nr['paisdeorigen'] || '',
-                subpartida: sub,
+                paisdeorigen: paisVal,
+                subpartida: subpartidaVal,
                 ahorroenusd: ahorro,
-                fecha: dLev,
-                mes: mesStr,
-                anio: anioVal,
-                acuerdo: acuerdo,
-                arancel: arancelVal,
-                base: base,
-                liquidado: liq
+                mes: mesStr
               };
             }).filter(r => r.paisdeorigen && r.mes);
 

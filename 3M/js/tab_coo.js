@@ -12,6 +12,8 @@ ChartManager.renderCOO = function() {
 
   if (!App._cooFilters) App._cooFilters = { mes: new Set(), pais: new Set(), sub: new Set() };
 
+  const capitalize = (s) => (s && typeof s === 'string') ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
+
   const renderFilterList = (containerId, items, filterSet) => {
     const el = document.getElementById(containerId); if (!el) return;
     el.innerHTML = '';
@@ -22,7 +24,8 @@ ChartManager.renderCOO = function() {
         if (cb.checked) filterSet.add(item); else filterSet.delete(item);
         ChartManager.renderCOO();
       });
-      label.appendChild(cb); label.appendChild(document.createTextNode(item));
+      const displayText = (containerId === 'cooFilterMes') ? capitalize(item) : item;
+      label.appendChild(cb); label.appendChild(document.createTextNode(' ' + displayText));
       el.appendChild(label);
     });
   };
@@ -43,15 +46,20 @@ ChartManager.renderCOO = function() {
     tblCOO.innerHTML = '';
     if (rows.length > 0) {
       const fragment = document.createDocumentFragment();
-      rows.forEach(r => {
+      const displayRows = rows.slice(0, 500);
+      displayRows.forEach(r => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${r['mes'] || '-'}</td><td>${r['subpartida'] || '-'}</td><td style="text-align:right">${fmtUSD(r['ahorroenusd'] || 0)}</td>`;
+        const mName = capitalize(r['mes'] || '-');
+        tr.innerHTML = `<td>${mName}</td><td>${r['subpartida'] || '-'}</td><td style="text-align:right">${fmtUSD(r['ahorroenusd'] || 0)}</td>`;
         fragment.appendChild(tr);
       });
       tblCOO.appendChild(fragment);
     } else { tblCOO.innerHTML = '<tr><td colspan="3" style="text-align:center;">No hay datos</td></tr>'; }
   }
-  if (document.getElementById('cooTableTotal')) document.getElementById('cooTableTotal').innerHTML = `<strong>Total</strong> <strong>${fmtUSD(total)}</strong>`;
+  if (document.getElementById('cooTableTotal')) {
+    const countInfo = rows.length > 500 ? ` (${rows.length} registros)` : '';
+    document.getElementById('cooTableTotal').innerHTML = `<strong>Total${countInfo}</strong> <strong>${fmtUSD(total)}</strong>`;
+  }
 
   const ISO2_MAP = { 'BR': 'BR', 'DE': 'DE', 'FR': 'FR', 'KR': 'KR', 'MX': 'MX', 'PL': 'PL', 'US': 'US', 'CHINA': 'CN', 'CN': 'CN', 'COLOMBIA': 'CO', 'CO': 'CO', 'INDIA': 'IN', 'IN': 'IN', 'JAPON': 'JP', 'JP': 'JP', 'GB': 'GB' };
   const byPaisISO = {};

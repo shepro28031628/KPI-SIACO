@@ -75,7 +75,7 @@ async function updateCache() {
   const filePaths = [
     'data/REPORTE.xls',
     'data/STATUS.xlsx',
-    'data/ahorro arancel.xls',
+    fs.existsSync(path.join(__dirname, 'data/COO.xlsx')) ? 'data/COO.xlsx' : 'data/ahorro arancel.xls',
     'data/PLANEACION 3M2.xlsx'
   ];
 

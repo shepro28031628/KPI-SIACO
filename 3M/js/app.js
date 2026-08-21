@@ -1846,7 +1846,11 @@ function getYearsForRows(rows) {
       }
 
       if (autoLoad()) {
-        try { LocalDB.clear(); } catch(e) {}
+        try {
+          if (window.indexedDB && typeof window.indexedDB.deleteDatabase === 'function') {
+            window.indexedDB.deleteDatabase('KPI_SIACO_DB');
+          }
+        } catch(e) {}
       } else {
         LocalDB.load('lastSession').then(session => {
           if (session && session.raw) {

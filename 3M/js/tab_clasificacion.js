@@ -221,13 +221,15 @@ ChartManager.renderClasificacion = function() {
             }
           },
           datalabels: {
-            display: true,
+            display: (ctx) => {
+              const val = ctx.dataset.data[ctx.dataIndex] || 0;
+              return totalEst > 0 && (val / totalEst) >= 0.12;
+            },
             color: '#ffffff',
-            font: { weight: 'bold', size: 12 },
+            font: { weight: 'bold', size: 13 },
             formatter: (val) => {
-              if (val === 0) return '';
               const pct = totalEst > 0 ? ((val / totalEst) * 100).toFixed(1) : 0;
-              return `${val}\n(${pct}%)`;
+              return `${val} (${pct}%)`;
             }
           }
         }

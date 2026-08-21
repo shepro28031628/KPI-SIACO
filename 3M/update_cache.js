@@ -76,7 +76,8 @@ async function updateCache() {
     'data/REPORTE.xls',
     'data/STATUS.xlsx',
     fs.existsSync(path.join(__dirname, 'data/COO.xlsx')) ? 'data/COO.xlsx' : 'data/ahorro arancel.xls',
-    'data/PLANEACION 3M2.xlsx'
+    'data/PLANEACION 3M2.xlsx',
+    'data/CLASIFICACION.xlsx'
   ];
 
   const files = [];

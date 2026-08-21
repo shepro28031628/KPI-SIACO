@@ -224,6 +224,7 @@ function autoLoad() {
     if (!App.raw.registros) App.raw.registros = [];
     if (!App.raw.indicadores) App.raw.indicadores = [];
     if (!App.raw.razones) App.raw.razones = [];
+    if (!App.raw.clasificacion) App.raw.clasificacion = { datosGenerales: [], restriccionesLegales: [] };
 
     FilterEngine.initFilters();
     ChartManager.renderAll();
@@ -619,6 +620,69 @@ function parseDTA(wb) {
     });
   }
   return data;
+}
+
+function parseClasificacion(wb) {
+  if (!wb || !wb.SheetNames) return { datosGenerales: [], restriccionesLegales: [] };
+  
+  // 1. Datos Generales (Col B: Código producto, Col C: Estado producto, Col D/E: Fechas)
+  const dgSheetName = wb.SheetNames.find(n => n.toLowerCase().includes('general') || n.toLowerCase().includes('dato')) || wb.SheetNames[0];
+  const dgRaw = dgSheetName ? XLSX.utils.sheet_to_json(wb.Sheets[dgSheetName], { defval: '' }) : [];
+  
+  const datosGenerales = dgRaw.map(r => {
+    const normKey = (k) => k.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+    const nr = {};
+    for (let k in r) nr[normKey(k)] = r[k];
+
+    const sku = nr['codigodeproducto'] || nr['codigo'] || nr['producto'] || nr['sku'] || '';
+    const estado = String(nr['estadoproducto'] || nr['estado'] || 'SIN ESTADO').trim().toUpperCase();
+    const cliente = String(nr['cliente'] || '3M COLOMBIA S.A.').trim();
+    const fCreacion = parseExcelDateSafe(nr['fechadecreacion'] || nr['fechacreacion']);
+    const fClasificacion = parseExcelDateSafe(nr['fechadeclasificacion'] || nr['fechaclasificacion']);
+
+    const dRef = fClasificacion || fCreacion;
+    let mesStr = '';
+    if (dRef instanceof Date && !isNaN(dRef)) {
+      const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+      mesStr = monthNames[dRef.getMonth()];
+    }
+
+    return {
+      cliente: cliente,
+      sku: String(sku).trim(),
+      estado: estado,
+      fechacreacion: fCreacion,
+      fechaclasificacion: fClasificacion,
+      mes: mesStr
+    };
+  }).filter(r => r.sku);
+
+  // 2. Restricciones Legales (Col B: Producto, Col C: Aplica restricción, Col D: Nombre restricción)
+  const rlSheetName = wb.SheetNames.find(n => n.toLowerCase().includes('restricci')) || (wb.SheetNames.length > 1 ? wb.SheetNames[1] : null);
+  const rlRaw = rlSheetName ? XLSX.utils.sheet_to_json(wb.Sheets[rlSheetName], { defval: '' }) : [];
+  
+  const restriccionesLegales = rlRaw.map(r => {
+    const normKey = (k) => k.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+    const nr = {};
+    for (let k in r) nr[normKey(k)] = r[k];
+
+    const sku = nr['codigodeproducto'] || nr['codigo'] || nr['producto'] || nr['sku'] || '';
+    const aplicaRaw = String(nr['aplicarestriccion'] || nr['aplica'] || '').trim().toUpperCase();
+    const nombre = String(nr['nombrerestriccion'] || nr['restriccion'] || '').trim();
+    const aplica = (aplicaRaw === 'SI' || aplicaRaw === 'S') ? 'SI' : 'NO';
+
+    return {
+      cliente: String(nr['cliente'] || '').trim(),
+      sku: String(sku).trim(),
+      aplica: aplica,
+      nombrerestriccion: nombre
+    };
+  }).filter(r => r.sku);
+
+  return {
+    datosGenerales: datosGenerales,
+    restriccionesLegales: restriccionesLegales
+  };
 }
 
 function normalizeKey(str) {
@@ -1103,6 +1167,12 @@ function getYearsForRows(rows) {
             if (fileDTA && fileDTA.wb) {
               App.raw.dtas = parseDTA(fileDTA.wb);
             }
+
+            // Parsear Clasificación si está presente
+            const fileClasif = results.find(r => r.name.toUpperCase().includes('CLASIF') || (r.wb && r.wb.SheetNames.some(s => s.toLowerCase().includes('restricci') || s.toLowerCase().includes('general'))));
+            if (fileClasif && fileClasif.wb) {
+              App.raw.clasificacion = parseClasificacion(fileClasif.wb);
+            }
           }
 
           LocalDB.save('lastSession', { raw: App.raw, fileName: files.map(f => f.name).join(', ') });
@@ -1274,6 +1344,7 @@ function getYearsForRows(rows) {
           else if (tabId === 'tab-registros' && typeof this.renderRegistros === 'function') this.renderRegistros();
           else if (tabId === 'tab-coo' && typeof this.renderCOO === 'function') this.renderCOO();
           else if (tabId === 'tab-dtas' && typeof this.renderDTAS === 'function') this.renderDTAS();
+          else if (tabId === 'tab-clasificacion' && typeof this.renderClasificacion === 'function') this.renderClasificacion();
           else if (tabId === 'tab-datos' && typeof renderTable === 'function') renderTable();
         } catch (err) {
           console.error(`Error en renderizado de pestaña ${tabId}:`, err);

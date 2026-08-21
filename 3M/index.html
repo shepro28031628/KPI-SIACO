@@ -43,6 +43,7 @@
       <button class="menu-btn" data-tab="tab-registros">📝 Registros</button>
       <button class="menu-btn" data-tab="tab-coo">🌐 COO</button>
       <button class="menu-btn" data-tab="tab-dtas">📑 DTAS</button>
+      <button class="menu-btn" data-tab="tab-clasificacion">🏷️ Clasificación</button>
       <button class="menu-btn" data-tab="tab-datos">📊 Datos Detallados</button>
     </div>
     <div class="sidebar-footer">
@@ -586,6 +587,126 @@
         </div>
       </div>
 
+      <!-- TAB: CLASIFICACIÓN -->
+      <div class="tab-pane" id="tab-clasificacion">
+        <div class="powerbi-header">
+          <div class="pbi-brand-box"><img src="assets/img/logo.png" alt="SIACO" style="height: 24px; object-fit: contain;"></div>
+          <div class="powerbi-title">CLASIFICACIÓN ARANCELARIA Y RESTRICCIONES LEGALES</div>
+          <div class="pbi-brand-box"><img src="assets/img/logo1.png" alt="3M" style="height: 24px; object-fit: contain;"></div>
+        </div>
+        <div class="powerbi-goal-tag">Gestión y Trazabilidad de SKUs • Restricciones Legales</div>
+
+        <!-- Barra de Filtros interactivos -->
+        <div class="powerbi-filters-bar" style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; background: white; padding: 12px 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-weight: 600; font-size: 13px;">Mes:</label>
+            <select id="clasifFilterMes" class="pbi-select" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 600;">
+              <option value="julio" selected>Julio</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-weight: 600; font-size: 13px;">Estado:</label>
+            <select id="clasifFilterEstado" class="pbi-select" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 600;">
+              <option value="TODOS">Todos los estados</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-weight: 600; font-size: 13px;">¿Aplica Restricción?:</label>
+            <select id="clasifFilterAplica" class="pbi-select" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 600;">
+              <option value="TODOS">Todos</option>
+              <option value="SI">⚠️ Sí Aplica</option>
+              <option value="NO">✓ Sin Restricción</option>
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <input type="text" id="clasifSearchInput" class="pbi-input" placeholder="🔍 Buscar por SKU o Restricción..." style="width: 100%; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+          </div>
+        </div>
+
+        <!-- Tarjetas KPI Superiores -->
+        <div class="kpi-row" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <div class="kpi-card">
+            <div class="kpi-icon-circle blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-val" id="valClasifTotalSKU">0</span>
+              <span class="kpi-lbl">Total SKUs Trabajados</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon-circle green">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-val" id="valClasifCompletos">0</span>
+              <span class="kpi-lbl">Completos / Clasificados</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon-circle orange">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-val" id="valClasifRequeridos">0</span>
+              <span class="kpi-lbl">Requeridos / Pendientes</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon-circle purple">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-val" id="valClasifConRestriccion">0</span>
+              <span class="kpi-lbl">Con Restricción Legal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila de Gráficos -->
+        <div class="pbi-grid-3col" style="margin-bottom: 20px;">
+          <div class="chart-panel">
+            <h4>Distribución por Estado de Producto</h4>
+            <div class="chart-wrap" style="min-height: 260px;"><canvas id="chartClasifEstados"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Tendencia de Restricciones Legales</h4>
+            <div class="chart-wrap" style="min-height: 260px;"><canvas id="chartClasifTendenciaRestr"></canvas></div>
+          </div>
+          <div class="chart-panel">
+            <h4>Proporción con Restricción Legal</h4>
+            <div class="chart-wrap" style="min-height: 260px;"><canvas id="chartClasifAplica"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Tabla de Detalle -->
+        <div class="pbi-table-panel" style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 16px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">Detalle de SKUs, Estados y Restricciones Legales</h4>
+            <span class="pbi-badge badge-blue" id="clasifTableCount" style="font-size: 12px; font-weight: 700;">0 SKUs</span>
+          </div>
+          <div class="pbi-table-scroll" style="max-height: 380px; overflow-y: auto;">
+            <table class="modern-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: #f8fafc; text-align: left; position: sticky; top: 0; z-index: 1;">
+                  <th style="padding: 10px;">Código Producto (SKU)</th>
+                  <th style="padding: 10px;">Estado Producto</th>
+                  <th style="padding: 10px;">Mes</th>
+                  <th style="padding: 10px;">Fecha Creación</th>
+                  <th style="padding: 10px;">Fecha Clasificación</th>
+                  <th style="padding: 10px; text-align: center;">¿Aplica Restricción?</th>
+                  <th style="padding: 10px;">Restricciones Legales</th>
+                </tr>
+              </thead>
+              <tbody id="tblClasifBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- TAB: DATOS DETALLADOS -->
       <div class="tab-pane no-print" id="tab-datos">
         <div class="premium-table-toolbar">
@@ -642,6 +763,7 @@
   <script src="js/tab_registros.js"></script>
   <script src="js/tab_coo.js"></script>
   <script src="js/tab_dtas.js"></script>
+  <script src="js/tab_clasificacion.js"></script>
 </body>
 
 </html>

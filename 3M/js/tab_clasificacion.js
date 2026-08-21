@@ -121,7 +121,9 @@ ChartManager.renderClasificacion = function() {
 
   // 1. KPIS Superiores
   const totalSKUs = rowsGenerales.length;
-  const completosCount = rowsGenerales.filter(r => r.estado === 'COMPLETO' || r.estado === 'CLASIFICADO').length;
+  const completosCount = rowsGenerales.filter(r => r.estado === 'COMPLETO').length;
+  const clasificadosCount = rowsGenerales.filter(r => r.estado === 'CLASIFICADO').length;
+  const tipificadosCount = rowsGenerales.filter(r => r.estado === 'TIPIFICADO').length;
   const requeridosCount = rowsGenerales.filter(r => r.estado === 'REQUERIDO' || r.estado === 'PENDIENTE').length;
   
   // SKUs de la muestra con restricción legal
@@ -133,6 +135,12 @@ ChartManager.renderClasificacion = function() {
   }
   if (document.getElementById('valClasifCompletos')) {
     document.getElementById('valClasifCompletos').textContent = completosCount;
+  }
+  if (document.getElementById('valClasifClasificados')) {
+    document.getElementById('valClasifClasificados').textContent = clasificadosCount;
+  }
+  if (document.getElementById('valClasifTipificados')) {
+    document.getElementById('valClasifTipificados').textContent = tipificadosCount;
   }
   if (document.getElementById('valClasifRequeridos')) {
     document.getElementById('valClasifRequeridos').textContent = requeridosCount;
@@ -195,7 +203,7 @@ ChartManager.renderClasificacion = function() {
   const currentSKUs = new Set(rowsGenerales.map(r => r.sku));
   
   allRestricciones.forEach(r => {
-    if ((currentSKUs.size === 0 || currentSKUs.has(r.sku)) && r.nombrerestriccion) {
+    if ((currentSKUs.size === 0 || currentSKUs.has(r.sku)) && r.nombrerestriccion && r.aplica === 'SI') {
       const nom = r.nombrerestriccion;
       countRestricciones[nom] = (countRestricciones[nom] || 0) + 1;
     }

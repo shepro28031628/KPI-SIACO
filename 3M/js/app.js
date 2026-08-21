@@ -638,9 +638,11 @@ function parseClasificacion(wb) {
     const estado = String(nr['estadoproducto'] || nr['estado'] || 'SIN ESTADO').trim().toUpperCase();
     const cliente = String(nr['cliente'] || '3M COLOMBIA S.A.').trim();
     const fCreacion = parseExcelDateSafe(nr['fechadecreacion'] || nr['fechacreacion']);
-    const fClasificacion = parseExcelDateSafe(nr['fechadeclasificacion'] || nr['fechaclasificacion']);
+    const rawClasif = nr['fechadeclasificacion'] || nr['fechaclasificacion'];
+    const fClasificacion = (rawClasif && !String(rawClasif).includes('0000')) ? parseExcelDateSafe(rawClasif) : null;
 
-    const dRef = fClasificacion || fCreacion;
+    // Priorizar Fecha de Creación del SKU para determinar el mes
+    const dRef = fCreacion || fClasificacion;
     let mesStr = '';
     if (dRef instanceof Date && !isNaN(dRef)) {
       const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -1843,7 +1845,9 @@ function getYearsForRows(rows) {
         Uploader.init();
       }
 
-      if (!autoLoad()) {
+      if (autoLoad()) {
+        try { LocalDB.clear(); } catch(e) {}
+      } else {
         LocalDB.load('lastSession').then(session => {
           if (session && session.raw) {
             App.raw = reviveDates(session.raw);

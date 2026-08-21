@@ -1077,12 +1077,11 @@ function getYearsForRows(rows) {
               if (d1 && d2) {
                 t = getWorkingDays(d1, d2);
               }
-              if (d2 instanceof Date && !isNaN(d2)) {
+              // Determinar mes prioritariamente por la Fecha de Solicitud enviada (Columna S: d1)
+              const dRef = d1 || d2;
+              if (dRef instanceof Date && !isNaN(dRef)) {
                 const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-                monthStr = monthNames[d2.getMonth()];
-              } else if (d1 instanceof Date && !isNaN(d1)) {
-                const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-                monthStr = monthNames[d1.getMonth()];
+                monthStr = monthNames[dRef.getMonth()];
               }
 
               const negVal = String(getV('negacion') || '').toUpperCase();
@@ -1566,7 +1565,9 @@ function getYearsForRows(rows) {
     // MODULE: TABLE VIEW
     // ==========================================
     function renderTable() {
-      const rawData = App.raw[App.tableState.activeSheet] || [];
+      let rawData = App.raw[App.tableState.activeSheet] || [];
+      if (App.tableState.activeSheet === 'clasificacion') rawData = (App.raw.clasificacion && App.raw.clasificacion.datosGenerales) || [];
+      else if (App.tableState.activeSheet === 'restricciones') rawData = (App.raw.clasificacion && App.raw.clasificacion.restriccionesLegales) || [];
       let filtered = rawData;
       
       // 1. Filter

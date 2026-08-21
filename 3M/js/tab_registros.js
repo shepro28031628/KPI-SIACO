@@ -26,10 +26,13 @@ ChartManager.renderRegistros = function() {
 
   if (document.getElementById('valRegTiempo')) document.getElementById('valRegTiempo').textContent = avg(fullyFilteredRows.map(r => r['tiempo'])).toFixed(2).replace('.', ',');
   if (document.getElementById('valRegSKU')) {
-    const skuStrings = fullyFilteredRows.map(r => r['sku'] !== null && r['sku'] !== undefined ? String(r['sku']).trim() : '');
+    const skuStrings = fullyFilteredRows.map(r => r['sku'] !== null && r['sku'] !== undefined ? String(r['sku']).trim() : '').filter(Boolean);
     document.getElementById('valRegSKU').textContent = fmtInt(uniqueSorted(skuStrings).length);
   }
-  if (document.getElementById('valRegNoReg')) document.getElementById('valRegNoReg').textContent = fmtInt(fullyFilteredRows.length);
+  if (document.getElementById('valRegNoReg')) {
+    const regStrings = fullyFilteredRows.map(r => r['noregistro'] !== null && r['noregistro'] !== undefined ? String(r['noregistro']).trim() : '').filter(Boolean);
+    document.getElementById('valRegNoReg').textContent = fmtInt(uniqueSorted(regStrings).length);
+  }
 
   this.barChart('chartRegistrosEstadoDona', countBy(donutFilteredRows, 'estado'), 'doughnut', (label) => {
     if (label && App.chartFilters.registros.label !== label) {
@@ -41,18 +44,24 @@ ChartManager.renderRegistros = function() {
   }, App.chartFilters.registros.label);
 
   const skuByMonthSets = Array.from({ length: 12 }, () => new Set());
-  const regByMonth = Array(12).fill(0);
+  const regByMonthSets = Array.from({ length: 12 }, () => new Set());
   const timeSums = Array(12).fill(0), timeCounts = Array(12).fill(0);
 
   lineFilteredRows.forEach(r => {
-    let mIdx = monthOrder.indexOf((r['mes'] || '').toString().toLowerCase().trim());
-    if (mIdx === -1) {
-      const d = r['fechasolicitud'] || r['fechaaprobacion'];
-      if (d instanceof Date && !isNaN(d)) mIdx = d.getMonth();
+    let mIdx = -1;
+    const dSol = r['fechasolicitud'];
+    if (dSol instanceof Date && !isNaN(dSol)) {
+      mIdx = dSol.getMonth();
+    } else {
+      mIdx = monthOrder.indexOf((r['mes'] || '').toString().toLowerCase().trim());
+      if (mIdx === -1 && r['fechaaprobacion'] instanceof Date && !isNaN(r['fechaaprobacion'])) {
+        mIdx = r['fechaaprobacion'].getMonth();
+      }
     }
+
     if (mIdx !== -1) {
       if (r['sku']) skuByMonthSets[mIdx].add(String(r['sku']).trim());
-      regByMonth[mIdx]++;
+      if (r['noregistro']) regByMonthSets[mIdx].add(String(r['noregistro']).trim());
       if (isNum(r['tiempo'])) { timeSums[mIdx] += r['tiempo']; timeCounts[mIdx]++; }
     }
   });
@@ -78,7 +87,7 @@ ChartManager.renderRegistros = function() {
         labels: monthOrder,
         datasets: [
           { label: 'SKU', data: skuByMonthSets.map(s => s.size), backgroundColor: PALETTE[0] },
-          { label: 'No. REGISTRO', data: regByMonth, type: 'line', borderColor: PALETTE[2], fill: false }
+          { label: 'No. REGISTRO', data: regByMonthSets.map(s => s.size), type: 'line', borderColor: PALETTE[2], backgroundColor: PALETTE[2], fill: false }
         ]
       },
       options: { 

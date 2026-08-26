@@ -1547,8 +1547,17 @@ function getYearsForRows(rows) {
 
             if (rowsData.length > 0) {
               const fragment = document.createDocumentFragment();
+              const selRowKey = App.chartFilters[config.mod] ? App.chartFilters[config.mod].selectedRowKey : null;
+
               rowsData.forEach((r, idx) => {
                 const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                const rowKey = `${r.monthKey}::${r.responsable}::${r.causal}`;
+                if (selRowKey === rowKey) {
+                  tr.classList.add('selected-row');
+                  tr.style.backgroundColor = 'rgba(0, 94, 187, 0.15)';
+                }
+
                 tr.innerHTML = `
                     <td>${idx + 1}</td>
                     <td style="text-transform:capitalize; white-space:nowrap;">${r.monthLabel}</td>
@@ -1556,6 +1565,22 @@ function getYearsForRows(rows) {
                     <td>${r.causal}</td>
                     <td style="text-align:center; font-weight:bold;">${r.count}</td>
                   `;
+
+                tr.addEventListener('click', () => {
+                  if (App.chartFilters[config.mod].selectedRowKey === rowKey) {
+                    App.chartFilters[config.mod].selectedRowKey = null;
+                    App.chartFilters[config.mod].selectedCausal = null;
+                    App.chartFilters[config.mod].selectedResponsable = null;
+                    App.chartFilters[config.mod].selectedMonthKey = null;
+                  } else {
+                    App.chartFilters[config.mod].selectedRowKey = rowKey;
+                    App.chartFilters[config.mod].selectedCausal = r.causal;
+                    App.chartFilters[config.mod].selectedResponsable = r.responsable;
+                    App.chartFilters[config.mod].selectedMonthKey = r.monthKey;
+                  }
+                  this.renderModuloKPI(config);
+                });
+
                 fragment.appendChild(tr);
               });
               tblJust.appendChild(fragment);
@@ -1564,8 +1589,13 @@ function getYearsForRows(rows) {
             }
           }
         }
-         if (config.tblDetalle && config.columnasTabla) {
-          let tableRows = fullyFilteredRows;
+        if (config.tblDetalle && config.columnasTabla) {
+          let tableRows = fullyFilteredRows.filter(r => {
+            const isNo = String(r[config.campoCumplimiento] || '').toUpperCase() === 'NO';
+            const hasJust = !!(r[config.campoJustificacion] || r[config.campoCausal]);
+            return isNo || hasJust;
+          });
+
           if (config.tblFilterField && config.tblFilterValue) {
              tableRows = tableRows.filter(r => String(r[config.tblFilterField]).toUpperCase() === String(config.tblFilterValue).toUpperCase());
           }
@@ -1574,6 +1604,25 @@ function getYearsForRows(rows) {
              tableRows = tableRows.filter(r => {
                const val = r[config.campoJustificacion] || r['responsable' + config.mod] || r['responsable'];
                return String(val || '').toUpperCase() === selJust;
+             });
+          }
+          if (App.chartFilters[config.mod] && App.chartFilters[config.mod].selectedRowKey) {
+             const selResp = String(App.chartFilters[config.mod].selectedResponsable || '').toUpperCase();
+             const selCausal = String(App.chartFilters[config.mod].selectedCausal || '').toUpperCase();
+             const selMKey = App.chartFilters[config.mod].selectedMonthKey;
+
+             tableRows = tableRows.filter(r => {
+               const respVal = String(r[config.campoJustificacion] || r['responsable' + config.mod] || r['responsable'] || 'SIN RESPONSABLE').toUpperCase();
+               const causalVal = String((config.campoCausal && r[config.campoCausal]) ? r[config.campoCausal] : 'SIN CAUSAL').toUpperCase();
+               let match = (respVal === selResp && causalVal === selCausal);
+
+               if (match && selMKey && selMKey !== '0000-00') {
+                 const d = config.campoFecha ? r[config.campoFecha] : (r['fechaaperturado'] || r['fechasolicitud']);
+                 if (d instanceof Date && !isNaN(d)) {
+                   match = (monthKey(d) === selMKey);
+                 }
+               }
+               return match;
              });
           }
           this.renderSubTable(config.tblDetalle, tableRows, config.columnasTabla, config.mod);

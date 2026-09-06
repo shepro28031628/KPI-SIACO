@@ -33,7 +33,7 @@ ChartManager.renderClasificacion = function() {
 
   // Renderizar selectores de filtros si existen
   const selectMes = document.getElementById('clasifFilterMes');
-  if (selectMes && selectMes.options.length <= 1) {
+  if (selectMes && (!selectMes.options || selectMes.options.length <= 1)) {
     selectMes.innerHTML = '<option value="TODOS">Todos los meses</option>';
     mesesDisponibles.forEach(m => {
       const opt = document.createElement('option');
@@ -49,7 +49,7 @@ ChartManager.renderClasificacion = function() {
   }
 
   const selectEstado = document.getElementById('clasifFilterEstado');
-  if (selectEstado && selectEstado.options.length <= 1) {
+  if (selectEstado && (!selectEstado.options || selectEstado.options.length <= 1)) {
     const estados = [...new Set(allDatosGenerales.map(r => r.estado).filter(Boolean))];
     selectEstado.innerHTML = '<option value="TODOS">Todos los estados</option>';
     estados.forEach(est => {

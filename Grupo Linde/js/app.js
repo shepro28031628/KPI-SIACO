@@ -1855,6 +1855,27 @@ function getYearsForRows(rows) {
 
         if (els.printBtn) {
           els.printBtn.addEventListener('click', () => {
+            // El zoom del navegador (Ctrl +/-, distinto del zoom de SO o de
+            // pantalla) cambia devicePixelRatio proporcionalmente. Con un
+            // zoom distinto de 100%, Chrome mide el "viewport lógico" de la
+            // página de forma distinta a como lo hace con @page en modo
+            // impresión, y columnas enteras del layout (como el total y la
+            // tabla de detalle de COO) pueden desaparecer del PDF sin
+            // ningún error visible. No hay forma de cambiar el zoom del
+            // navegador por JavaScript (el navegador no lo permite por
+            // seguridad), así que solo podemos detectarlo y avisar.
+            const dpr = window.devicePixelRatio || 1;
+            const zoomPct = Math.round(dpr * 100);
+            if (Math.abs(dpr - 1) > 0.03) {
+              const proceed = window.confirm(
+                `El zoom del navegador está en ${zoomPct}% (no 100%).\n\n` +
+                'Con un zoom distinto de 100%, algunas columnas o tablas pueden no aparecer completas en el PDF.\n\n' +
+                'Se recomienda presionar Ctrl+0 para volver al 100% antes de exportar.\n\n' +
+                '¿Continuar de todas formas?'
+              );
+              if (!proceed) return;
+            }
+
             const currentActiveBtn = document.querySelector('.sidebar-menu .menu-btn.active');
             const currentActivePane = document.querySelector('.tab-pane.active');
 

@@ -4,7 +4,10 @@ var App = window.App = {
   charts: {},
   filters: { admin: new Set(), linea: new Set(), modo: new Set(), year: new Set(), from: null, to: null },
   tableState: { activeSheet: 'indicadores', searchQuery: '', currentPage: 1, pageSize: 10, sortCol: null, sortAsc: true },
-  worldMapInstance: null
+  worldMapInstance: null,
+  // true mientras dura una exportación/impresión (ver printReportBtn más
+  // abajo, que también apaga Chart.defaults.animation durante ese lapso).
+  isExportingPdf: false
 };
 
 var PALETTE = window.PALETTE = [
@@ -2015,7 +2018,15 @@ window.getYearsForRows = getYearsForRows;
                 if (ch && typeof ch.resize === 'function') ch.resize();
               });
             }
-            if (App.worldMapInstance && typeof App.worldMapInstance.updateSize === 'function') {
+            // updateSize() vuelve a medir su contenedor de forma síncrona.
+            // Si en ese momento la pestaña COO no está visible, el
+            // contenedor mide 0x0 y updateSize() deja la escala/traslado
+            // interna del mapa en NaN de forma permanente (ni una llamada
+            // posterior lo repara). Por eso solo se llama updateSize()
+            // cuando el contenedor realmente tiene un tamaño válido.
+            const cooMapEl = document.getElementById('cooWorldMap');
+            if (App.worldMapInstance && typeof App.worldMapInstance.updateSize === 'function' &&
+                cooMapEl && cooMapEl.offsetWidth > 0 && cooMapEl.offsetHeight > 0) {
               App.worldMapInstance.updateSize();
             }
           } catch (err) {
@@ -2032,6 +2043,15 @@ window.getYearsForRows = getYearsForRows;
             // sigamos midiendo/renderizando sobre él.
             // eslint-disable-next-line no-unused-expressions
             document.body.offsetHeight;
+
+            // Desactivamos la animación de entrada de Chart.js (arco
+            // creciendo, barras subiendo, etc.) mientras dura la
+            // exportación. Sin esto, cada pie/doughnut recreado por
+            // forceRenderEverything() queda "mordido" (a medio dibujar) en
+            // el PDF, porque Chart.js tarda ~1s en animar su aparición y el
+            // documento se genera muchísimo antes de que eso termine.
+            App.isExportingPdf = true;
+            if (typeof Chart !== 'undefined') Chart.defaults.animation = false;
 
             // Recreamos las gráficas UNA sola vez aquí (no en beforeprint),
             // para tener tiempo de esperar su primer dibujo real antes de
@@ -2076,6 +2096,8 @@ window.getYearsForRows = getYearsForRows;
 
         window.addEventListener('afterprint', () => {
           document.body.classList.remove('printing-all-tabs');
+          App.isExportingPdf = false;
+          if (typeof Chart !== 'undefined') Chart.defaults.animation = {};
           if (ChartManager && typeof ChartManager.renderAll === 'function') {
             ChartManager.renderAll();
           }
@@ -2191,7 +2213,17 @@ window.getYearsForRows = getYearsForRows;
             legend: {
               display: type !== 'bar',
               position: (type === 'pie' || type === 'doughnut') ? 'right' : 'bottom',
-              labels: { boxWidth: 10, font: { size: 9 } },
+              // Chart.js no reduce el tamaño de fuente ni ajusta el interlineado
+              // de la leyenda automáticamente cuando faltan filas por espacio:
+              // simplemente las deja superpuestas. Con muchas categorías (como
+              // las causales/justificaciones de los "pie") el alto por defecto
+              // no alcanza, así que reducimos fuente y separación entre ítems
+              // en proporción a cuántas categorías hay que listar.
+              labels: {
+                boxWidth: 10,
+                font: { size: labels.length > 4 ? 8 : 9 },
+                padding: labels.length > 4 ? 6 : 10
+              },
               onClick: (e, legendItem, legend) => {
                 if (clickHandler) {
                   const label = legendItem.text;
@@ -2207,9 +2239,19 @@ window.getYearsForRows = getYearsForRows;
             },
             datalabels: {
               display: function(context) {
-                return context.dataset.data[context.dataIndex] > 0 ? 'auto' : false;
+                const value = context.dataset.data[context.dataIndex];
+                if (!(value > 0)) return false;
+                if (type === 'bar') return 'auto';
+                // En pie/doughnut, las porciones muy pequeñas quedan tan
+                // angostas que su etiqueta ya no cabe junto a su porción y
+                // termina superpuesta con la de la porción vecina (se ve
+                // como texto ilegible amontonado). Las ocultamos igual que
+                // ya se ocultaría cualquier etiqueta que no entre, en vez de
+                // dejar que 'auto' intente forzarlas todas.
+                const pct = value / total;
+                return pct >= 0.03 ? 'auto' : false;
               },
-              color: '#333',
+              color: type === 'pie' ? '#ffffff' : '#333',
               font: { size: 10, weight: '600' },
               formatter: (value, ctx) => {
                 if (!value || total === 0) return '';
@@ -2218,9 +2260,18 @@ window.getYearsForRows = getYearsForRows;
                 let pct = pctNum.toFixed(2).replace('.', ',');
                 return `${value} (${pct}%)`;
               },
-              anchor: type === 'bar' ? 'end' : 'end',
-              align: type === 'bar' ? 'end' : 'end',
-              offset: type === 'bar' ? 4 : 15
+              // Los gráficos "pie" de este dashboard suelen tener muchas
+              // categorías (causales, justificaciones). Con las etiquetas
+              // ancladas afuera ('end'), varias porciones angostas y
+              // contiguas terminan proyectando su etiqueta casi al mismo
+              // punto del borde, y el texto se amontona ilegible. Los
+              // doughnut, en cambio, aquí solo se usan para 2-3 categorías
+              // grandes (SI/NO, cumple/no cumple) y sí tienen espacio afuera.
+              // Por eso solo el tipo "pie" mueve su etiqueta al centro de
+              // cada porción, donde cada una tiene su propio espacio.
+              anchor: type === 'pie' ? 'center' : 'end',
+              align: type === 'pie' ? 'center' : 'end',
+              offset: type === 'bar' ? 4 : (type === 'pie' ? 0 : 15)
             }
           }
         }

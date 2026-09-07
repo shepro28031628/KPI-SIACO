@@ -193,13 +193,22 @@ ChartManager.renderCOO = function() {
     // lanzar ningún error, y ni siquiera updateSize() lo repara después
     // (la escala base queda en 0 y las siguientes divisiones dan NaN). Por
     // eso esperamos a que el contenedor tenga un tamaño real antes de crear
-    // el mapa, reintentando por unos frames como máximo.
+    // el mapa, reintentando por unos frames.
+    //
+    // IMPORTANTE: si se agotan los intentos y el contenedor SIGUE en 0x0
+    // (por ejemplo, porque la pestaña COO ya volvió a ocultarse -como
+    // ocurre justo después de imprimir, cuando "afterprint" quita la clase
+    // printing-all-tabs mientras este bucle todavía estaba esperando-), NO
+    // se debe construir el mapa de todas formas: eso reproduce el mismo bug
+    // (scale/translate en NaN). En ese caso simplemente se aborta; el mapa
+    // se reconstruirá la próxima vez que el usuario entre a COO o imprima.
     let attempts = 0;
     const waitForSize = () => {
+      if (!mapEl.isConnected) return; // el DOM cambió, ya no aplica
       const hasSize = mapEl.offsetWidth > 0 && mapEl.offsetHeight > 0;
-      if (hasSize || attempts >= 10) {
+      if (hasSize) {
         buildMap();
-      } else {
+      } else if (attempts < 30) {
         attempts++;
         requestAnimationFrame(waitForSize);
       }

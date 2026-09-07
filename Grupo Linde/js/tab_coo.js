@@ -164,17 +164,53 @@
             }
             mapEl.innerHTML = '';
             const maxVal = Math.max(...Object.values(byPaisISO), 1);
-            try {
-              App.worldMapInstance = new jsVectorMap({
-                selector: '#cooWorldMap', map: 'world', backgroundColor: 'transparent',
-                zoomButtons: false, zoomOnScroll: false, draggable: false,
-                regionStyle: { initial: { fill: '#dde4ec', stroke: '#b0bec5', strokeWidth: 0.4 } },
-                series: { regions: [{ attribute: 'fill', scale: { low: '#a8d5ba', high: '#1b5e20' }, values: byPaisISO, min: 0, max: maxVal }] },
-                onRegionTooltipShow(event, tooltip, code) {
-                  if (byPaisISO[code] !== undefined) tooltip.text(`<strong>${code}</strong><br>Ahorro: ${fmtUSD(byPaisISO[code])}<br>Operaciones: ${countryCounts[code] || 0}`, true);
-                }
-              });
-            } catch (e) { console.warn('Map render error', e); }
+
+            const buildMap = () => {
+              try {
+                App.worldMapInstance = new jsVectorMap({
+                  selector: '#cooWorldMap', map: 'world', backgroundColor: 'transparent',
+                  zoomButtons: false, zoomOnScroll: false, draggable: false,
+                  regionStyle: { initial: { fill: '#dde4ec', stroke: '#b0bec5', strokeWidth: 0.4 } },
+                  series: { regions: [{ attribute: 'fill', scale: { low: '#a8d5ba', high: '#1b5e20' }, values: byPaisISO, min: 0, max: maxVal }] },
+                  onRegionTooltipShow(event, tooltip, code) {
+                    if (byPaisISO[code] !== undefined) tooltip.text(`<strong>${code}</strong><br>Ahorro: ${fmtUSD(byPaisISO[code])}<br>Operaciones: ${countryCounts[code] || 0}`, true);
+                  }
+                });
+              } catch (e) { console.warn('Map render error', e); }
+            };
+
+            // jsVectorMap mide el tamaño de su contenedor de forma SÍNCRONA en el
+            // momento de construirse, y usa esa primera medición como base para
+            // todos los cálculos de escala/zoom futuros. Si en ese instante el
+            // layout de la cuadrícula todavía no está confirmado por el
+            // navegador, el contenedor mide 0x0, el mapa queda invisible sin
+            // lanzar ningún error, y ni siquiera updateSize() lo repara después
+            // (la escala base queda en 0 y las siguientes divisiones dan NaN).
+            // Por eso esperamos a que el contenedor tenga un tamaño real antes
+            // de crear el mapa, reintentando por unos frames.
+            //
+            // IMPORTANTE: si se agotan los intentos y el contenedor SIGUE en
+            // 0x0 (por ejemplo, porque la pestaña COO ya volvió a ocultarse
+            // -como ocurre justo después de imprimir, cuando "afterprint"
+            // quita la clase printing-all-tabs mientras este bucle todavía
+            // estaba esperando-), NO se debe construir el mapa de todas
+            // formas: eso reproduce el mismo bug (scale/translate en NaN).
+            // En ese caso simplemente se aborta; el mapa se reconstruirá la
+            // próxima vez que el usuario entre a la pestaña COO o imprima.
+            let attempts = 0;
+            const waitForSize = () => {
+              if (!mapEl.isConnected) return; // el DOM cambió, ya no aplica
+              const hasSize = mapEl.offsetWidth > 0 && mapEl.offsetHeight > 0;
+              if (hasSize) {
+                buildMap();
+              } else if (attempts < 30) {
+                attempts++;
+                requestAnimationFrame(waitForSize);
+              }
+              // Si se agotan los intentos sin tamaño válido, se aborta sin
+              // construir nada (ver comentario arriba).
+            };
+            waitForSize();
           }
         }
 

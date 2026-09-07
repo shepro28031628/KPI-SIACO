@@ -508,7 +508,7 @@
     margin-bottom: 16px;
   }
 
-  @media (max-width: 1200px) {
+  @media screen and (max-width: 1200px) {
     .pbi-grid-3col {
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     }
@@ -658,7 +658,7 @@
     margin-top: 16px;
   }
 
-  @media (max-width: 768px) {
+  @media screen and (max-width: 768px) {
     .pbi-grid-2col-equal {
       grid-template-columns: 1fr;
     }
@@ -671,7 +671,7 @@
     margin-bottom: 16px;
   }
 
-  @media (max-width: 1024px) {
+  @media screen and (max-width: 1024px) {
     .pbi-grid-inspeccion {
       grid-template-columns: 1fr;
     }
@@ -683,7 +683,7 @@
     gap: 16px;
   }
 
-  @media (max-width: 1024px) {
+  @media screen and (max-width: 1024px) {
     .coo-layout {
       grid-template-columns: 1fr;
     }
@@ -1125,7 +1125,7 @@
 }
 
 /* Tablet & Mobile Screens (<= 1024px) */
-@media (max-width: 1024px) {
+@media screen and (max-width: 1024px) {
   .pbi-top-consolidado-grid {
     grid-template-columns: 1fr;
   }
@@ -1147,7 +1147,7 @@
 }
 
 /* Tablets & Smartphones (<= 992px) */
-@media (max-width: 992px) {
+@media screen and (max-width: 992px) {
   .mobile-nav-toggle {
     display: flex;
   }
@@ -1206,7 +1206,7 @@
 }
 
 /* Small Screens (<= 640px) */
-@media (max-width: 640px) {
+@media screen and (max-width: 640px) {
   .content-area {
     padding: 60px 10px 20px 10px;
   }
@@ -1535,18 +1535,56 @@ body.printing-all-tabs .no-print {
     max-height: 68mm !important;
   }
 
-  /* 4. Alturas en Clasificación (KPIs + 2 filas grandes) */
+  /* 4. Alturas en Clasificación (KPIs + 2 filas grandes)
+     A diferencia del resto de pestañas (con alturas fijas en mm por fila),
+     Clasificación reparte el espacio vertical restante de la página de
+     forma FLEXIBLE entre sus dos filas de gráficas: la fila de tortas y el
+     panel de "Tendencia de Restricciones Legales". Este último es un
+     gráfico de barras horizontales cuya cantidad de categorías depende de
+     los datos reales (tipos de restricción distintos), así que un alto fijo
+     calculado para "unas pocas barras" queda corto o sobra según el mes/los
+     datos cargados. Con flex-grow, cada fila toma una proporción del alto
+     disponible (no un valor fijo), así que se adapta sola sin necesidad de
+     volver a tocar este CSS cada vez que cambien los datos. */
+  #tab-clasificacion {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
   #tab-clasificacion .kpi-row {
     margin-bottom: 6px !important;
     gap: 6px !important;
     display: grid !important;
     grid-template-columns: repeat(6, 1fr) !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* Fila de las 2 tortas de arriba (Distribución por Estado / Restricción
+     Legal): ocupa una porción del espacio restante. */
+  #tab-clasificacion > div:has(.chart-wrap.tall):not(:has(#chartClasifTendenciaRestr)) {
+    flex: 4 1 0 !important;
+    min-height: 0 !important;
+    margin-bottom: 6px !important;
   }
 
   #tab-clasificacion .chart-wrap.tall {
-    height: 66mm !important;
-    min-height: 66mm !important;
-    max-height: 68mm !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  /* Panel de tendencia: al tener más categorías potenciales (barras), recibe
+     una porción mayor del espacio restante que la fila de tortas. */
+  #tab-clasificacion .chart-panel:has(#chartClasifTendenciaRestr) {
+    flex: 5 1 0 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #tab-clasificacion .chart-panel:has(#chartClasifTendenciaRestr) .chart-wrap.tall {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
   }
 
   /* 5. Alturas en COO (Filtros + Mapa mundial grande + Tabla) */

@@ -4,7 +4,10 @@ const App = {
   charts: {},
   filters: { admin: new Set(), linea: new Set(), modo: new Set(), year: new Set(), from: null, to: null },
   tableState: { activeSheet: 'indicadores', searchQuery: '', currentPage: 1, pageSize: 10, sortCol: null, sortAsc: true },
-  worldMapInstance: null
+  worldMapInstance: null,
+  // true mientras dura una exportación/impresión (ver printReportBtn más
+  // abajo, que también apaga Chart.defaults.animation durante ese lapso).
+  isExportingPdf: false
 };
 
 const PALETTE = [
@@ -1285,16 +1288,59 @@ function getYearsForRows(rows) {
     // ==========================================
     // MODULE: CHART MANAGER
     // ==========================================
-    const ChartManager = {
+    // Se expone en window para que el handler de impresión (que comprueba
+    // window.ChartManager.forceRenderEverything) pueda usar la recreación
+    // completa de gráficas en vez de caer siempre al fallback manual.
+    const ChartManager = window.ChartManager = {
       _rafId: null,
       forceRenderEverything() {
-        if (typeof this.renderProcesos === 'function') this.renderProcesos();
-        if (typeof this.renderAgilidad === 'function') this.renderAgilidad();
-        if (typeof this.renderFacturacion === 'function') this.renderFacturacion();
-        if (typeof this.renderInspeccion === 'function') this.renderInspeccion();
-        if (typeof this.renderRegistros === 'function') this.renderRegistros();
-        if (typeof this.renderCOO === 'function') this.renderCOO();
-        if (typeof renderTable === 'function') renderTable();
+        // Cada render va en su propio try/catch: si una pestaña falla (por
+        // ejemplo por datos reales con un caso límite que el código no
+        // contempló), las demás igual deben terminar de renderizarse en vez
+        // de quedar todas en blanco por un solo error sin capturar.
+        if (typeof this.renderProcesos === 'function') { try { this.renderProcesos(); } catch (e) { console.warn('Error renderizando Procesos:', e); } }
+        if (typeof this.renderAgilidad === 'function') { try { this.renderAgilidad(); } catch (e) { console.warn('Error renderizando Agilidad:', e); } }
+        if (typeof this.renderFacturacion === 'function') { try { this.renderFacturacion(); } catch (e) { console.warn('Error renderizando Facturación:', e); } }
+        if (typeof this.renderInspeccion === 'function') { try { this.renderInspeccion(); } catch (e) { console.warn('Error renderizando Inspección:', e); } }
+
+        // App.filters.year tiene un doble significado según la pestaña
+        // activa: en cualquier otra pestaña son AÑOS ("2025", "2026"), pero
+        // en Registros el mismo Set se reutiliza para MESES ("Mayo",
+        // "Junio", ...) - FilterEngine.renderDynamicFilters() es quien
+        // reconstruye ese Set con el significado correcto, pero normalmente
+        // solo se llama al cambiar de pestaña con el menú, nunca durante
+        // una recreación completa de todas las pestañas para imprimir. Sin
+        // este ajuste, Registros se renderiza con años en vez de meses en
+        // App.filters.year, ninguno de sus registros hace match, y todas
+        // sus gráficas y KPIs salen vacíos en el PDF aunque sí haya datos
+        // (esto no se nota si el usuario entra a Registros manualmente,
+        // porque ahí sí se recalcula correctamente).
+        if (typeof this.renderRegistros === 'function') {
+          const yearFilterBackup = App.filters.year ? new Set(App.filters.year) : null;
+          const activeBtn = document.querySelector('.sidebar-menu .menu-btn.active');
+          const originalTabId = activeBtn ? activeBtn.dataset.tab : null;
+          try {
+            if (typeof FilterEngine !== 'undefined' && typeof FilterEngine.renderDynamicFilters === 'function') {
+              FilterEngine.renderDynamicFilters('tab-registros');
+            }
+            this.renderRegistros();
+          } catch (e) {
+            console.warn('Error renderizando Registros:', e);
+          } finally {
+            if (yearFilterBackup) App.filters.year = yearFilterBackup;
+            // Reconstruye los chips de filtro visual (Año/Mes) con el
+            // significado de la pestaña que realmente estaba activa, ya
+            // que renderDynamicFilters('tab-registros') los había
+            // reemplazado por los de Registros (Mes) más arriba.
+            if (originalTabId && originalTabId !== 'tab-registros' &&
+                typeof FilterEngine !== 'undefined' && typeof FilterEngine.renderDynamicFilters === 'function') {
+              FilterEngine.renderDynamicFilters(originalTabId);
+            }
+          }
+        }
+
+        if (typeof this.renderCOO === 'function') { try { this.renderCOO(); } catch (e) { console.warn('Error renderizando COO:', e); } }
+        if (typeof renderTable === 'function') { try { renderTable(); } catch (e) { console.warn('Error renderizando tabla:', e); } }
       },
       renderAll() {
         if (this._rafId) cancelAnimationFrame(this._rafId);
@@ -1596,9 +1642,14 @@ function getYearsForRows(rows) {
 
       // 5. Render Header
       const hRow = document.getElementById('premiumDataTableHeader');
-      if (hRow) hRow.innerHTML = '';
       const bContainer = document.getElementById('premiumDataTableBody');
-      if (bContainer) bContainer.innerHTML = '';
+      // Esta tabla premium solo existe en datos.html. forceRenderEverything()
+      // (usado por el botón de impresión) invoca renderTable() sin importar
+      // la página activa, así que en dashboard.html u otras vistas sin esta
+      // tabla salimos temprano en vez de fallar al escribir sobre un nodo nulo.
+      if (!hRow || !bContainer) return;
+      hRow.innerHTML = '';
+      bContainer.innerHTML = '';
 
       if (!pageData.length) {
         if (hRow) hRow.innerHTML = '<th>Sin registros</th>';
@@ -1770,6 +1821,38 @@ function getYearsForRows(rows) {
             App.tableState.searchQuery = e.target.value.toLowerCase().trim(); App.tableState.currentPage = 1; renderTable();
           });
         }
+        // Solo REDIMENSIONA (no recrea) las gráficas y el mapa mundial contra
+        // el layout actualmente comprometido del DOM. Usamos resize() y no
+        // forceRenderEverything() aquí porque destruir/crear un Chart.js hace
+        // su primer dibujo en el siguiente frame (requestAnimationFrame), y el
+        // motor de impresión puede capturar la página ANTES de ese frame,
+        // dejando el canvas en blanco. resize() en cambio redibuja de forma
+        // síncrona sobre la instancia ya existente.
+        const resizeChartsForPrint = () => {
+          try {
+            if (App.charts) {
+              Object.values(App.charts).forEach(ch => {
+                if (ch && typeof ch.resize === 'function') ch.resize();
+              });
+            }
+            // updateSize() vuelve a medir su contenedor de forma síncrona.
+            // Si en ese momento la pestaña COO no está visible (p.ej. el
+            // usuario está en otra pestaña, o el ciclo de impresión ya
+            // restauró la vista normal), el contenedor mide 0x0 y
+            // updateSize() deja la escala/traslado interna del mapa en NaN
+            // de forma permanente (ni una llamada posterior lo repara). Por
+            // eso solo se llama updateSize() cuando el contenedor realmente
+            // tiene un tamaño válido.
+            const mapEl = document.getElementById('cooWorldMap');
+            if (App.worldMapInstance && typeof App.worldMapInstance.updateSize === 'function' &&
+                mapEl && mapEl.offsetWidth > 0 && mapEl.offsetHeight > 0) {
+              App.worldMapInstance.updateSize();
+            }
+          } catch (err) {
+            console.warn('Advertencia previa a impresión:', err);
+          }
+        };
+
         if (els.printBtn) {
           els.printBtn.addEventListener('click', () => {
             const currentActiveBtn = document.querySelector('.sidebar-menu .menu-btn.active');
@@ -1778,51 +1861,106 @@ function getYearsForRows(rows) {
             // 1. Activar clases globales de impresión y presentación
             document.body.classList.add('printing-all-tabs');
             document.body.classList.add('presentation-mode');
+            // Forzar un reflow síncrono para que el navegador confirme el
+            // cambio de layout (todas las .tab-pane visibles) antes de que
+            // sigamos midiendo/renderizando sobre él.
+            // eslint-disable-next-line no-unused-expressions
+            document.body.offsetHeight;
 
-            // 2. Renderizar todas las vistas
-            if (window.ChartManager && typeof window.ChartManager.forceRenderEverything === 'function') {
-              window.ChartManager.forceRenderEverything();
-            } else {
-              if (typeof renderProcesos === 'function') renderProcesos();
-              if (typeof renderAgilidad === 'function') renderAgilidad();
-              if (typeof renderFacturacion === 'function') renderFacturacion();
-              if (typeof renderInspeccion === 'function') renderInspeccion();
-              if (typeof renderRegistros === 'function') renderRegistros();
-              if (typeof renderCOO === 'function') renderCOO();
-              if (typeof renderTable === 'function') renderTable();
-              if (window.ChartManager && typeof window.ChartManager.renderAll === 'function') {
-                window.ChartManager.renderAll();
-              }
-            }
+            // Desactivamos la animación de entrada de Chart.js (arco
+            // creciendo, barras subiendo, etc.) mientras dura la
+            // exportación. Sin esto, cada pie/doughnut recreado por
+            // forceRenderEverything() queda "mordido" (a medio dibujar) en
+            // el PDF, porque Chart.js tarda ~1s en animar su aparición y el
+            // documento se genera muchísimo antes de que eso termine.
+            App.isExportingPdf = true;
+            if (typeof Chart !== 'undefined') Chart.defaults.animation = false;
 
-            // Redimensionar todas las instancias de gráficos
-            if (App.charts) {
-              Object.values(App.charts).forEach(ch => {
-                if (ch && typeof ch.resize === 'function') ch.resize();
-              });
-            }
-
-            // 3. Ejecutar window.print() y restaurar estado
-            setTimeout(() => {
-              window.print();
-              setTimeout(() => {
-                document.body.classList.remove('printing-all-tabs');
-                document.body.classList.remove('presentation-mode');
-                if (currentActiveBtn) {
-                  document.querySelectorAll('.sidebar-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
-                  currentActiveBtn.classList.add('active');
-                }
-                if (currentActivePane) {
-                  document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-                  currentActivePane.classList.add('active');
-                }
+            // 2. Recreamos las gráficas UNA sola vez aquí (no en beforeprint),
+            // para tener tiempo de esperar su primer dibujo real antes de
+            // llamar a window.print(). Todo va protegido con try/catch: si
+            // algo falla (p.ej. un caso límite en datos reales), igual debe
+            // llegar a llamarse window.print() más abajo en vez de dejar al
+            // usuario sin PDF por un error que no debería ser fatal.
+            try {
+              if (window.ChartManager && typeof window.ChartManager.forceRenderEverything === 'function') {
+                window.ChartManager.forceRenderEverything();
+              } else {
+                if (typeof renderProcesos === 'function') { try { renderProcesos(); } catch (e) { console.warn('Error renderizando Procesos:', e); } }
+                if (typeof renderAgilidad === 'function') { try { renderAgilidad(); } catch (e) { console.warn('Error renderizando Agilidad:', e); } }
+                if (typeof renderFacturacion === 'function') { try { renderFacturacion(); } catch (e) { console.warn('Error renderizando Facturación:', e); } }
+                if (typeof renderInspeccion === 'function') { try { renderInspeccion(); } catch (e) { console.warn('Error renderizando Inspección:', e); } }
+                if (typeof renderRegistros === 'function') { try { renderRegistros(); } catch (e) { console.warn('Error renderizando Registros:', e); } }
+                if (typeof renderCOO === 'function') { try { renderCOO(); } catch (e) { console.warn('Error renderizando COO:', e); } }
+                if (typeof renderTable === 'function') { try { renderTable(); } catch (e) { console.warn('Error renderizando tabla:', e); } }
                 if (window.ChartManager && typeof window.ChartManager.renderAll === 'function') {
                   window.ChartManager.renderAll();
                 }
-              }, 400);
-            }, 500);
+              }
+            } catch (err) {
+              console.warn('Error al preparar la exportación PDF:', err);
+            }
+
+            // Esperamos dos frames de animación (tiempo de sobra para que
+            // Chart.js complete su dibujo inicial) más un pequeño margen,
+            // y solo entonces invocamos la impresión.
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                resizeChartsForPrint();
+                setTimeout(() => {
+                  window.print();
+                  setTimeout(() => {
+                    document.body.classList.remove('printing-all-tabs');
+                    document.body.classList.remove('presentation-mode');
+                    if (currentActiveBtn) {
+                      document.querySelectorAll('.sidebar-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
+                      currentActiveBtn.classList.add('active');
+                    }
+                    if (currentActivePane) {
+                      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                      currentActivePane.classList.add('active');
+                    }
+                    App.isExportingPdf = false;
+                    if (typeof Chart !== 'undefined') Chart.defaults.animation = {};
+                    if (window.ChartManager && typeof window.ChartManager.renderAll === 'function') {
+                      window.ChartManager.renderAll();
+                    }
+                  }, 400);
+                }, 150);
+              });
+            });
           });
         }
+
+        // Algunos navegadores aplican @media print con un layout ligeramente
+        // distinto justo antes de imprimir (p.ej. cambios de ancho por la
+        // barra de desplazamiento). Volvemos a llamar SOLO a resize() (nunca
+        // a forceRenderEverything) para no dejar canvases en blanco.
+        window.addEventListener('beforeprint', resizeChartsForPrint);
+
+        // Algunos navegadores basados en WebKit no disparan 'beforeprint' de
+        // forma confiable al usar matchMedia; este listener es un respaldo.
+        if (window.matchMedia) {
+          const printMql = window.matchMedia('print');
+          const onPrintChange = (mql) => {
+            if (mql.matches) resizeChartsForPrint();
+          };
+          if (typeof printMql.addEventListener === 'function') {
+            printMql.addEventListener('change', onPrintChange);
+          } else if (typeof printMql.addListener === 'function') {
+            printMql.addListener(onPrintChange);
+          }
+        }
+
+        window.addEventListener('afterprint', () => {
+          document.body.classList.remove('printing-all-tabs');
+          document.body.classList.remove('presentation-mode');
+          App.isExportingPdf = false;
+          if (typeof Chart !== 'undefined') Chart.defaults.animation = {};
+          if (window.ChartManager && typeof window.ChartManager.renderAll === 'function') {
+            window.ChartManager.renderAll();
+          }
+        });
 
         const btnExportExcel = document.getElementById('btnExportExcel');
         if (btnExportExcel) {
@@ -1926,7 +2064,17 @@ function getYearsForRows(rows) {
             legend: {
               display: type !== 'bar',
               position: (type === 'pie' || type === 'doughnut') ? 'right' : 'bottom',
-              labels: { boxWidth: 10, font: { size: 9 } },
+              // Chart.js no reduce el tamaño de fuente ni ajusta el interlineado
+              // de la leyenda automáticamente cuando faltan filas por espacio:
+              // simplemente las deja superpuestas. Con muchas categorías (como
+              // las causales/justificaciones de los "pie") el alto por defecto
+              // no alcanza, así que reducimos fuente y separación entre ítems
+              // en proporción a cuántas categorías hay que listar.
+              labels: {
+                boxWidth: 10,
+                font: { size: labels.length > 4 ? 8 : 9 },
+                padding: labels.length > 4 ? 6 : 10
+              },
               onClick: (e, legendItem, legend) => {
                 if (clickHandler) {
                   const label = legendItem.text;
@@ -1945,9 +2093,19 @@ function getYearsForRows(rows) {
             },
             datalabels: {
               display: function(context) {
-                return context.dataset.data[context.dataIndex] > 0 ? 'auto' : false;
+                const value = context.dataset.data[context.dataIndex];
+                if (!(value > 0)) return false;
+                if (type === 'bar') return 'auto';
+                // En pie/doughnut, las porciones muy pequeñas quedan tan
+                // angostas que su etiqueta ya no cabe junto a su porción y
+                // termina superpuesta con la de la porción vecina (se ve
+                // como texto ilegible amontonado). Las ocultamos igual que
+                // ya se ocultaría cualquier etiqueta que no entre, en vez de
+                // dejar que 'auto' intente forzarlas todas.
+                const pct = value / total;
+                return pct >= 0.03 ? 'auto' : false;
               },
-              color: '#333',
+              color: type === 'pie' ? '#ffffff' : '#333',
               font: { size: 10, weight: '600' },
               formatter: (value, ctx) => {
                 if (!value || total === 0) return '';
@@ -1956,9 +2114,18 @@ function getYearsForRows(rows) {
                 let pct = pctNum.toFixed(2).replace('.', ',');
                 return `${value} (${pct}%)`;
               },
-              anchor: type === 'bar' ? 'end' : 'end',
-              align: type === 'bar' ? 'end' : 'end',
-              offset: type === 'bar' ? 4 : 15
+              // Los gráficos "pie" de este dashboard suelen tener muchas
+              // categorías (causales, justificaciones). Con las etiquetas
+              // ancladas afuera ('end'), varias porciones angostas y
+              // contiguas terminan proyectando su etiqueta casi al mismo
+              // punto del borde, y el texto se amontona ilegible. Los
+              // doughnut, en cambio, aquí solo se usan para 2-3 categorías
+              // grandes (SI/NO, cumple/no cumple) y sí tienen espacio afuera.
+              // Por eso solo el tipo "pie" mueve su etiqueta al centro de
+              // cada porción, donde cada una tiene su propio espacio.
+              anchor: type === 'pie' ? 'center' : 'end',
+              align: type === 'pie' ? 'center' : 'end',
+              offset: type === 'bar' ? 4 : (type === 'pie' ? 0 : 15)
             }
           }
         }

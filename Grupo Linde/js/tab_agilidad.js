@@ -60,6 +60,16 @@ ChartManager.renderAgilidad = function() {
   destroyChart('chartModaAgilidad');
   const canvas = document.getElementById('chartModaAgilidad');
   if (canvas && typeof Chart !== 'undefined') {
+    // El padding derecho reserva espacio para el texto "N | Moda: ..." que
+    // se dibuja junto a cada barra (datalabel). Un valor fijo (320px) asume
+    // que el canvas siempre tiene ese ancho disponible, pero en el layout
+    // de impresión este gráfico comparte una columna angosta (la mitad del
+    // ancho de la página) con la torta de al lado, así que ese padding fijo
+    // por sí solo ya dejaba casi sin espacio a las barras y a las
+    // etiquetas del eje Y, cortando ambos textos. Se calcula como una
+    // proporción del ancho real del contenedor en su lugar.
+    const wrapWidth = canvas.closest('.chart-wrap') ? canvas.closest('.chart-wrap').clientWidth : canvas.clientWidth;
+    const rightPadding = Math.max(80, Math.min(320, Math.round(wrapWidth * 0.32)));
     App.charts.chartModaAgilidad = new Chart(canvas, {
       type: 'bar',
       data: {
@@ -76,7 +86,7 @@ ChartManager.renderAgilidad = function() {
         responsive: true,
         maintainAspectRatio: false,
         layout: {
-          padding: { right: 320, left: 10, top: 10, bottom: 10 }
+          padding: { right: rightPadding, left: 10, top: 10, bottom: 10 }
         },
         onClick: (e, activeElements) => {
           if (activeElements.length > 0) {
@@ -116,14 +126,34 @@ ChartManager.renderAgilidad = function() {
             formatter: (value, ctx) => {
               const idx = ctx.dataIndex;
               const m = modas[idx];
-              const shortModa = m.length > 55 ? m.substring(0, 52) + '...' : m;
+              // El límite de caracteres del texto "Moda: ..." se ajusta al
+              // espacio realmente reservado (rightPadding), no a un tope
+              // fijo, para que siga siendo legible sin salirse del canvas
+              // en el layout angosto de impresión.
+              const maxLen = Math.max(15, Math.round(rightPadding / 5.8));
+              const shortModa = m.length > maxLen ? m.substring(0, maxLen - 3) + '...' : m;
               return `${value} | Moda: ${shortModa}`;
             }
           }
         },
         scales: {
           x: { beginAtZero: true, grace: '15%', grid: { color: 'rgba(0,0,0,0.05)' } },
-          y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 11 } } }
+          y: {
+            grid: { display: false },
+            ticks: {
+              font: { weight: 'bold', size: 11 },
+              // Trunca las etiquetas del eje Y (nombres de responsable) a un
+              // largo razonable en vez de dejar que Chart.js reserve todo el
+              // ancho que pidan los nombres más largos: en un canvas angosto
+              // (como el de esta columna en el layout de impresión) eso
+              // dejaba casi sin espacio a las barras y el texto terminaba
+              // cortado contra el borde izquierdo del panel.
+              callback: function (value) {
+                const label = this.getLabelForValue(value);
+                return label.length > 16 ? label.substring(0, 14) + '…' : label;
+              }
+            }
+          }
         }
       }
     });

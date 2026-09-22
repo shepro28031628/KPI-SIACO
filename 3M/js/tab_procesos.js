@@ -5,11 +5,15 @@ ChartManager.renderProcesos = function() {
           const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
           const docDatasets = years.map((yr, idx) => {
-            const data = Array(12).fill(0);
+            const monthSets = Array.from({ length: 12 }, () => new Set());
             rows.forEach(r => {
               const d = r['fechaaperturado'];
-              if (d instanceof Date && !isNaN(d) && d.getFullYear() === yr) data[d.getMonth()]++;
+              if (d instanceof Date && !isNaN(d) && d.getFullYear() === yr) {
+                const docKey = r.documentodetransporte || r.do3m || r.do;
+                if (docKey) monthSets[d.getMonth()].add(docKey);
+              }
             });
+            const data = monthSets.map(s => s.size);
             let color = PALETTE[idx % PALETTE.length];
             if (yr === 2025) color = PALETTE[0];
             if (yr === 2026) color = PALETTE[1];

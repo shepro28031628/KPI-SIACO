@@ -86,19 +86,25 @@ ChartManager.renderRegistros = function() {
       data: {
         labels: monthOrder,
         datasets: [
-          { label: 'SKU', data: skuByMonthSets.map(s => s.size), backgroundColor: PALETTE[0] },
-          { label: 'No. REGISTRO', data: regByMonthSets.map(s => s.size), type: 'line', borderColor: PALETTE[2], backgroundColor: PALETTE[2], fill: false }
+          {
+            label: 'SKU', data: skuByMonthSets.map(s => s.size), backgroundColor: PALETTE[0],
+            datalabels: {
+              display: true, color: '#333', anchor: 'end', align: 'end', font: { weight: 'bold', size: 10.5 },
+              formatter: v => v > 0 ? v : ''
+            }
+          },
+          {
+            label: 'No. REGISTRO', data: regByMonthSets.map(s => s.size), type: 'line', borderColor: PALETTE[2], backgroundColor: PALETTE[2], fill: false,
+            datalabels: {
+              display: true, color: PALETTE[2], anchor: 'end', align: 'top', offset: 6, font: { weight: 'bold', size: 9.5 },
+              formatter: v => v > 0 ? v : ''
+            }
+          }
         ]
       },
-      options: { 
+      options: {
         responsive: true, maintainAspectRatio: false,
-        onClick: (e, act) => handleMonthClick(e, act, App.charts.chartRegistrosMesBar),
-        plugins: {
-          datalabels: {
-            color: '#333', anchor: 'end', align: 'end',
-            formatter: v => v > 0 ? v : ''
-          }
-        }
+        onClick: (e, act) => handleMonthClick(e, act, App.charts.chartRegistrosMesBar)
       }
     });
   }

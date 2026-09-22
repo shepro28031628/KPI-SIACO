@@ -44,8 +44,10 @@ ChartManager.renderProcesos = function() {
           this.barChart('chartAdmin', countBy(rows, 'administracion'), 'bar');
           this.barChart('chartLinea', countBy(rows, 'lineadenegocio'), 'bar');
 
+          // Igual que en las pestañas Agilidad/Facturación: solo se cuentan operaciones con fecha de levante ya registrada
+          const rowsConLevante = rows.filter(r => r.fechadelevante instanceof Date && !isNaN(r.fechadelevante));
           const avgVal = (campo) => {
-            const vals = rows.map(r => r[campo]).filter(v => isNum(v) && numVal(v) >= 0);
+            const vals = rowsConLevante.map(r => r[campo]).filter(v => isNum(v) && numVal(v) >= 0);
             return vals.length ? vals.reduce((a, b) => a + numVal(b), 0) / vals.length : 0;
           };
 

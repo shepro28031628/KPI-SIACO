@@ -1,13 +1,16 @@
 // ---------- Global State ----------
-const App = {
+var App = window.App = {
   raw: { indicadores: [], coo: [], registros: [], razones: [], dtas: [] },
   charts: {},
   filters: { admin: new Set(), linea: new Set(), modo: new Set(), year: new Set(), from: null, to: null },
   tableState: { activeSheet: 'indicadores', searchQuery: '', currentPage: 1, pageSize: 10, sortCol: null, sortAsc: true },
-  worldMapInstance: null
+  worldMapInstance: null,
+  // true mientras dura una exportación/impresión (ver printReportBtn más
+  // abajo, que también apaga Chart.defaults.animation durante ese lapso).
+  isExportingPdf: false
 };
 
-const PALETTE = [
+var PALETTE = window.PALETTE = [
   '#118DFF', '#12239E', '#E66C37', '#6B007B', '#E044A7',
   '#744EC2', '#D9B300', '#D64550', '#197278', '#1AAB40',
   '#15C6F4', '#4092FF', '#894EE6', '#C7519C', '#D65C4F',
@@ -567,10 +570,6 @@ function parseDTA(wb) {
 
   const parseDtaDate = (v) => {
     if (!v || v === '0000-00-00' || v === 'N/A' || String(v).trim() === '') return null;
-    if (typeof v === 'number') {
-      const d = new Date((v - 25569) * 86400 * 1000);
-      return (d instanceof Date && !isNaN(d) && d.getFullYear() > 2000) ? d : null;
-    }
     const d = parseExcelDateSafe(v);
     return (d instanceof Date && !isNaN(d) && d.getFullYear() > 2000) ? d : null;
   };
@@ -742,12 +741,12 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-const isNum = v => {
+var isNum = window.isNum = v => {
   if (typeof v === 'number') return !isNaN(v);
   if (typeof v === 'string' && v.trim() !== '') return !isNaN(parseFloat(v.replace(',', '.')));
   return false;
 };
-const numVal = v => {
+var numVal = window.numVal = v => {
   if (typeof v === 'number') return isNaN(v) ? 0 : v;
   if (typeof v === 'string' && v.trim() !== '') return parseFloat(v.replace(',', '.')) || 0;
   return 0;
@@ -825,6 +824,25 @@ function getYearsForRows(rows) {
   if (years.length === 0) years.push(new Date().getFullYear());
   return years;
 }
+
+// Exponer helpers globalmente para todas las pestañas modulares
+window.isNum = isNum;
+window.numVal = numVal;
+window.avg = avg;
+window.sum = sum;
+window.fmtInt = fmtInt;
+window.fmtUSD = fmtUSD;
+window.fmtDays = fmtDays;
+window.monthKey = monthKey;
+window.monthLabel = monthLabel;
+window.uniqueSorted = uniqueSorted;
+window.fmtDateUTC = fmtDateUTC;
+window.parseUTCDate = parseUTCDate;
+window.destroyChart = destroyChart;
+window.hexToRgba = hexToRgba;
+window.PALETTE = PALETTE;
+window.countBy = countBy;
+window.getYearsForRows = getYearsForRows;
 
       function getLineDatasets(rows, years, field, dateField = null, useSum = false, multiplier = 1, requiredField = null, customColors = null) {
         const datasets = [];
@@ -1207,7 +1225,33 @@ function getYearsForRows(rows) {
     // ==========================================
     // MODULE: FILTER ENGINE
     // ==========================================
-    const FilterEngine = {
+    var FilterEngine = window.FilterEngine = {
+      saveFilters() {
+        try {
+          const filtersObj = {
+            admin: Array.from(App.filters.admin),
+            linea: Array.from(App.filters.linea),
+            modo: Array.from(App.filters.modo),
+            year: Array.from(App.filters.year),
+            dateFrom: document.getElementById('dateFrom') ? document.getElementById('dateFrom').value : null,
+            dateTo: document.getElementById('dateTo') ? document.getElementById('dateTo').value : null
+          };
+          localStorage.setItem('siaco_3m_filters', JSON.stringify(filtersObj));
+        } catch(e) {}
+      },
+      loadFilters() {
+        try {
+          const saved = JSON.parse(localStorage.getItem('siaco_3m_filters'));
+          if (saved) {
+            App.filters.admin = new Set(saved.admin || []);
+            App.filters.linea = new Set(saved.linea || []);
+            App.filters.modo = new Set(saved.modo || []);
+            App.filters.year = new Set(saved.year || []);
+            return saved;
+          }
+        } catch(e) {}
+        return null;
+      },
       initFilters() {
         const admins = uniqueSorted(App.raw.indicadores.map(r => r['administracion']));
         const lineas = uniqueSorted(App.raw.indicadores.map(r => r['lineadenegocio']));
@@ -1217,38 +1261,62 @@ function getYearsForRows(rows) {
           return (d instanceof Date && !isNaN(d)) ? d.getFullYear().toString() : null;
         }));
 
-        App.filters.admin = new Set();
-        App.filters.linea = new Set();
-        App.filters.modo = new Set();
-        App.filters.year = new Set();
+        const savedFilters = this.loadFilters();
+        if (!savedFilters) {
+          App.filters.admin = new Set();
+          App.filters.linea = new Set();
+          App.filters.modo = new Set();
+          App.filters.year = new Set();
+        }
 
-        this.chipRow(document.getElementById('chipAdmin'), admins, 'admin');
-        this.chipRow(document.getElementById('chipLinea'), lineas, 'linea');
-        this.chipRow(document.getElementById('chipModo'), modos, 'modo');
-        this.chipRow(document.getElementById('chipYear'), years, 'year');
+        const chipAdminEl = document.getElementById('chipAdmin');
+        const chipLineaEl = document.getElementById('chipLinea');
+        const chipModoEl = document.getElementById('chipModo');
+        const chipYearEl = document.getElementById('chipYear');
+
+        if (chipAdminEl) this.chipRow(chipAdminEl, admins, 'admin', savedFilters ? savedFilters.admin : null);
+        if (chipLineaEl) this.chipRow(chipLineaEl, lineas, 'linea', savedFilters ? savedFilters.linea : null);
+        if (chipModoEl) this.chipRow(chipModoEl, modos, 'modo', savedFilters ? savedFilters.modo : null);
+        if (chipYearEl) this.chipRow(chipYearEl, years, 'year', savedFilters ? savedFilters.year : null);
 
         const dates = App.raw.indicadores.map(r => r['fechaaperturado']).filter(d => d instanceof Date && !isNaN(d));
         if (dates.length) {
           const min = new Date(Math.min(...dates));
           const max = new Date(Math.max(...dates));
-          document.getElementById('dateFrom').value = fmtDateUTC(min);
-          document.getElementById('dateTo').value = fmtDateUTC(max);
+          const elFrom = document.getElementById('dateFrom');
+          const elTo = document.getElementById('dateTo');
+          if (elFrom) elFrom.value = (savedFilters && savedFilters.dateFrom) ? savedFilters.dateFrom : fmtDateUTC(min);
+          if (elTo) elTo.value = (savedFilters && savedFilters.dateTo) ? savedFilters.dateTo : fmtDateUTC(max);
         }
 
         if (!this._listenersInit) {
-          document.getElementById('dateFrom').addEventListener('change', () => { ChartManager.renderAll(); this.updateBadge(); });
-          document.getElementById('dateTo').addEventListener('change', () => { ChartManager.renderAll(); this.updateBadge(); });
-          document.getElementById('clearFiltersBtn').addEventListener('click', () => this.clearAllFilters());
+          const elFrom = document.getElementById('dateFrom');
+          const elTo = document.getElementById('dateTo');
+          const elClear = document.getElementById('clearFiltersBtn');
+          if (elFrom) elFrom.addEventListener('change', () => { this.saveFilters(); ChartManager.renderAll(); this.updateBadge(); });
+          if (elTo) elTo.addEventListener('change', () => { this.saveFilters(); ChartManager.renderAll(); this.updateBadge(); });
+          if (elClear) elClear.addEventListener('click', () => this.clearAllFilters());
           this._listenersInit = true;
         }
         this.updateBadge();
       },
       clearAllFilters() {
+        try { localStorage.removeItem('siaco_3m_filters'); } catch(e) {}
+        App.filters.admin = new Set();
+        App.filters.linea = new Set();
+        App.filters.modo = new Set();
+        App.filters.year = new Set();
         this.initFilters();
         if (App.chartFilters) {
           for (const key in App.chartFilters) {
             App.chartFilters[key] = { label: null, month: null, year: null };
           }
+        }
+        if (App._clasifFilters) {
+          App._clasifFilters = { mes: 'julio', estado: 'TODOS', aplica: 'TODOS', search: '' };
+        }
+        if (App._cooFilters) {
+          App._cooFilters = { mes: new Set(), pais: new Set(), sub: new Set() };
         }
         ChartManager.renderAll();
         this.updateBadge();
@@ -1257,7 +1325,8 @@ function getYearsForRows(rows) {
         const badge = document.getElementById('activeFiltersBadge');
         if (badge) badge.style.display = 'none';
       },
-      chipRow(container, values, filterKey) {
+      chipRow(container, values, filterKey, initialSelected = null) {
+        if (!container) return;
         container.innerHTML = '';
         const controls = document.createElement('div');
         controls.className = 'chip-controls';
@@ -1271,17 +1340,23 @@ function getYearsForRows(rows) {
         const chipsContainer = document.createElement('div');
         chipsContainer.className = 'chips-subrow';
 
+        const isCustomSelected = Array.isArray(initialSelected) && initialSelected.length > 0;
+
         values.forEach(v => {
           const b = document.createElement('button');
-          b.className = 'chip active'; b.textContent = v; b.dataset.value = v;
+          const isAct = isCustomSelected ? initialSelected.includes(v) : true;
+          b.className = 'chip' + (isAct ? ' active' : '');
+          b.textContent = v;
+          b.dataset.value = v;
           b.addEventListener('click', () => {
             b.classList.toggle('active');
             if (b.classList.contains('active')) App.filters[filterKey].add(v);
             else App.filters[filterKey].delete(v);
+            FilterEngine.saveFilters();
             ChartManager.renderAll();
           });
           chipsContainer.appendChild(b);
-          App.filters[filterKey].add(v);
+          if (isAct) App.filters[filterKey].add(v);
         });
         container.appendChild(chipsContainer);
 
@@ -1289,12 +1364,14 @@ function getYearsForRows(rows) {
           chipsContainer.querySelectorAll('.chip').forEach(chip => {
             chip.classList.add('active'); App.filters[filterKey].add(chip.dataset.value);
           });
+          FilterEngine.saveFilters();
           ChartManager.renderAll();
         });
         btnNone.addEventListener('click', () => {
           chipsContainer.querySelectorAll('.chip').forEach(chip => {
             chip.classList.remove('active'); App.filters[filterKey].delete(chip.dataset.value);
           });
+          FilterEngine.saveFilters();
           ChartManager.renderAll();
         });
       },
@@ -1322,20 +1399,22 @@ function getYearsForRows(rows) {
     // ==========================================
     // MODULE: CHART MANAGER
     // ==========================================
-    const ChartManager = {
+    var ChartManager = window.ChartManager = {
       _rafId: null,
       forceRenderEverything() {
-        if (typeof this.renderProcesos === 'function') this.renderProcesos();
-        if (typeof this.renderAgilidad === 'function') this.renderAgilidad();
-        if (typeof this.renderFacturacion === 'function') this.renderFacturacion();
-        if (typeof this.renderInspeccion === 'function') this.renderInspeccion();
-        if (typeof this.renderRegistros === 'function') this.renderRegistros();
-        if (typeof this.renderCOO === 'function') this.renderCOO();
-        if (typeof renderTable === 'function') renderTable();
+        if (typeof this.renderProcesos === 'function') { try { this.renderProcesos(); } catch(e) { console.warn(e); } }
+        if (typeof this.renderAgilidad === 'function') { try { this.renderAgilidad(); } catch(e) { console.warn(e); } }
+        if (typeof this.renderFacturacion === 'function') { try { this.renderFacturacion(); } catch(e) { console.warn(e); } }
+        if (typeof this.renderInspeccion === 'function') { try { this.renderInspeccion(); } catch(e) { console.warn(e); } }
+        if (typeof this.renderRegistros === 'function') { try { this.renderRegistros(); } catch(e) { console.warn(e); } }
+        if (typeof this.renderCOO === 'function') { try { this.renderCOO(); } catch(e) { console.warn(e); } }
+        if (typeof this.renderDTAS === 'function') { try { this.renderDTAS(); } catch(e) { console.warn(e); } }
+        if (typeof this.renderClasificacion === 'function') { try { this.renderClasificacion(); } catch(e) { console.warn(e); } }
       },
       renderAll(targetTab = null) {
+        const activePane = document.querySelector('.tab-pane.active') || document.querySelector('.tab-pane');
         const activeBtn = document.querySelector('.menu-btn.active');
-        const tabId = targetTab || (activeBtn ? activeBtn.dataset.tab : 'tab-procesos');
+        const tabId = targetTab || (activePane ? activePane.id : (activeBtn ? activeBtn.dataset.tab : 'tab-procesos'));
 
         try {
           if (tabId === 'tab-procesos' && typeof this.renderProcesos === 'function') this.renderProcesos();
@@ -1682,7 +1761,8 @@ function getYearsForRows(rows) {
       if (!pageData.length) {
         if (hRow) hRow.innerHTML = '<th>Sin registros</th>';
         if (bContainer) bContainer.innerHTML = '<tr><td style="text-align: center; padding: 40px; color: var(--muted);">No hay datos para mostrar</td></tr>';
-        document.getElementById('premiumPagination').innerHTML = '';
+        const emptyPagination = document.getElementById('premiumPagination');
+        if (emptyPagination) emptyPagination.innerHTML = '';
         return;
       }
 
@@ -1795,15 +1875,77 @@ function getYearsForRows(rows) {
     // ==========================================
     const CoreEvents = {
       init() {
+        const currentPage = window.location.pathname.split('/').pop() || 'procesos.html';
+        const activeBtn = document.querySelector(`.sidebar-menu .menu-btn[href="${currentPage}"]`) ||
+                          document.querySelector(`.sidebar-menu .menu-btn[href*="${currentPage.replace('.html','')}"]`) ||
+                          document.querySelector('.sidebar-menu .menu-btn.active') ||
+                          document.querySelector('.sidebar-menu .menu-btn');
+        
+        if (activeBtn) {
+          document.querySelectorAll('.sidebar-menu .menu-btn').forEach(b => b.classList.remove('active'));
+          activeBtn.classList.add('active');
+        }
+
+        const activePane = document.querySelector('.tab-pane.active') || document.querySelector('.tab-pane');
+        if (activePane) {
+          activePane.classList.add('active');
+          let delay = 0;
+          activePane.querySelectorAll('.chart-panel, .pbi-kpi-mini-card, .pbi-table-panel').forEach(el => {
+            el.classList.remove('animate-fade-in-up');
+            void el.offsetWidth;
+            el.style.animationDelay = `${delay}s`;
+            el.classList.add('animate-fade-in-up');
+            delay += 0.05;
+          });
+        }
+
+        // Soporte Responsive: Botón Hamburguesa y Backdrop para Móvil
+        let mobToggle = document.getElementById('mobileNavToggle');
+        if (!mobToggle) {
+          mobToggle = document.createElement('button');
+          mobToggle.id = 'mobileNavToggle';
+          mobToggle.className = 'mobile-nav-toggle';
+          mobToggle.innerHTML = '☰';
+          mobToggle.setAttribute('aria-label', 'Abrir Menú');
+          document.body.appendChild(mobToggle);
+        }
+
+        let backdrop = document.getElementById('sidebarBackdrop');
+        if (!backdrop) {
+          backdrop = document.createElement('div');
+          backdrop.id = 'sidebarBackdrop';
+          backdrop.className = 'sidebar-backdrop';
+          document.body.appendChild(backdrop);
+        }
+
+        const sidebar = document.querySelector('.sidebar');
+        if (mobToggle && sidebar) {
+          mobToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            backdrop.classList.toggle('active');
+            mobToggle.innerHTML = sidebar.classList.contains('open') ? '✕' : '☰';
+          });
+        }
+
+        if (backdrop && sidebar) {
+          backdrop.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            backdrop.classList.remove('active');
+            if (mobToggle) mobToggle.innerHTML = '☰';
+          });
+        }
+
         document.querySelectorAll('.menu-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', (e) => {
+            if (btn.tagName === 'A' && btn.getAttribute('href') && !btn.getAttribute('href').startsWith('#')) {
+              return; // Deja que el enlace navegue a la página HTML
+            }
             document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             btn.classList.add('active');
             const pane = document.getElementById(btn.dataset.tab); 
             if (pane) {
               pane.classList.add('active');
-              // 1. Stagger Animations
               let delay = 0;
               pane.querySelectorAll('.chart-panel, .pbi-kpi-mini-card, .pbi-table-panel').forEach(el => {
                 el.classList.remove('animate-fade-in-up');
@@ -1837,72 +1979,169 @@ function getYearsForRows(rows) {
           }
         });
 
-        document.getElementById('tableSheetSelect').addEventListener('change', (e) => {
-          App.tableState.activeSheet = e.target.value; App.tableState.currentPage = 1; renderTable();
-        });
-        document.getElementById('tableSearchInput').addEventListener('input', (e) => {
-          App.tableState.searchQuery = e.target.value.toLowerCase().trim(); App.tableState.currentPage = 1; renderTable();
-        });
-        if (els.printBtn) {
-          els.printBtn.addEventListener('click', () => {
-            const currentActiveBtn = document.querySelector('.sidebar-menu .menu-btn.active');
-            const currentActivePane = document.querySelector('.tab-pane.active');
-
-            // 1. Activar clases de impresión y modo presentación
-            document.body.classList.add('printing-all-tabs');
-            document.body.classList.add('presentation-mode');
-
-            // 2. Dar 50ms para que el DOM aplique las reglas de impresión y luego renderizar/redimensionar gráficos
-            setTimeout(() => {
-              if (ChartManager && typeof ChartManager.forceRenderEverything === 'function') {
-                ChartManager.forceRenderEverything();
-              }
-
-              if (App.charts) {
-                Object.values(App.charts).forEach(ch => {
-                  if (ch && typeof ch.resize === 'function') ch.resize();
-                });
-              }
-
-              if (App.worldMapInstance && typeof App.worldMapInstance.updateSize === 'function') {
-                App.worldMapInstance.updateSize();
-              }
-
-              // 3. Dar tiempo al motor del navegador para pintar los canvas antes de llamar a print
-              setTimeout(() => {
-                window.print();
-                setTimeout(() => {
-                  document.body.classList.remove('printing-all-tabs');
-                  document.body.classList.remove('presentation-mode');
-                  if (currentActiveBtn) {
-                    document.querySelectorAll('.sidebar-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
-                    currentActiveBtn.classList.add('active');
-                  }
-                  if (currentActivePane) {
-                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-                    currentActivePane.classList.add('active');
-                  }
-                  if (ChartManager && typeof ChartManager.renderAll === 'function') {
-                    ChartManager.renderAll();
-                  }
-                }, 400);
-              }, 500);
-            }, 60);
+        const tableSheetSelect = document.getElementById('tableSheetSelect');
+        if (tableSheetSelect) {
+          tableSheetSelect.addEventListener('change', (e) => {
+            App.tableState.activeSheet = e.target.value; App.tableState.currentPage = 1; renderTable();
           });
         }
 
-        document.getElementById('btnExportExcel').addEventListener('click', () => {
-          const data = App.raw[App.tableState.activeSheet] || [];
-          if (!data.length) return;
-          const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, App.tableState.activeSheet);
-          XLSX.writeFile(wb, `Reporte_${App.tableState.activeSheet}.xlsx`);
+        const tableSearchInput = document.getElementById('tableSearchInput');
+        if (tableSearchInput) {
+          tableSearchInput.addEventListener('input', (e) => {
+            App.tableState.searchQuery = e.target.value.toLowerCase().trim(); App.tableState.currentPage = 1; renderTable();
+          });
+        }
+
+        const btnExportExcel = document.getElementById('btnExportExcel');
+        if (btnExportExcel) {
+          btnExportExcel.addEventListener('click', () => {
+            const data = App.raw[App.tableState.activeSheet] || [];
+            if (!data.length) return;
+            const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, App.tableState.activeSheet);
+            XLSX.writeFile(wb, `Reporte_${App.tableState.activeSheet}.xlsx`);
+          });
+        }
+
+        // Solo REDIMENSIONA (no recrea) las gráficas y el mapa mundial contra
+        // el layout actualmente comprometido del DOM. Usamos resize() y no
+        // forceRenderEverything() aquí porque destruir/crear un Chart.js hace
+        // su primer dibujo en el siguiente frame (requestAnimationFrame), y el
+        // motor de impresión puede capturar la página ANTES de ese frame,
+        // dejando el canvas en blanco. resize() en cambio redibuja de forma
+        // síncrona sobre la instancia ya existente.
+        const resizeChartsForPrint = () => {
+          try {
+            if (App.charts) {
+              Object.values(App.charts).forEach(ch => {
+                if (ch && typeof ch.resize === 'function') ch.resize();
+              });
+            }
+            // updateSize() vuelve a medir su contenedor de forma síncrona.
+            // Si en ese momento la pestaña COO no está visible, el
+            // contenedor mide 0x0 y updateSize() deja la escala/traslado
+            // interna del mapa en NaN de forma permanente (ni una llamada
+            // posterior lo repara). Por eso solo se llama updateSize()
+            // cuando el contenedor realmente tiene un tamaño válido.
+            const cooMapEl = document.getElementById('cooWorldMap');
+            if (App.worldMapInstance && typeof App.worldMapInstance.updateSize === 'function' &&
+                cooMapEl && cooMapEl.offsetWidth > 0 && cooMapEl.offsetHeight > 0) {
+              App.worldMapInstance.updateSize();
+            }
+          } catch (err) {
+            console.warn('Advertencia previa a impresión:', err);
+          }
+        };
+
+        const printBtn = document.getElementById('printReportBtn');
+        if (printBtn) {
+          printBtn.addEventListener('click', () => {
+            // El zoom del navegador (Ctrl +/-, distinto del zoom de SO o de
+            // pantalla) cambia devicePixelRatio proporcionalmente. Con un
+            // zoom distinto de 100%, Chrome mide el "viewport lógico" de la
+            // página de forma distinta a como lo hace con @page en modo
+            // impresión, y columnas enteras del layout pueden desaparecer
+            // del PDF sin ningún error visible. No hay forma de cambiar el
+            // zoom del navegador por JavaScript (el navegador no lo
+            // permite por seguridad), así que solo podemos detectarlo y
+            // avisar.
+            const dpr = window.devicePixelRatio || 1;
+            const zoomPct = Math.round(dpr * 100);
+            if (Math.abs(dpr - 1) > 0.03) {
+              const proceed = window.confirm(
+                `El zoom del navegador está en ${zoomPct}% (no 100%).\n\n` +
+                'Con un zoom distinto de 100%, algunas columnas o tablas pueden no aparecer completas en el PDF.\n\n' +
+                'Se recomienda presionar Ctrl+0 para volver al 100% antes de exportar.\n\n' +
+                '¿Continuar de todas formas?'
+              );
+              if (!proceed) return;
+            }
+
+            document.body.classList.add('printing-all-tabs');
+            // Forzar un reflow síncrono para que el navegador confirme el
+            // cambio de layout (todas las .tab-pane visibles) antes de que
+            // sigamos midiendo/renderizando sobre él.
+            // eslint-disable-next-line no-unused-expressions
+            document.body.offsetHeight;
+
+            // Desactivamos la animación de entrada de Chart.js (arco
+            // creciendo, barras subiendo, etc.) mientras dura la
+            // exportación. Sin esto, cada pie/doughnut recreado por
+            // forceRenderEverything() queda "mordido" (a medio dibujar) en
+            // el PDF, porque Chart.js tarda ~1s en animar su aparición y el
+            // documento se genera muchísimo antes de que eso termine.
+            App.isExportingPdf = true;
+            if (typeof Chart !== 'undefined') Chart.defaults.animation = false;
+
+            // Recreamos las gráficas UNA sola vez aquí (no en beforeprint),
+            // para tener tiempo de esperar su primer dibujo real antes de
+            // llamar a window.print().
+            if (ChartManager && typeof ChartManager.forceRenderEverything === 'function') {
+              ChartManager.forceRenderEverything();
+            }
+
+            // Esperamos dos frames de animación (tiempo de sobra para que
+            // Chart.js complete su dibujo inicial) más un pequeño margen,
+            // y solo entonces invocamos la impresión.
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                resizeChartsForPrint();
+                setTimeout(() => {
+                  window.print();
+                }, 150);
+              });
+            });
+          });
+        }
+
+        // Algunos navegadores aplican @media print con un layout ligeramente
+        // distinto justo antes de imprimir (p.ej. cambios de ancho por la
+        // barra de desplazamiento). Volvemos a llamar SOLO a resize() (nunca
+        // a forceRenderEverything) para no dejar canvases en blanco.
+        window.addEventListener('beforeprint', resizeChartsForPrint);
+
+        // Algunos navegadores basados en WebKit no disparan 'beforeprint' de
+        // forma confiable al usar matchMedia; este listener es un respaldo.
+        if (window.matchMedia) {
+          const printMql = window.matchMedia('print');
+          const onPrintChange = (mql) => {
+            if (mql.matches) resizeChartsForPrint();
+          };
+          if (typeof printMql.addEventListener === 'function') {
+            printMql.addEventListener('change', onPrintChange);
+          } else if (typeof printMql.addListener === 'function') {
+            printMql.addListener(onPrintChange);
+          }
+        }
+
+        window.addEventListener('afterprint', () => {
+          document.body.classList.remove('printing-all-tabs');
+          App.isExportingPdf = false;
+          if (typeof Chart !== 'undefined') Chart.defaults.animation = {};
+          if (ChartManager && typeof ChartManager.renderAll === 'function') {
+            ChartManager.renderAll();
+          }
         });
 
-        document.getElementById('presentationModeBtn').addEventListener('click', () => {
-          document.body.classList.toggle('presentation-mode');
-          if (App.worldMapInstance) setTimeout(() => App.worldMapInstance.updateSize(), 150);
-        });
+        const presentationModeBtn = document.getElementById('presentationModeBtn');
+        if (presentationModeBtn) {
+          presentationModeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('presentation-mode');
+            if (App.worldMapInstance) setTimeout(() => App.worldMapInstance.updateSize(), 150);
+          });
+        }
+
+        const themeToggleBtn = document.getElementById('themeToggle');
+        if (themeToggleBtn) {
+          themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('siaco_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+          });
+          if (localStorage.getItem('siaco_theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+          }
+        }
       }
     };
 
@@ -1995,7 +2234,17 @@ function getYearsForRows(rows) {
             legend: {
               display: type !== 'bar',
               position: (type === 'pie' || type === 'doughnut') ? 'right' : 'bottom',
-              labels: { boxWidth: 10, font: { size: 9 } },
+              // Chart.js no reduce el tamaño de fuente ni ajusta el interlineado
+              // de la leyenda automáticamente cuando faltan filas por espacio:
+              // simplemente las deja superpuestas. Con muchas categorías (como
+              // las causales/justificaciones de los "pie") el alto por defecto
+              // no alcanza, así que reducimos fuente y separación entre ítems
+              // en proporción a cuántas categorías hay que listar.
+              labels: {
+                boxWidth: 10,
+                font: { size: labels.length > 4 ? 8 : 9 },
+                padding: labels.length > 4 ? 6 : 10
+              },
               onClick: (e, legendItem, legend) => {
                 if (clickHandler) {
                   const label = legendItem.text;
@@ -2011,9 +2260,19 @@ function getYearsForRows(rows) {
             },
             datalabels: {
               display: function(context) {
-                return context.dataset.data[context.dataIndex] > 0 ? 'auto' : false;
+                const value = context.dataset.data[context.dataIndex];
+                if (!(value > 0)) return false;
+                if (type === 'bar') return 'auto';
+                // En pie/doughnut, las porciones muy pequeñas quedan tan
+                // angostas que su etiqueta ya no cabe junto a su porción y
+                // termina superpuesta con la de la porción vecina (se ve
+                // como texto ilegible amontonado). Las ocultamos igual que
+                // ya se ocultaría cualquier etiqueta que no entre, en vez de
+                // dejar que 'auto' intente forzarlas todas.
+                const pct = value / total;
+                return pct >= 0.03 ? 'auto' : false;
               },
-              color: '#333',
+              color: type === 'pie' ? '#ffffff' : '#333',
               font: { size: 10, weight: '600' },
               formatter: (value, ctx) => {
                 if (!value || total === 0) return '';
@@ -2022,9 +2281,18 @@ function getYearsForRows(rows) {
                 let pct = pctNum.toFixed(2).replace('.', ',');
                 return `${value} (${pct}%)`;
               },
-              anchor: type === 'bar' ? 'end' : 'end',
-              align: type === 'bar' ? 'end' : 'end',
-              offset: type === 'bar' ? 4 : 15
+              // Los gráficos "pie" de este dashboard suelen tener muchas
+              // categorías (causales, justificaciones). Con las etiquetas
+              // ancladas afuera ('end'), varias porciones angostas y
+              // contiguas terminan proyectando su etiqueta casi al mismo
+              // punto del borde, y el texto se amontona ilegible. Los
+              // doughnut, en cambio, aquí solo se usan para 2-3 categorías
+              // grandes (SI/NO, cumple/no cumple) y sí tienen espacio afuera.
+              // Por eso solo el tipo "pie" mueve su etiqueta al centro de
+              // cada porción, donde cada una tiene su propio espacio.
+              anchor: type === 'pie' ? 'center' : 'end',
+              align: type === 'pie' ? 'center' : 'end',
+              offset: type === 'bar' ? 4 : (type === 'pie' ? 0 : 15)
             }
           }
         }
@@ -2111,4 +2379,6 @@ function getYearsForRows(rows) {
           }
         });
       };
+window.App = App;
+window.FilterEngine = FilterEngine;
 window.ChartManager = ChartManager;

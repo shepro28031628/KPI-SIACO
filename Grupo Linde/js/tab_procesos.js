@@ -49,6 +49,31 @@ ChartManager.renderProcesos = function() {
             ChartManager.renderAll();
           });
 
+          // En la pestaña Procesos, esta torta comparte fila con "Volumen
+          // por empresa" dentro de un presupuesto de página ya muy ajustado
+          // (Procesos tiene 3 filas de gráficas, más que cualquier otra
+          // pestaña), así que su .chart-wrap queda mucho más ancho que alto
+          // en el layout de impresión. Con la leyenda a la derecha (el
+          // estilo por defecto de barChart para pie/doughnut), Chart.js
+          // dibuja el círculo del tamaño del lado más chico (el alto), y
+          // gran parte del ancho queda vacío junto a la leyenda: la torta se
+          // ve diminuta en el PDF aunque el panel no esté realmente vacío.
+          // Solo durante la exportación, se mueve la leyenda abajo para que
+          // el círculo pueda usar el ancho completo del panel.
+          if (App.isExportingPdf && App.charts.chartModo) {
+            App.charts.chartModo.options.plugins.legend.position = 'bottom';
+            App.charts.chartModo.options.plugins.legend.labels = { boxWidth: 8, padding: 4, font: { size: 8 } };
+            // barChart aplica layout.padding:45 (fijo, en px) pensado para
+            // un canvas de tamaño normal en pantalla. En el layout de
+            // impresión este canvas mide apenas ~128px de alto, así que ese
+            // padding fijo (45px arriba + 45px abajo = 90px) por sí solo ya
+            // se comía la mayor parte del alto disponible, dejando solo
+            // ~38px reales para el círculo + la leyenda, sin importar dónde
+            // se colocara la leyenda.
+            App.charts.chartModo.options.layout.padding = 8;
+            App.charts.chartModo.update();
+          }
+
           this.barChart('chartAdmin', countBy(rows, 'administracion'), 'bar', (adminLabel) => {
             if (adminLabel) {
               if (App.filters.admin.size === 1 && App.filters.admin.has(adminLabel)) {

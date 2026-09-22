@@ -486,7 +486,7 @@
     margin-bottom: 16px;
   }
 
-  @media (max-width: 1024px) {
+  @media screen and (max-width: 1024px) {
     .pbi-grid-3col {
       grid-template-columns: 1fr;
     }
@@ -599,15 +599,17 @@
     color: var(--text-main);
   }
 
-  .pbi-grid-2col-equal {
+  .pbi-grid-2col-equal,
+  .pbi-grid-2col {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-top: 16px;
   }
 
-  @media (max-width: 768px) {
-    .pbi-grid-2col-equal {
+  @media screen and (max-width: 768px) {
+    .pbi-grid-2col-equal,
+    .pbi-grid-2col {
       grid-template-columns: 1fr;
     }
   }
@@ -619,7 +621,7 @@
     margin-bottom: 16px;
   }
 
-  @media (max-width: 1024px) {
+  @media screen and (max-width: 1024px) {
     .pbi-grid-inspeccion {
       grid-template-columns: 1fr;
     }
@@ -631,7 +633,7 @@
     gap: 16px;
   }
 
-  @media (max-width: 1024px) {
+  @media screen and (max-width: 1024px) {
     .coo-layout {
       grid-template-columns: 1fr;
     }
@@ -772,12 +774,16 @@
     gap: 10px;
   }
 
-  @media print {
-    .sidebar { display: none !important; }
-    .content-area { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
-    #filters, .table-controls-panel, .print-report-btn, .top-action-bar, #activeFiltersBadge, .export-btn { display: none !important; }
-    .chart-panel, .pbi-table-panel, .premium-data-table { page-break-inside: avoid; }
-  }
+  /* NOTA: el bloque @media print que existía aquí era el primero de TRES
+     bloques @media print duplicados en este archivo. En CSS, cuando varias
+     reglas !important tienen la misma especificidad, gana la que aparece
+     ÚLTIMA en el orden del archivo — por lo que este bloque nunca tuvo
+     efecto real (quedó superado por los bloques posteriores). Sus únicas
+     reglas que NO estaban cubiertas por el bloque de impresión real
+     (.table-controls-panel oculto y page-break-inside:avoid en paneles)
+     fueron fusionadas dentro del bloque @media print vigente, más abajo
+     ("EXACTAMENTE 6 PÁGINAS"). Se eliminó este bloque duplicado para evitar
+     que un futuro editor modifique reglas que no surten efecto. */
 
   /* --- NUEVAS MEJORAS PREMIUM --- */
 
@@ -1054,72 +1060,15 @@
     padding: 0 4px;
   }
 
-/* ==========================================================================
-   ESTILOS DE IMPRESIÓN / EXPORTACIÓN PDF (PANTALLAZO EXACTO)
-   ========================================================================== */
-
-body.printing-all-tabs .tab-pane {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-body.printing-all-tabs #tab-inspeccion {
-  display: none !important;
-}
-
-@media print {
-  @page {
-    size: A4 landscape;
-    margin: 5mm;
-  }
-
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Ocultar elementos de UI irrelevantes para PDF */
-  .sidebar,
-  .top-action-bar,
-  #filters,
-  #activeFiltersBadge,
-  #custom-tooltip,
-  .custom-toast,
-  .theme-toggle-container,
-  .print-report-btn,
-  .btn-premium-export,
-  .table-search-box-premium,
-  .table-sheet-selector-premium,
-  .premium-pagination,
-  .export-btn,
-  a[href*="index.html"] {
-    display: none !important;
-  }
-
-  .content-area,
-  #dashboard {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-  }
-
-  /* PESTAÑAS EN PAGINAS INDIVIDUALES (PANTALLAZO EXACTO) */
-  .tab-pane {
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    page-break-before: always !important;
-    break-before: page !important;
-    page-break-after: always !important;
-    break-after: page !important;
-  }
-
-  .tab-pane#tab-procesos {
-    page-break-before: avoid !important;
-    break-before: avoid !important;
-  }
-}
+/* NOTA: aquí existía un SEGUNDO bloque @media print duplicado
+   ("PANTALLAZO EXACTO"), junto con sus reglas body.printing-all-tabs
+   fuera de @media. Todas sus reglas (ocultar UI, @page, .tab-pane con
+   saltos de página, #tab-procesos sin salto previo) estaban totalmente
+   superadas por el TERCER bloque @media print de este archivo
+   ("EXACTAMENTE 6 PÁGINAS"), que además añade el control de altura fija
+   de 190mm por pestaña. Se eliminó por ser código muerto que solo
+   generaba riesgo de que un futuro editor modificara reglas sin efecto.
+*/
 
 /* --- NUEVAS MEJORAS PREMIUM --- */
 
@@ -1425,6 +1374,7 @@ body.printing-all-tabs #tab-inspeccion {
   .sidebar,
   .top-action-bar,
   #filters,
+  .table-controls-panel,
   #activeFiltersBadge,
   #custom-tooltip,
   .custom-toast,
@@ -1437,6 +1387,15 @@ body.printing-all-tabs #tab-inspeccion {
   .export-btn,
   a[href*="index.html"] {
     display: none !important;
+  }
+
+  /* Evitar que un panel se corte a mitad entre dos páginas (regla
+     heredada del bloque @media print duplicado que existía antes) */
+  .chart-panel,
+  .pbi-table-panel,
+  .premium-data-table {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   body, html {
@@ -1523,16 +1482,110 @@ body.printing-all-tabs #tab-inspeccion {
     color: #1e293b !important;
   }
 
+  /* Asegura que el <canvas> de Chart.js realmente llene su .chart-wrap
+     (sin esto, Chart.js puede dejar el canvas más pequeño que su
+     contenedor, lo cual es especialmente visible en gráficas de pastel/
+     dona donde el círculo se dibuja del tamaño del lado más chico). */
+  .chart-wrap canvas {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+  }
+
+  /* Alturas por defecto para pestañas de 2 filas de gráficas
+     (Agilidad, Facturación, Registros): .pbi-grid-3col + .pbi-grid-2col-equal.
+     Presupuesto: página 190mm - header(~16mm) - goal-tag(~11mm) -
+     padding(8mm) = ~155mm para 2 filas + márgenes (~12mm) = ~72mm/fila. */
   .chart-wrap {
-    height: 130px !important;
-    min-height: 130px !important;
-    max-height: 135px !important;
+    height: 62mm !important;
+    min-height: 62mm !important;
+    max-height: 64mm !important;
+    position: relative !important;
+    width: 100% !important;
   }
 
   .chart-wrap.tall {
-    height: 155px !important;
-    min-height: 155px !important;
-    max-height: 160px !important;
+    height: 66mm !important;
+    min-height: 66mm !important;
+    max-height: 68mm !important;
+  }
+
+  /* "Responsables (Col T/AG) y Moda Causal" es un gráfico de barras
+     horizontales cuya cantidad de categorías depende de cuántos
+     responsables distintos tengan los datos reales (no un número fijo,
+     a diferencia de la dona/torta que lo acompaña en la misma fila). Con
+     una altura fija igual a la de esas otras gráficas, las etiquetas de
+     texto (nombres de responsables/causales, a veces largos) quedaban
+     cortadas contra el borde del panel cuando había varios responsables.
+     Se le da una porción flexible del alto de su fila en vez de un valor
+     fijo, para que se adapte sola a la cantidad real de datos. */
+  #tab-agilidad .pbi-grid-2col-equal .chart-panel:has(#chartModaAgilidad),
+  #tab-facturacion .pbi-grid-2col-equal .chart-panel:has(#chartModaFactura) {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #tab-agilidad .pbi-grid-2col-equal .chart-panel:has(#chartModaAgilidad) .chart-wrap,
+  #tab-facturacion .pbi-grid-2col-equal .chart-panel:has(#chartModaFactura) .chart-wrap {
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  /* Agilidad y Facturación tienen, en la primera fila, una tabla de
+     "Justificaciones" dentro de .pbi-kpi-stack que puede volverse más
+     alta que la propia gráfica si no se acota bien; se reduce aquí el
+     espaciado y el tope de esa tabla para no forzar la fila entera por
+     encima del presupuesto de 2 filas. */
+  #tab-agilidad .pbi-kpi-stack,
+  #tab-facturacion .pbi-kpi-stack {
+    gap: 6px !important;
+  }
+
+  #tab-agilidad .pbi-table-scroll,
+  #tab-facturacion .pbi-table-scroll {
+    max-height: 34mm !important;
+  }
+
+  /* Procesos tiene TRES filas de gráficas apiladas (fila superior con
+     chart-wrap.tall + KPIs, .pbi-grid-3col, .pbi-grid-2col con las
+     gráficas de pastel "Distribución por modo de transporte" y "Volumen
+     por empresa"), por lo que su presupuesto por fila es menor que en
+     las demás pestañas para no desbordar los 190mm de la página. */
+  #tab-procesos .empresa-process-list {
+    max-height: 20mm !important;
+  }
+
+  #tab-procesos .pbi-kpi-stack {
+    gap: 6px !important;
+  }
+
+  /* Estos chart-wrap (fila .pbi-grid-3col) contienen gráficos de LÍNEA con
+     eje X (meses, en diagonal) y eje Y con números: a 24mm de alto (~90px)
+     Chart.js no tenía espacio para dibujar ejes + etiquetas sin que se
+     superpusieran entre sí. 33mm es el mínimo que deja los ejes legibles
+     sin desbordar el presupuesto de la página. */
+  #tab-procesos .chart-wrap {
+    height: 33mm !important;
+    min-height: 33mm !important;
+    max-height: 35mm !important;
+  }
+
+  #tab-procesos .chart-wrap.tall {
+    height: 58mm !important;
+    min-height: 58mm !important;
+    max-height: 61mm !important;
+  }
+
+  /* Fila de pastel/dona (.pbi-grid-2col): son las gráficas reportadas
+     como demasiado pequeñas, así que reciben más alto que la fila de
+     .pbi-grid-3col dentro del mismo presupuesto de Procesos. */
+  #tab-procesos .pbi-grid-2col .chart-wrap {
+    height: 34mm !important;
+    min-height: 34mm !important;
+    max-height: 36mm !important;
   }
 
   .pbi-kpi-mini-card {
@@ -1555,19 +1608,29 @@ body.printing-all-tabs #tab-inspeccion {
     color: #1e293b !important;
   }
 
-  .pbi-grid-3col, 
-  .pbi-grid-2col-equal, 
+  .pbi-grid-3col,
+  .pbi-grid-2col-equal,
+  .pbi-grid-2col,
   .pbi-grid-inspeccion {
     gap: 6px !important;
     margin-bottom: 6px !important;
+    margin-top: 0 !important;
   }
 
-  /* Disposición del módulo COO en 1 página */
+  /* Disposición del módulo COO en 1 página. NOTA: .coo-map-container trae
+     un estilo en línea (height:480px) que ningún bloque @media print
+     anterior sobrescribía, causando desborde de página independiente del
+     bug de las gráficas de pastel; se acota aquí también. */
   .coo-layout {
     display: grid !important;
-    grid-template-columns: 2fr 1fr !important;
+    grid-template-columns: 1.6fr 1fr !important;
     gap: 8px !important;
     height: 150mm !important;
+  }
+
+  .coo-map-container {
+    height: 115mm !important;
+    max-height: 115mm !important;
   }
 
   /* Limitar filas de tablas en vista de impresión para no sobrepasar la página */
@@ -1580,7 +1643,18 @@ body.printing-all-tabs #tab-inspeccion {
     display: none !important;
   }
 
-  .pbi-table-scroll,
+  /* IMPORTANTE: antes esta regla ponía max-height:none, lo que anulaba el
+     max-height:150px en línea de las tablas "Justificaciones..." dentro de
+     .pbi-kpi-stack (Agilidad/Facturación). Como esas tablas viven en una
+     celda de grid con stretch, una tabla sin tope crecía a su altura
+     natural (cientos de filas) y estiraba TODA la fila de la grilla,
+     empujando el resto del contenido de la pestaña fuera de los 190mm
+     (overflow oculto). Se limita aquí a un tope real en mm. */
+  .pbi-table-scroll {
+    max-height: 40mm !important;
+    overflow: hidden !important;
+  }
+
   .premium-table-wrapper {
     max-height: none !important;
     overflow: hidden !important;
@@ -1590,6 +1664,7 @@ body.printing-all-tabs #tab-inspeccion {
     width: 100% !important;
     border-collapse: collapse !important;
     font-size: 9px !important;
+    table-layout: fixed !important;
   }
 
   th {
@@ -1597,13 +1672,38 @@ body.printing-all-tabs #tab-inspeccion {
     color: #0f172a !important;
     border: 1px solid #cbd5e1 !important;
     padding: 3px 5px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   td {
     border: 1px solid #e2e8f0 !important;
     color: #334155 !important;
     padding: 3px 5px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
+
+  /* La tabla de detalle COO tiene 5 columnas (Mes, Importador, Acuerdo,
+     Nombre Comercial, Ahorro) dentro de la columna derecha del grid COO
+     (ver .coo-layout más arriba: 1.6fr/1fr, ampliada respecto al mapa para
+     dejarle más sitio a esta tabla). Con table-layout:auto el navegador le
+     daba tanto ancho a "Importador"/"Nombre Comercial" (textos largos) que
+     "Acuerdo" y el resto quedaban comprimidos o cortados fuera del panel.
+     table-layout:fixed + anchos explícitos por columna (más angostos en
+     Mes/Acuerdo, que son textos cortos, y más anchos en los dos campos de
+     texto libre) evita que una sola columna se coma el espacio de las
+     demás. */
+  table:has(#tblDetalleCOOBody) {
+    font-size: 7.5px !important;
+  }
+
+  table:has(#tblDetalleCOOBody) th:nth-child(1), table:has(#tblDetalleCOOBody) td:nth-child(1) { width: 12% !important; }
+  table:has(#tblDetalleCOOBody) th:nth-child(2), table:has(#tblDetalleCOOBody) td:nth-child(2) { width: 30% !important; }
+  table:has(#tblDetalleCOOBody) th:nth-child(3), table:has(#tblDetalleCOOBody) td:nth-child(3) { width: 12% !important; }
+  table:has(#tblDetalleCOOBody) th:nth-child(4), table:has(#tblDetalleCOOBody) td:nth-child(4) { width: 31% !important; }
+  table:has(#tblDetalleCOOBody) th:nth-child(5), table:has(#tblDetalleCOOBody) td:nth-child(5) { width: 15% !important; text-align: right !important; }
 }
 
   /* Panel de Procesos por Empresa */

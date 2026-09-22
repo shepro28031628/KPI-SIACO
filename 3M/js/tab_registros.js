@@ -104,8 +104,9 @@ ChartManager.renderRegistros = function() {
   }
 
   destroyChart('chartRegistrosTiempoLine');
-  if (document.getElementById('chartRegistrosTiempoLine') && typeof Chart !== 'undefined') {
-    const ctxCanvas = document.getElementById('chartRegistrosTiempoLine').getContext('2d');
+  const regLineCanvas = document.getElementById('chartRegistrosTiempoLine');
+  if (regLineCanvas && typeof Chart !== 'undefined') {
+    const ctxCanvas = typeof regLineCanvas.getContext === 'function' ? regLineCanvas.getContext('2d') : null;
     let gradient = null;
     if (ctxCanvas) {
       gradient = ctxCanvas.createLinearGradient(0, 0, 0, 300);

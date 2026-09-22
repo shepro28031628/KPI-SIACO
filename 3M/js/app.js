@@ -586,13 +586,17 @@ function parseDTA(wb) {
     const r = rows[i];
     if (!r || (!r[2] && !r[3])) continue;
 
-    const fLlegada = parseDtaDate(r[7]);     // Col H: ATA / Llegada Real
-    const fFinalizacionMV = parseDtaDate(r[8]); // Col I: Finalización MV
-    const fLiberacion = parseDtaDate(r[9]);   // Col J: Liberación
-    const fRetiroPuerto = parseDtaDate(r[10]);// Col K: Retiro Puerto
-    const fIngresoZF = parseDtaDate(r[11]);   // Col L: Ingreso ZF
-    const fLevante = parseDtaDate(r[14]);     // Col O: Levante
-    const fEtiquetado = parseDtaDate(r[15]);  // Col P: Finalización Etiquetado
+    // Encabezados reales de la hoja "DTA 3M 2026" (verificados en data/PLANEACION 3M2.xlsx):
+    // A:LINEA DE NEGOCIO B:ADMON C:DO. D:DOCUMENTO TRANSPORTE E:IDENTIFICACION OPERACION F:SHIPMENT
+    // G:PROVEEDOR H:DEPOSITO I:ATA J:FINALIZACION MV K:LIBERACION L:F.RETIRO PUERTO M:F.INGRESO ZF
+    // N:ESTADO O:MANEJO P:LEVANTE Q:FINALIZACION ETIQUETADO
+    const fLlegada = parseDtaDate(r[8]);      // Col I: ATA / Llegada Real
+    const fFinalizacionMV = parseDtaDate(r[9]); // Col J: Finalización MV
+    const fLiberacion = parseDtaDate(r[10]);  // Col K: Liberación
+    const fRetiroPuerto = parseDtaDate(r[11]);// Col L: Retiro Puerto
+    const fIngresoZF = parseDtaDate(r[12]);   // Col M: Ingreso ZF
+    const fLevante = parseDtaDate(r[15]);     // Col P: Levante
+    const fEtiquetado = parseDtaDate(r[16]);  // Col Q: Finalización Etiquetado
 
     data.push({
       lineadenegocio: r[0] ? String(r[0]).trim() : 'PROVEEDORES COMPANY',
@@ -600,22 +604,24 @@ function parseDTA(wb) {
       do: r[2] ? String(r[2]).trim() : '',
       documentodetransporte: r[3] ? String(r[3]).trim() : '',
       idoperacion: r[4] ? String(r[4]).trim() : '',
-      proveedor: r[5] ? String(r[5]).trim() : '',
-      deposito: r[6] ? String(r[6]).trim() : '',
+      shipment: r[5] ? String(r[5]).trim() : '',
+      proveedor: r[6] ? String(r[6]).trim() : '',
+      deposito: r[7] ? String(r[7]).trim() : '',
       fecharealdellegada: fLlegada,
       fechafinalizacionmv: fFinalizacionMV,
       fechaliberacion: fLiberacion,
       fecharetiropuerto: fRetiroPuerto,
       fechaingresozf: fIngresoZF,
-      estado: r[12] ? String(r[12]).trim() : '',
-      manejo: r[13] ? String(r[13]).trim() : 'TRANSITO-DTA',
+      estado: r[13] ? String(r[13]).trim() : '',
+      manejo: r[14] ? String(r[14]).trim() : 'TRANSITO-DTA',
       fechadelevante: fLevante,
       fechafinalizacionetiquetado: fEtiquetado,
       // Días métricas solicitadas por el usuario:
-      dias_llegada_a_liberacion: diffDays(fLiberacion, fLlegada), // G2: Col J - Col H
-      dias_llegada_a_ingresozf: diffDays(fIngresoZF, fLlegada),   // G3: Col L - Col H
-      dias_ingresozf_a_levante: diffDays(fLevante, fIngresoZF),   // G4: Col O - Col L
-      dias_ingresozf_a_etiquetado: diffDays(fEtiquetado, fIngresoZF) // G6: Col P - Col L
+      dias_llegada_a_liberacion: diffDays(fLiberacion, fLlegada), // Col K - Col I
+      dias_llegada_a_ingresozf: diffDays(fIngresoZF, fLlegada),   // Col M - Col I
+      dias_ingresozf_a_levante: diffDays(fLevante, fIngresoZF),   // Col P - Col M
+      dias_ingresozf_a_etiquetado: diffDays(fEtiquetado, fIngresoZF), // Col Q - Col M
+      dias_levante_a_llegadareal: diffDays(fLevante, fLlegada)    // Col P - Col I (Zona Franca vs Llegada Real)
     });
   }
   return data;

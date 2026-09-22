@@ -66,10 +66,6 @@ ChartManager.renderProcesos = function() {
           
           const rowsAereo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('AEREO'));
           const rowsMaritimo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('MARIT'));
-          const rowsZF = rowsValidos.filter(r => {
-            const m = String(r.mododetransporte || '').toUpperCase();
-            return m === 'ZF' || m.includes('FRANCA') || m.includes('ZONA');
-          });
 
           // 1. Gráfico Aéreo: Azul Cielo (2025) vs Azul Marino Profundo (2026)
           const colorsAereo = { 2025: '#0284c7', 2026: '#0c4a6e' };
@@ -79,9 +75,14 @@ ChartManager.renderProcesos = function() {
           const colorsMaritimo = { 2025: '#059669', 2026: '#064e3b' };
           this.renderLineChart('chartTiempoMaritimo', getLineDatasets(rowsMaritimo, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsMaritimo));
 
-          // 3. Gráfico Zona Franca: Ámbar Cálido (2025) vs Naranja Oscuro (2026)
+          // 3. Gráfico Zona Franca: viene de PLANEACION 3M2.xlsx (hoja "DTA 3M 2026"), Levante (Col P) - ATA/Llegada Real (Col I)
+          const dtaRowsZF = (App.raw.dtas || []).filter(r =>
+            r.fechadelevante instanceof Date && !isNaN(r.fechadelevante) &&
+            typeof r.dias_levante_a_llegadareal === 'number' && !isNaN(r.dias_levante_a_llegadareal) && r.dias_levante_a_llegadareal >= 0
+          );
+          const yearsZF = uniqueSorted(dtaRowsZF.map(r => r.fechadelevante.getFullYear()));
           const colorsZF = { 2025: '#f59e0b', 2026: '#b45309' };
-          this.renderLineChart('chartTiempoZF', getLineDatasets(rowsZF, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsZF));
+          this.renderLineChart('chartTiempoZF', getLineDatasets(dtaRowsZF, yearsZF, 'dias_levante_a_llegadareal', 'fechadelevante', false, 1, null, colorsZF));
         };
 
 

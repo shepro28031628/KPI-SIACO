@@ -1,5 +1,23 @@
 ChartManager.renderRegistros = function() {
-  const baseRows = App.raw.registros.filter(r => r['noregistro'] !== null && r['noregistro'] !== undefined);
+  // STATUS.xlsx (fuente de "registros") no comparte número de DO con REPORTE.xls, así que
+  // Administración/Línea/Modo no se pueden cruzar aquí. Solo se respeta el filtro de fecha/año,
+  // usando la fecha de solicitud (o aprobación) RIM como referencia.
+  const fromVal = document.getElementById('dateFrom').value;
+  const toVal = document.getElementById('dateTo').value;
+  const dFrom = fromVal ? parseUTCDate(fromVal) : null;
+  const dTo = toVal ? parseUTCDate(toVal) : null;
+
+  const baseRows = App.raw.registros.filter(r => {
+    if (r['noregistro'] === null || r['noregistro'] === undefined) return false;
+    const d = r['fechasolicitud'] || r['fechaaprobacion'];
+    if (App.filters.year && App.filters.year.size) {
+      const yrStr = (d instanceof Date && !isNaN(d)) ? d.getFullYear().toString() : '';
+      if (!App.filters.year.has(yrStr)) return false;
+    }
+    if (dFrom && d instanceof Date && d < dFrom) return false;
+    if (dTo && d instanceof Date && d >= new Date(dTo.getTime() + 86400000)) return false;
+    return true;
+  });
   const monthOrder = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
   if (!App.chartFilters) App.chartFilters = {};

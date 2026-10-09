@@ -1,13 +1,36 @@
 ChartManager.renderProcesos = function() {
 
           const rows = FilterEngine.filteredIndicadores();
-          const years = getYearsForRows(rows);
           const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+          // Criterio de conteo: por fecha de levante (por defecto) o por fecha de creación del DO
+          let modoDocs = 'levante';
+          try { modoDocs = localStorage.getItem('siaco_3m_docsMesModo') || 'levante'; } catch (e) {}
+          if (modoDocs !== 'levante' && modoDocs !== 'creacion') modoDocs = 'levante';
+          const campoFechaDocs = modoDocs === 'levante' ? 'fechadelevante' : 'fechaaperturado';
+
+          const selModo = document.getElementById('docsMesModo');
+          if (selModo) {
+            selModo.value = modoDocs;
+            if (!selModo._bound) {
+              selModo._bound = true;
+              selModo.addEventListener('change', () => {
+                try { localStorage.setItem('siaco_3m_docsMesModo', selModo.value); } catch (e) {}
+                ChartManager.renderProcesos();
+              });
+            }
+          }
+
+          const years = uniqueSorted(rows.map(r => {
+            const d = r[campoFechaDocs];
+            return d instanceof Date && !isNaN(d) ? d.getFullYear() : null;
+          }).filter(y => y !== null));
+          if (!years.length) years.push(new Date().getFullYear());
 
           const docDatasets = years.map((yr, idx) => {
             const monthSets = Array.from({ length: 12 }, () => new Set());
             rows.forEach(r => {
-              const d = r['fechaaperturado'];
+              const d = r[campoFechaDocs];
               if (d instanceof Date && !isNaN(d) && d.getFullYear() === yr) {
                 const docKey = r.documentodetransporte || r.do3m || r.do;
                 if (docKey) monthSets[d.getMonth()].add(docKey);

@@ -122,6 +122,13 @@
         <div class="pbi-top-consolidado-grid">
           <div class="chart-panel">
             <h4>Documento de Transporte / Mes</h4>
+            <div style="display:flex;justify-content:center;align-items:center;gap:8px;margin:-4px 0 6px;font-size:12px;color:#605e5c">
+              <label for="docsMesModo">Contar por:</label>
+              <select id="docsMesModo" style="padding:3px 8px;border:1px solid #d2d0ce;border-radius:4px;font-size:12px">
+                <option value="levante">Fecha de levante</option>
+                <option value="creacion">Creación del DO</option>
+              </select>
+            </div>
             <div class="chart-wrap tall"><canvas id="chartDocsMes"></canvas></div>
           </div>
           <div class="pbi-kpi-stack" style="justify-content: center;">
@@ -760,9 +767,9 @@
     <span id="toastMessage">Notificación</span>
   </div>
 
-  <script src="js/default_data.js?v=20261009_5"></script>
+  <script src="js/default_data.js?v=20261009_6"></script>
   <script src="js/app.js?v=20261009_3"></script>
-  <script src="js/tab_procesos.js?v=20260821_8"></script>
+  <script src="js/tab_procesos.js?v=20261009_7"></script>
   <script src="js/tab_agilidad.js?v=20260821_8"></script>
   <script src="js/tab_facturacion.js?v=20260821_8"></script>
   <script src="js/tab_inspeccion.js?v=20260821_8"></script>

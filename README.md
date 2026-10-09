@@ -6,7 +6,7 @@ Bienvenido al repositorio oficial del **Portal Central de Comercio Exterior (COM
 Este proyecto consolida los dashboards de comercio exterior para las líneas operativas:
 1. **Proyecto 3M** (`./3M/index.html`) - Torre de control, gestión de registros, tiempos de aprobación, procesos y ahorros COO.
 2. **Proyecto Grupo Linde** (`./Grupo Linde/index.html` / `./Grupo Linde/registros.html`) - Gestión de indicadores, agilidad, facturación y VUCE.
-3. **Kpi Grupo** (`./Kpi Grupo/index.html`)
+3. **Kpi Grupo** (`./Kpi Grupo/dashboard_operativo.html`) - Dashboard operativo de trazabilidad de importaciones: KPIs por vista, gráficos, mapa de aduanas, tabla con filtros y análisis pivot, cargado desde `REPORTE ANALISIS OPERACIÓN.xls`.
 
 ---
 
@@ -61,7 +61,10 @@ KPI-SIACO/
 │   ├── facturacion.html  # Módulo de facturación
 │   ├── inspeccion.html   # Módulo de inspección
 │   └── coo.html          # Módulo COO
-├── Kpi Grupo/            # Módulo adicional de indicadores
+├── Kpi Grupo/            # Dashboard operativo (trazabilidad de importaciones)
+│   ├── dashboard_operativo.html
+│   ├── css/style.css
+│   └── REPORTE ANALISIS OPERACIÓN.xls   # Fuente de datos (la hoja con registros es Sheet2)
 ├── .gitignore            # Archivos ignorados para Git
 └── README.md             # Documentación principal del proyecto
 ```
@@ -72,8 +75,20 @@ KPI-SIACO/
 
 - **Interfaz UI/UX Profesional**: Diseño responsivo con *Dark Mode*, *Glassmorphism*, gradientes sutiles e indicadores en tiempo real.
 - **Acceso Directo**: Botones dedicados para navegar a los dashboards independientes de 3M y Grupo Linde.
-- **Buscador en Tiempo Real**: Filtrado dinámico de proyectos e indicadores dentro del portal.
+- **Buscador en Tiempo Real**: Filtrado dinámico de proyectos e indicadores (sin distinguir tildes). Atajo: `/` para enfocar y `Esc` para limpiar.
 - **Compatibilidad 100% Estática**: Funciona en cualquier navegador web sin requerir servidores backend adicionales.
+
+---
+
+## 💻 Uso local
+
+Para que cada dashboard cargue automáticamente su archivo Excel (`fetch`) hay que servirlo por HTTP; abrirlo con doble clic (`file://`) solo muestra datos de ejemplo:
+
+```bash
+npx serve .
+```
+
+En **Kpi Grupo** también puede cargarse cualquier `.xls/.xlsx/.csv` con el botón *Cargar otro XLS* o arrastrándolo a la página.
 
 ---
 *Desarrollado para la administración de Comercio Exterior.*

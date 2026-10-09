@@ -16,3 +16,6 @@ Thumbs.db
 *.bak
 *~
 scratch/
+
+# Archivos de bloqueo temporales de Office/Excel
+~$*

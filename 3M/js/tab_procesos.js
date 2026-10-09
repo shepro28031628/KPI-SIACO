@@ -5,11 +5,15 @@ ChartManager.renderProcesos = function() {
           const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
           const docDatasets = years.map((yr, idx) => {
-            const data = Array(12).fill(0);
+            const monthSets = Array.from({ length: 12 }, () => new Set());
             rows.forEach(r => {
               const d = r['fechaaperturado'];
-              if (d instanceof Date && !isNaN(d) && d.getFullYear() === yr) data[d.getMonth()]++;
+              if (d instanceof Date && !isNaN(d) && d.getFullYear() === yr) {
+                const docKey = r.documentodetransporte || r.do3m || r.do;
+                if (docKey) monthSets[d.getMonth()].add(docKey);
+              }
             });
+            const data = monthSets.map(s => s.size);
             let color = PALETTE[idx % PALETTE.length];
             if (yr === 2025) color = PALETTE[0];
             if (yr === 2026) color = PALETTE[1];
@@ -40,8 +44,10 @@ ChartManager.renderProcesos = function() {
           this.barChart('chartAdmin', countBy(rows, 'administracion'), 'bar');
           this.barChart('chartLinea', countBy(rows, 'lineadenegocio'), 'bar');
 
+          // Igual que en las pestañas Agilidad/Facturación: solo se cuentan operaciones con fecha de levante ya registrada
+          const rowsConLevante = rows.filter(r => r.fechadelevante instanceof Date && !isNaN(r.fechadelevante));
           const avgVal = (campo) => {
-            const vals = rows.map(r => r[campo]).filter(v => isNum(v) && numVal(v) >= 0);
+            const vals = rowsConLevante.map(r => r[campo]).filter(v => isNum(v) && numVal(v) >= 0);
             return vals.length ? vals.reduce((a, b) => a + numVal(b), 0) / vals.length : 0;
           };
 
@@ -60,10 +66,6 @@ ChartManager.renderProcesos = function() {
           
           const rowsAereo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('AEREO'));
           const rowsMaritimo = rowsValidos.filter(r => String(r.mododetransporte || '').toUpperCase().includes('MARIT'));
-          const rowsZF = rowsValidos.filter(r => {
-            const m = String(r.mododetransporte || '').toUpperCase();
-            return m === 'ZF' || m.includes('FRANCA') || m.includes('ZONA');
-          });
 
           // 1. Gráfico Aéreo: Azul Cielo (2025) vs Azul Marino Profundo (2026)
           const colorsAereo = { 2025: '#0284c7', 2026: '#0c4a6e' };
@@ -73,9 +75,14 @@ ChartManager.renderProcesos = function() {
           const colorsMaritimo = { 2025: '#059669', 2026: '#064e3b' };
           this.renderLineChart('chartTiempoMaritimo', getLineDatasets(rowsMaritimo, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsMaritimo));
 
-          // 3. Gráfico Zona Franca: Ámbar Cálido (2025) vs Naranja Oscuro (2026)
+          // 3. Gráfico Zona Franca: viene de PLANEACION 3M2.xlsx (hoja "DTA 3M 2026"), Levante (Col P) - ATA/Llegada Real (Col I)
+          const dtaRowsZF = (App.raw.dtas || []).filter(r =>
+            r.fechadelevante instanceof Date && !isNaN(r.fechadelevante) &&
+            typeof r.dias_levante_a_llegadareal === 'number' && !isNaN(r.dias_levante_a_llegadareal) && r.dias_levante_a_llegadareal >= 0
+          );
+          const yearsZF = uniqueSorted(dtaRowsZF.map(r => r.fechadelevante.getFullYear()));
           const colorsZF = { 2025: '#f59e0b', 2026: '#b45309' };
-          this.renderLineChart('chartTiempoZF', getLineDatasets(rowsZF, years, 'tiempolevantellegada', 'fechadelevante', false, 1, null, colorsZF));
+          this.renderLineChart('chartTiempoZF', getLineDatasets(dtaRowsZF, yearsZF, 'dias_levante_a_llegadareal', 'fechadelevante', false, 1, null, colorsZF));
         };
 
 

@@ -1686,3 +1686,14 @@ body.printing-all-tabs .no-print {
     padding: 2px 4px !important;
   }
 }
+
+/* Tarjeta DTAS: Identificación de la Operación */
+.kpi-card-wide { grid-column: 1 / -1; }
+.dta-id-list {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+  max-height: 58px; overflow-y: auto;
+}
+.dta-id-chip {
+  font-size: 11px; font-weight: 600; line-height: 1.5; padding: 0 8px; border-radius: 10px;
+  background: #e5f1fb; color: #005ebb; font-variant-numeric: tabular-nums;
+}

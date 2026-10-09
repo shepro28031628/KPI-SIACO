@@ -1,7 +1,7 @@
 # Graph Report - KPI-SIACO  (2026-10-09)
 
 ## Corpus Check
-- 29 files · ~143,497 words
+- 29 files · ~142,927 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

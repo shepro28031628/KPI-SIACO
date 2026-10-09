@@ -28,6 +28,22 @@ ChartManager.renderDTAS = function() {
   if (elAvgG4) elAvgG4.textContent = avgG4.toFixed(2).replace('.', ',') + ' d';
   if (elAvgG6) elAvgG6.textContent = avgG6.toFixed(2).replace('.', ',') + ' d';
 
+  // Tarjeta: Identificación de la Operación (columna E de la hoja "DTA 2026")
+  const ids = [...new Set(rows.map(r => String(r.idoperacion || '').trim()).filter(Boolean))]
+    .sort((x, y) => x.localeCompare(y, 'es', { numeric: true }));
+  const elIdCount = document.getElementById('valDtaIdCount');
+  const elIdList = document.getElementById('listDtaIds');
+  if (elIdCount) elIdCount.textContent = ids.length.toString();
+  if (elIdList) {
+    elIdList.innerHTML = '';
+    ids.forEach(id => {
+      const chip = document.createElement('span');
+      chip.className = 'dta-id-chip';
+      chip.textContent = id;
+      elIdList.appendChild(chip);
+    });
+  }
+
   if (!rows.length) return;
 
   // Agrupar datos por Documento de Transporte para los análisis detallados

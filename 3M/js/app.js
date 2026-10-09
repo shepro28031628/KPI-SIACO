@@ -1315,7 +1315,50 @@ window.getYearsForRows = getYearsForRows;
         dates.forEach(d => { const t = d.getTime(); if (t < min) min = t; if (t > max) max = t; });
         return [min, max, (App.raw.indicadores || []).length, (App.raw.registros || []).length].join('|');
       },
+      // Corte de visualización: no se muestra ningún dato con fecha igual o posterior a este día.
+      // Para mostrar todo de nuevo, poner hideFrom = null (los Excel y default_data.js no se modifican).
+      hideFrom: new Date(2026, 9, 1),   // 1 de octubre de 2026
+      applyCutoff() {
+        const cut = this.hideFrom;
+        if (!(cut instanceof Date) || isNaN(cut) || !App.raw) return;
+        const isCut = (d) => d instanceof Date && !isNaN(d) && d >= cut;
+        const nullDates = (r) => Object.keys(r).forEach(k => { if (isCut(r[k])) r[k] = null; });
+
+        // Indicadores: DOs creados desde el corte se excluyen; los levantados/llegados desde el corte quedan como pendientes
+        if (Array.isArray(App.raw.indicadores)) {
+          App.raw.indicadores = App.raw.indicadores.filter(r => !isCut(r['fechaaperturado']));
+          const derivadosLevante = ['tiempoagilidad', 'tiempolevantellegada', 'tiempofacturacion', 'cumpleagilidad',
+            'cumplefacturacion', 'responsableagilidad', 'justificacionagilidad', 'responsablefacturacion', 'justificacionfacturacion'];
+          App.raw.indicadores.forEach(r => {
+            if (isCut(r['fechadelevante'])) {
+              r['fechadelevante'] = 'PENDIENTE';
+              derivadosLevante.forEach(k => { if (k in r) r[k] = null; });
+            }
+            if (isCut(r['fecharealdellegada'])) r['fecharealdellegada'] = 'PENDIENTE';
+          });
+        }
+        // Registros (STATUS)
+        if (Array.isArray(App.raw.registros)) {
+          App.raw.registros = App.raw.registros.filter(r => !isCut(r['fechasolicitud']));
+          App.raw.registros.forEach(nullDates);
+        }
+        // DTAs
+        if (Array.isArray(App.raw.dtas)) {
+          App.raw.dtas.forEach(r => {
+            const levCortado = isCut(r['fechadelevante']);
+            nullDates(r);
+            if (levCortado) { r['dias_ingresozf_a_levante'] = null; r['dias_levante_a_llegadareal'] = null; }
+          });
+        }
+        // Clasificación
+        const cl = App.raw.clasificacion;
+        if (cl && Array.isArray(cl.datosGenerales)) {
+          cl.datosGenerales = cl.datosGenerales.filter(r => !isCut(r['fechacreacion']));
+          cl.datosGenerales.forEach(nullDates);
+        }
+      },
       initFilters() {
+        this.applyCutoff();
         const admins = uniqueSorted(App.raw.indicadores.map(r => r['administracion']));
         const lineas = uniqueSorted(App.raw.indicadores.map(r => r['lineadenegocio']));
         const modos = uniqueSorted(App.raw.indicadores.map(r => r['mododetransporte']));

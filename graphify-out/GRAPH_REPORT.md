@@ -1,16 +1,16 @@
 # Graph Report - KPI-SIACO  (2026-10-09)
 
 ## Corpus Check
-- 29 files · ~142,927 words
+- 29 files · ~144,304 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 179 nodes · 224 edges · 33 communities (13 shown, 2 thin omitted)
+- 180 nodes · 226 edges · 32 communities (12 shown, 2 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `16d2acd0`
+- Built from commit: `96471886`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -18,10 +18,10 @@
 - Grupo Linde/js/app.js
 - 3M/js/app.js
 - update_cache.js
-- isNum
-- parseExcelDateSafe
-- getYearsForRows
 - renderModuloKPI
+- parseExcelDateSafe
+- renderSubTable
+- getYearsForRows
 - generate_clasificacion.js
 - initFilters
 - 3M/README.md
@@ -29,11 +29,10 @@
 - Grupo Linde/README.md
 - Grupo Linde/package.json
 - view_vuce.js
-- resolveSheetName
 
 ## God Nodes (most connected - your core abstractions)
-1. `renderModuloKPI()` - 11 edges
-2. `initFilters()` - 10 edges
+1. `initFilters()` - 11 edges
+2. `renderModuloKPI()` - 11 edges
 3. `renderModuloKPI()` - 9 edges
 4. `isNum()` - 7 edges
 5. `parseExcelDateSafe()` - 6 edges
@@ -52,39 +51,35 @@
 ## Import Cycles
 - None detected.
 
-## Communities (33 total, 2 thin omitted)
+## Communities (32 total, 2 thin omitted)
 
 ### Community 0 - "Grupo Linde/js/app.js"
-Cohesion: 0.07
-Nodes (33): App, CoreEvents, countBy(), els, FilterEngine, findMainTable(), fmtDateUTC(), fmtInt() (+25 more)
+Cohesion: 0.10
+Nodes (12): App, CoreEvents, els, FilterEngine, fmtUSD(), forceRenderEverything(), holidaysSet, LocalDB (+4 more)
 
 ### Community 1 - "3M/js/app.js"
-Cohesion: 0.11
-Nodes (10): autoLoad(), CoreEvents, els, fmtUSD(), holidaysSet, LocalDB, renderAll(), renderTable() (+2 more)
+Cohesion: 0.07
+Nodes (34): autoLoad(), CoreEvents, countBy(), els, filteredIndicadores(), findMainTable(), fmtDateUTC(), fmtInt() (+26 more)
 
 ### Community 2 - "update_cache.js"
 Cohesion: 0.12
 Nodes (12): dependencies, jsdom, xlsx, xlsx, fs, { JSDOM }, path, xlsx (+4 more)
 
-### Community 3 - "isNum"
-Cohesion: 0.38
-Nodes (7): avg(), sum(), avg(), getLineDatasets(), isNum(), numVal(), sum()
+### Community 3 - "renderModuloKPI"
+Cohesion: 0.21
+Nodes (13): avg(), sum(), avg(), countBy(), fmtInt(), getLineDatasets(), isNum(), monthKey() (+5 more)
 
 ### Community 4 - "parseExcelDateSafe"
-Cohesion: 0.22
-Nodes (10): findMainTable(), formatModoTransporte(), normalizeKey(), normalizeRows(), parseClasificacion(), parseDTA(), parseExcelDateSafe(), parseIndicadoresGrouped() (+2 more)
-
-### Community 6 - "renderModuloKPI"
 Cohesion: 0.20
-Nodes (10): countBy(), filteredIndicadores(), fmtDateUTC(), fmtInt(), getLineDatasets(), monthKey(), monthLabel(), parseUTCDate() (+2 more)
+Nodes (11): findMainTable(), formatModoTransporte(), normalizeKey(), normalizeRows(), parseExcelDateSafe(), parseIndicadoresGrouped(), parseNestedTable(), parseReporteHTML() (+3 more)
 
 ### Community 7 - "generate_clasificacion.js"
 Cohesion: 0.22
 Nodes (8): datosGenerales, fs, output, rawDatos, rawRestricciones, restriccionesLegales, workbook, XLSX
 
 ### Community 8 - "initFilters"
-Cohesion: 0.36
-Nodes (8): chipRow(), clearAllFilters(), dataDates(), dataSignature(), initFilters(), loadFilters(), saveFilters(), updateBadge()
+Cohesion: 0.31
+Nodes (9): applyCutoff(), chipRow(), clearAllFilters(), dataDates(), dataSignature(), initFilters(), loadFilters(), saveFilters() (+1 more)
 
 ### Community 9 - "3M/README.md"
 Cohesion: 0.25
@@ -114,17 +109,17 @@ Nodes (3): content, fs, match
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `isNum()` connect `isNum` to `Grupo Linde/js/app.js`?**
-  _High betweenness centrality (0.164) - this node is a cross-community bridge._
-- **Why does `avg()` connect `isNum` to `3M/js/app.js`?**
+- **Why does `isNum()` connect `renderModuloKPI` to `Grupo Linde/js/app.js`?**
+  _High betweenness centrality (0.165) - this node is a cross-community bridge._
+- **Why does `avg()` connect `renderModuloKPI` to `3M/js/app.js`?**
   _High betweenness centrality (0.081) - this node is a cross-community bridge._
-- **Why does `sum()` connect `isNum` to `3M/js/app.js`?**
+- **Why does `sum()` connect `renderModuloKPI` to `3M/js/app.js`?**
   _High betweenness centrality (0.081) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `isNum()` (e.g. with `avg()` and `sum()`) actually correct?**
   _`isNum()` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `els`, `LocalDB`, `holidaysSet` to the rest of the system?**
   _52 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Grupo Linde/js/app.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.07198228128460686 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1038961038961039 - nodes in this community are weakly interconnected._
 - **Should `3M/js/app.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.10952380952380952 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0707070707070707 - nodes in this community are weakly interconnected._

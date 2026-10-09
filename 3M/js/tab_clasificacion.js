@@ -13,22 +13,30 @@ ChartManager.renderClasificacion = function() {
     restrMap[r.sku].push(r);
   });
 
+  // Meses disponibles
+  const mesesDisponibles = [...new Set(allDatosGenerales.map(r => r.mes).filter(Boolean))];
+
+  // Mes más reciente según la fecha de creación de los SKU (se actualiza solo con cada carga de datos)
+  const nombresMes = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  let ultimaFecha = null;
+  allDatosGenerales.forEach(r => {
+    const d = r.fechacreacion || r.fechaclasificacion;
+    if (d instanceof Date && !isNaN(d) && (!ultimaFecha || d > ultimaFecha)) ultimaFecha = d;
+  });
+  const mesReciente = ultimaFecha ? nombresMes[ultimaFecha.getMonth()] : (mesesDisponibles[mesesDisponibles.length - 1] || 'TODOS');
+
   // Filtros interactivos de estado y mes
   if (!App._clasifFilters) {
     App._clasifFilters = {
-      mes: 'julio', // Por defecto Julio como solicita el requerimiento
+      mes: mesReciente,
       estado: 'TODOS',
       aplica: 'TODOS',
       search: ''
     };
   }
-
-  // Meses disponibles
-  const mesesDisponibles = [...new Set(allDatosGenerales.map(r => r.mes).filter(Boolean))];
-  if (!mesesDisponibles.includes('julio') && mesesDisponibles.length > 0) {
-    if (App._clasifFilters.mes === 'julio' && !mesesDisponibles.includes('julio')) {
-      App._clasifFilters.mes = mesesDisponibles[0];
-    }
+  // Si el mes elegido ya no existe en los datos nuevos, usar el más reciente
+  if (App._clasifFilters.mes !== 'TODOS' && !mesesDisponibles.includes(App._clasifFilters.mes)) {
+    App._clasifFilters.mes = mesReciente;
   }
 
   // Renderizar selectores de filtros si existen

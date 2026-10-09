@@ -4,6 +4,18 @@
   "graph": {},
   "nodes": [
     {
+      "id": "grupo_linde_js_app_countby",
+      "label": "countBy()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "countby()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L644"
+    },
+    {
       "id": "grupo_linde_js_app_destroychart",
       "label": "destroyChart()",
       "_callable": true,
@@ -28,6 +40,30 @@
       "source_location": "L362"
     },
     {
+      "id": "grupo_linde_js_app_findmaintable",
+      "label": "findMainTable()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "findmaintable()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L242"
+    },
+    {
+      "id": "grupo_linde_js_app_fmtdateutc",
+      "label": "fmtDateUTC()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "fmtdateutc()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L620"
+    },
+    {
       "id": "grupo_linde_js_app_fmtdays",
       "label": "fmtDays()",
       "_callable": true,
@@ -38,6 +74,18 @@
       "norm_label": "fmtdays()",
       "source_file": "Grupo Linde/js/app.js",
       "source_location": "L603"
+    },
+    {
+      "id": "grupo_linde_js_app_fmtint",
+      "label": "fmtInt()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "fmtint()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L601"
     },
     {
       "id": "grupo_linde_js_app_fmtusd",
@@ -64,6 +112,18 @@
       "source_location": "L1296"
     },
     {
+      "id": "grupo_linde_js_app_formatmodotransporte",
+      "label": "formatModoTransporte()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "formatmodotransporte()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L296"
+    },
+    {
       "id": "grupo_linde_js_app_getholidaysset",
       "label": "getHolidaysSet()",
       "_callable": true,
@@ -88,6 +148,18 @@
       "source_location": "L212"
     },
     {
+      "id": "grupo_linde_js_app_getyearsforrows",
+      "label": "getYearsForRows()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "getyearsforrows()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L664"
+    },
+    {
       "id": "grupo_linde_js_app_hextorgba",
       "label": "hexToRgba()",
       "_callable": true,
@@ -98,6 +170,102 @@
       "norm_label": "hextorgba()",
       "source_file": "Grupo Linde/js/app.js",
       "source_location": "L581"
+    },
+    {
+      "id": "grupo_linde_js_app_monthkey",
+      "label": "monthKey()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "monthkey()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L605"
+    },
+    {
+      "id": "grupo_linde_js_app_monthlabel",
+      "label": "monthLabel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "monthlabel()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L610"
+    },
+    {
+      "id": "grupo_linde_js_app_normalizekey",
+      "label": "normalizeKey()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "normalizekey()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L514"
+    },
+    {
+      "id": "grupo_linde_js_app_normalizerows",
+      "label": "normalizeRows()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "normalizerows()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L548"
+    },
+    {
+      "id": "grupo_linde_js_app_parseexceldatesafe",
+      "label": "parseExcelDateSafe()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "parseexceldatesafe()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L519"
+    },
+    {
+      "id": "grupo_linde_js_app_parseindicadoresgrouped",
+      "label": "parseIndicadoresGrouped()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "parseindicadoresgrouped()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L412"
+    },
+    {
+      "id": "grupo_linde_js_app_parsenestedtable",
+      "label": "parseNestedTable()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "parsenestedtable()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L251"
+    },
+    {
+      "id": "grupo_linde_js_app_parsereportehtml",
+      "label": "parseReporteHTML()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "parsereportehtml()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L301"
     },
     {
       "id": "grupo_linde_js_app_parsetsv",
@@ -112,6 +280,18 @@
       "source_location": "L393"
     },
     {
+      "id": "grupo_linde_js_app_parseutcdate",
+      "label": "parseUTCDate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "parseutcdate()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L624"
+    },
+    {
       "id": "grupo_linde_js_app_renderall",
       "label": "renderAll()",
       "_callable": true,
@@ -124,6 +304,30 @@
       "source_location": "L1345"
     },
     {
+      "id": "grupo_linde_js_app_rendermodulokpi",
+      "label": "renderModuloKPI()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "rendermodulokpi()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L1416"
+    },
+    {
+      "id": "grupo_linde_js_app_rendersubtable",
+      "label": "renderSubTable()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "rendersubtable()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L1366"
+    },
+    {
       "id": "grupo_linde_js_app_rendertable",
       "label": "renderTable()",
       "_callable": true,
@@ -134,6 +338,42 @@
       "norm_label": "rendertable()",
       "source_file": "Grupo Linde/js/app.js",
       "source_location": "L1605"
+    },
+    {
+      "id": "grupo_linde_js_app_resolvesheetname",
+      "label": "resolveSheetName()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "resolvesheetname()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L229"
+    },
+    {
+      "id": "grupo_linde_js_app_revivedates",
+      "label": "reviveDates()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "revivedates()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L561"
+    },
+    {
+      "id": "grupo_linde_js_app_safesheet",
+      "label": "safeSheet()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "safesheet()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L234"
     },
     {
       "id": "grupo_linde_js_app_showerror",
@@ -160,6 +400,18 @@
       "source_location": "L125"
     },
     {
+      "id": "grupo_linde_js_app_uniquesorted",
+      "label": "uniqueSorted()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Grupo Linde/js/app.js",
+      "file_type": "code",
+      "norm_label": "uniquesorted()",
+      "source_file": "Grupo Linde/js/app.js",
+      "source_location": "L616"
+    },
+    {
       "id": "3m_js_app_autoload",
       "label": "autoLoad()",
       "_callable": true,
@@ -181,7 +433,7 @@
       "file_type": "code",
       "norm_label": "destroychart()",
       "source_file": "3M/js/app.js",
-      "source_location": "L785"
+      "source_location": "L791"
     },
     {
       "id": "3m_js_app_extractrazones",
@@ -205,7 +457,7 @@
       "file_type": "code",
       "norm_label": "fmtdays()",
       "source_file": "3M/js/app.js",
-      "source_location": "L758"
+      "source_location": "L764"
     },
     {
       "id": "3m_js_app_fmtusd",
@@ -217,7 +469,7 @@
       "file_type": "code",
       "norm_label": "fmtusd()",
       "source_file": "3M/js/app.js",
-      "source_location": "L757"
+      "source_location": "L763"
     },
     {
       "id": "3m_js_app_forcerendereverything",
@@ -229,7 +481,7 @@
       "file_type": "code",
       "norm_label": "forcerendereverything()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1404"
+      "source_location": "L1434"
     },
     {
       "id": "3m_js_app_getholidaysset",
@@ -265,7 +517,7 @@
       "file_type": "code",
       "norm_label": "hextorgba()",
       "source_file": "3M/js/app.js",
-      "source_location": "L736"
+      "source_location": "L742"
     },
     {
       "id": "3m_js_app_parsetsv",
@@ -289,7 +541,7 @@
       "file_type": "code",
       "norm_label": "renderall()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1414"
+      "source_location": "L1444"
     },
     {
       "id": "3m_js_app_rendertable",
@@ -301,7 +553,7 @@
       "file_type": "code",
       "norm_label": "rendertable()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1715"
+      "source_location": "L1745"
     },
     {
       "id": "3m_js_app_revivedates",
@@ -352,52 +604,28 @@
       "source_location": "L167"
     },
     {
-      "id": "grupo_linde_js_app_fmtdateutc",
-      "label": "fmtDateUTC()",
+      "id": "3m_js_app_resolvesheetname",
+      "label": "resolveSheetName()",
       "_callable": true,
       "_origin": "ast",
       "community": 15,
-      "community_name": "renderSubTable",
+      "community_name": "resolveSheetName",
       "file_type": "code",
-      "norm_label": "fmtdateutc()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L620"
+      "norm_label": "resolvesheetname()",
+      "source_file": "3M/js/app.js",
+      "source_location": "L278"
     },
     {
-      "id": "grupo_linde_js_app_rendersubtable",
-      "label": "renderSubTable()",
+      "id": "3m_js_app_safesheet",
+      "label": "safeSheet()",
       "_callable": true,
       "_origin": "ast",
       "community": 15,
-      "community_name": "renderSubTable",
+      "community_name": "resolveSheetName",
       "file_type": "code",
-      "norm_label": "rendersubtable()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L1366"
-    },
-    {
-      "id": "grupo_linde_js_app_getyearsforrows",
-      "label": "getYearsForRows()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 16,
-      "community_name": "getYearsForRows",
-      "file_type": "code",
-      "norm_label": "getyearsforrows()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L664"
-    },
-    {
-      "id": "grupo_linde_js_app_uniquesorted",
-      "label": "uniqueSorted()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 16,
-      "community_name": "getYearsForRows",
-      "file_type": "code",
-      "norm_label": "uniquesorted()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L616"
+      "norm_label": "safesheet()",
+      "source_file": "3M/js/app.js",
+      "source_location": "L283"
     },
     {
       "id": "grupo_linde_js_tab_clasificacion_renderclasificacionfilters",
@@ -441,11 +669,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 3,
-      "community_name": "renderModuloKPI",
+      "community_name": "isNum",
       "file_type": "code",
       "norm_label": "avg()",
       "source_file": "3M/js/app.js",
-      "source_location": "L754"
+      "source_location": "L760"
     },
     {
       "id": "3m_js_app_sum",
@@ -453,11 +681,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 3,
-      "community_name": "renderModuloKPI",
+      "community_name": "isNum",
       "file_type": "code",
       "norm_label": "sum()",
       "source_file": "3M/js/app.js",
-      "source_location": "L755"
+      "source_location": "L761"
     },
     {
       "id": "grupo_linde_js_app_avg",
@@ -465,35 +693,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 3,
-      "community_name": "renderModuloKPI",
+      "community_name": "isNum",
       "file_type": "code",
       "norm_label": "avg()",
       "source_file": "Grupo Linde/js/app.js",
       "source_location": "L599"
-    },
-    {
-      "id": "grupo_linde_js_app_countby",
-      "label": "countBy()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "renderModuloKPI",
-      "file_type": "code",
-      "norm_label": "countby()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L644"
-    },
-    {
-      "id": "grupo_linde_js_app_fmtint",
-      "label": "fmtInt()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "renderModuloKPI",
-      "file_type": "code",
-      "norm_label": "fmtint()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L601"
     },
     {
       "id": "grupo_linde_js_app_getlinedatasets",
@@ -501,7 +705,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 3,
-      "community_name": "renderModuloKPI",
+      "community_name": "isNum",
       "file_type": "code",
       "norm_label": "getlinedatasets()",
       "source_file": "Grupo Linde/js/app.js",
@@ -513,35 +717,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 3,
-      "community_name": "renderModuloKPI",
+      "community_name": "isNum",
       "file_type": "code",
       "norm_label": "isnum()",
       "source_file": "Grupo Linde/js/app.js",
       "source_location": "L589"
-    },
-    {
-      "id": "grupo_linde_js_app_monthkey",
-      "label": "monthKey()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "renderModuloKPI",
-      "file_type": "code",
-      "norm_label": "monthkey()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L605"
-    },
-    {
-      "id": "grupo_linde_js_app_monthlabel",
-      "label": "monthLabel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "renderModuloKPI",
-      "file_type": "code",
-      "norm_label": "monthlabel()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L610"
     },
     {
       "id": "grupo_linde_js_app_numval",
@@ -549,35 +729,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 3,
-      "community_name": "renderModuloKPI",
+      "community_name": "isNum",
       "file_type": "code",
       "norm_label": "numval()",
       "source_file": "Grupo Linde/js/app.js",
       "source_location": "L594"
-    },
-    {
-      "id": "grupo_linde_js_app_parseutcdate",
-      "label": "parseUTCDate()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "renderModuloKPI",
-      "file_type": "code",
-      "norm_label": "parseutcdate()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L624"
-    },
-    {
-      "id": "grupo_linde_js_app_rendermodulokpi",
-      "label": "renderModuloKPI()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "renderModuloKPI",
-      "file_type": "code",
-      "norm_label": "rendermodulokpi()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L1416"
     },
     {
       "id": "grupo_linde_js_app_sum",
@@ -585,7 +741,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 3,
-      "community_name": "renderModuloKPI",
+      "community_name": "isNum",
       "file_type": "code",
       "norm_label": "sum()",
       "source_file": "Grupo Linde/js/app.js",
@@ -625,7 +781,7 @@
       "file_type": "code",
       "norm_label": "normalizekey()",
       "source_file": "3M/js/app.js",
-      "source_location": "L689"
+      "source_location": "L695"
     },
     {
       "id": "3m_js_app_normalizerows",
@@ -637,7 +793,7 @@
       "file_type": "code",
       "norm_label": "normalizerows()",
       "source_file": "3M/js/app.js",
-      "source_location": "L723"
+      "source_location": "L729"
     },
     {
       "id": "3m_js_app_parseclasificacion",
@@ -649,7 +805,7 @@
       "file_type": "code",
       "norm_label": "parseclasificacion()",
       "source_file": "3M/js/app.js",
-      "source_location": "L624"
+      "source_location": "L630"
     },
     {
       "id": "3m_js_app_parsedta",
@@ -673,7 +829,7 @@
       "file_type": "code",
       "norm_label": "parseexceldatesafe()",
       "source_file": "3M/js/app.js",
-      "source_location": "L694"
+      "source_location": "L700"
     },
     {
       "id": "3m_js_app_parseindicadoresgrouped",
@@ -712,160 +868,28 @@
       "source_location": "L350"
     },
     {
-      "id": "3m_js_app_resolvesheetname",
-      "label": "resolveSheetName()",
+      "id": "3m_js_app_getyearsforrows",
+      "label": "getYearsForRows()",
       "_callable": true,
       "_origin": "ast",
-      "community": 4,
-      "community_name": "parseExcelDateSafe",
+      "community": 5,
+      "community_name": "getYearsForRows",
       "file_type": "code",
-      "norm_label": "resolvesheetname()",
+      "norm_label": "getyearsforrows()",
       "source_file": "3M/js/app.js",
-      "source_location": "L278"
+      "source_location": "L825"
     },
     {
-      "id": "3m_js_app_safesheet",
-      "label": "safeSheet()",
+      "id": "3m_js_app_uniquesorted",
+      "label": "uniqueSorted()",
       "_callable": true,
       "_origin": "ast",
-      "community": 4,
-      "community_name": "parseExcelDateSafe",
+      "community": 5,
+      "community_name": "getYearsForRows",
       "file_type": "code",
-      "norm_label": "safesheet()",
+      "norm_label": "uniquesorted()",
       "source_file": "3M/js/app.js",
-      "source_location": "L283"
-    },
-    {
-      "id": "grupo_linde_js_app_findmaintable",
-      "label": "findMainTable()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "findmaintable()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L242"
-    },
-    {
-      "id": "grupo_linde_js_app_formatmodotransporte",
-      "label": "formatModoTransporte()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "formatmodotransporte()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L296"
-    },
-    {
-      "id": "grupo_linde_js_app_normalizekey",
-      "label": "normalizeKey()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "normalizekey()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L514"
-    },
-    {
-      "id": "grupo_linde_js_app_normalizerows",
-      "label": "normalizeRows()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "normalizerows()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L548"
-    },
-    {
-      "id": "grupo_linde_js_app_parseexceldatesafe",
-      "label": "parseExcelDateSafe()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "parseexceldatesafe()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L519"
-    },
-    {
-      "id": "grupo_linde_js_app_parseindicadoresgrouped",
-      "label": "parseIndicadoresGrouped()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "parseindicadoresgrouped()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L412"
-    },
-    {
-      "id": "grupo_linde_js_app_parsenestedtable",
-      "label": "parseNestedTable()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "parsenestedtable()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L251"
-    },
-    {
-      "id": "grupo_linde_js_app_parsereportehtml",
-      "label": "parseReporteHTML()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "parsereportehtml()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L301"
-    },
-    {
-      "id": "grupo_linde_js_app_resolvesheetname",
-      "label": "resolveSheetName()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "resolvesheetname()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L229"
-    },
-    {
-      "id": "grupo_linde_js_app_revivedates",
-      "label": "reviveDates()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "revivedates()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L561"
-    },
-    {
-      "id": "grupo_linde_js_app_safesheet",
-      "label": "safeSheet()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "parseExcelDateSafe",
-      "file_type": "code",
-      "norm_label": "safesheet()",
-      "source_file": "Grupo Linde/js/app.js",
-      "source_location": "L234"
+      "source_location": "L777"
     },
     {
       "id": "3m_js_app_countby",
@@ -877,7 +901,7 @@
       "file_type": "code",
       "norm_label": "countby()",
       "source_file": "3M/js/app.js",
-      "source_location": "L799"
+      "source_location": "L805"
     },
     {
       "id": "3m_js_app_filteredindicadores",
@@ -889,7 +913,7 @@
       "file_type": "code",
       "norm_label": "filteredindicadores()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1378"
+      "source_location": "L1408"
     },
     {
       "id": "3m_js_app_fmtdateutc",
@@ -901,7 +925,7 @@
       "file_type": "code",
       "norm_label": "fmtdateutc()",
       "source_file": "3M/js/app.js",
-      "source_location": "L775"
+      "source_location": "L781"
     },
     {
       "id": "3m_js_app_fmtint",
@@ -913,7 +937,7 @@
       "file_type": "code",
       "norm_label": "fmtint()",
       "source_file": "3M/js/app.js",
-      "source_location": "L756"
+      "source_location": "L762"
     },
     {
       "id": "3m_js_app_getlinedatasets",
@@ -925,7 +949,7 @@
       "file_type": "code",
       "norm_label": "getlinedatasets()",
       "source_file": "3M/js/app.js",
-      "source_location": "L847"
+      "source_location": "L853"
     },
     {
       "id": "3m_js_app_monthkey",
@@ -937,7 +961,7 @@
       "file_type": "code",
       "norm_label": "monthkey()",
       "source_file": "3M/js/app.js",
-      "source_location": "L760"
+      "source_location": "L766"
     },
     {
       "id": "3m_js_app_monthlabel",
@@ -949,7 +973,7 @@
       "file_type": "code",
       "norm_label": "monthlabel()",
       "source_file": "3M/js/app.js",
-      "source_location": "L765"
+      "source_location": "L771"
     },
     {
       "id": "3m_js_app_parseutcdate",
@@ -961,7 +985,7 @@
       "file_type": "code",
       "norm_label": "parseutcdate()",
       "source_file": "3M/js/app.js",
-      "source_location": "L779"
+      "source_location": "L785"
     },
     {
       "id": "3m_js_app_rendermodulokpi",
@@ -973,7 +997,7 @@
       "file_type": "code",
       "norm_label": "rendermodulokpi()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1487"
+      "source_location": "L1517"
     },
     {
       "id": "3m_js_app_rendersubtable",
@@ -985,7 +1009,7 @@
       "file_type": "code",
       "norm_label": "rendersubtable()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1437"
+      "source_location": "L1467"
     },
     {
       "id": "3m_js_app_chiprow",
@@ -997,7 +1021,7 @@
       "file_type": "code",
       "norm_label": "chiprow()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1328"
+      "source_location": "L1358"
     },
     {
       "id": "3m_js_app_clearallfilters",
@@ -1009,19 +1033,31 @@
       "file_type": "code",
       "norm_label": "clearallfilters()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1303"
+      "source_location": "L1333"
     },
     {
-      "id": "3m_js_app_getyearsforrows",
-      "label": "getYearsForRows()",
+      "id": "3m_js_app_datadates",
+      "label": "dataDates()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
       "community_name": "initFilters",
       "file_type": "code",
-      "norm_label": "getyearsforrows()",
+      "norm_label": "datadates()",
       "source_file": "3M/js/app.js",
-      "source_location": "L819"
+      "source_location": "L1263"
+    },
+    {
+      "id": "3m_js_app_datasignature",
+      "label": "dataSignature()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "initFilters",
+      "file_type": "code",
+      "norm_label": "datasignature()",
+      "source_file": "3M/js/app.js",
+      "source_location": "L1274"
     },
     {
       "id": "3m_js_app_initfilters",
@@ -1033,7 +1069,7 @@
       "file_type": "code",
       "norm_label": "initfilters()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1255"
+      "source_location": "L1281"
     },
     {
       "id": "3m_js_app_loadfilters",
@@ -1045,7 +1081,7 @@
       "file_type": "code",
       "norm_label": "loadfilters()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1242"
+      "source_location": "L1249"
     },
     {
       "id": "3m_js_app_savefilters",
@@ -1057,19 +1093,7 @@
       "file_type": "code",
       "norm_label": "savefilters()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1229"
-    },
-    {
-      "id": "3m_js_app_uniquesorted",
-      "label": "uniqueSorted()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "initFilters",
-      "file_type": "code",
-      "norm_label": "uniquesorted()",
-      "source_file": "3M/js/app.js",
-      "source_location": "L771"
+      "source_location": "L1235"
     },
     {
       "id": "3m_js_app_updatebadge",
@@ -1081,7 +1105,7 @@
       "file_type": "code",
       "norm_label": "updatebadge()",
       "source_file": "3M/js/app.js",
-      "source_location": "L1324"
+      "source_location": "L1354"
     },
     {
       "id": "grupo_linde_js_app",
@@ -1202,7 +1226,7 @@
       "file_type": "code",
       "norm_label": "coreevents",
       "source_file": "3M/js/app.js",
-      "source_location": "L1876"
+      "source_location": "L1906"
     },
     {
       "id": "3m_js_app_els",
@@ -1246,7 +1270,7 @@
       "file_type": "code",
       "norm_label": "uploader",
       "source_file": "3M/js/app.js",
-      "source_location": "L908"
+      "source_location": "L914"
     },
     {
       "id": "readme",
@@ -1270,7 +1294,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udcca caracteristicas del portal",
       "source_file": "README.md",
-      "source_location": "L71"
+      "source_location": "L74"
     },
     {
       "id": "readme_despliegue_en_github_pages",
@@ -1331,6 +1355,18 @@
       "norm_label": "portal central de torres de control comex",
       "source_file": "README.md",
       "source_location": "L2"
+    },
+    {
+      "id": "readme_uso_local",
+      "label": "\ud83d\udcbb Uso local",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "KPI GRUPO 1436 - SANDRA MILENA URBINA GONZALEZ",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "\ud83d\udcbb uso local",
+      "source_file": "README.md",
+      "source_location": "L83"
     },
     {
       "id": "grupo_linde_readme",
@@ -2073,7 +2109,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1309",
+      "source_location": "L1339",
       "weight": 1.0
     },
     {
@@ -2085,7 +2121,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1322",
+      "source_location": "L1352",
+      "weight": 1.0
+    },
+    {
+      "source": "3m_js_app_datasignature",
+      "target": "3m_js_app_datadates",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "3M/js/app.js",
+      "source_location": "L1275",
       "weight": 1.0
     },
     {
@@ -2097,7 +2145,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1381",
+      "source_location": "L1411",
       "weight": 1.0
     },
     {
@@ -2109,7 +2157,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L820",
+      "source_location": "L826",
       "weight": 1.0
     },
     {
@@ -2121,7 +2169,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1256",
+      "source_location": "L1282",
       "weight": 1.0
     },
     {
@@ -2133,7 +2181,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1264",
+      "source_location": "L1290",
       "weight": 1.0
     },
     {
@@ -2145,7 +2193,31 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1277",
+      "source_location": "L1303",
+      "weight": 1.0
+    },
+    {
+      "source": "3m_js_app_initfilters",
+      "target": "3m_js_app_datadates",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "3M/js/app.js",
+      "source_location": "L1308",
+      "weight": 1.0
+    },
+    {
+      "source": "3m_js_app_initfilters",
+      "target": "3m_js_app_datasignature",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "3M/js/app.js",
+      "source_location": "L1314",
       "weight": 1.0
     },
     {
@@ -2157,7 +2229,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1288",
+      "source_location": "L1317",
       "weight": 1.0
     },
     {
@@ -2169,7 +2241,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1296",
+      "source_location": "L1319",
       "weight": 1.0
     },
     {
@@ -2181,7 +2253,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1296",
+      "source_location": "L1326",
       "weight": 1.0
     },
     {
@@ -2193,7 +2265,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L727",
+      "source_location": "L733",
       "weight": 1.0
     },
     {
@@ -2205,7 +2277,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L729",
+      "source_location": "L735",
       "weight": 1.0
     },
     {
@@ -2217,7 +2289,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L639",
+      "source_location": "L645",
       "weight": 1.0
     },
     {
@@ -2325,7 +2397,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1428",
+      "source_location": "L1458",
       "weight": 1.0
     },
     {
@@ -2337,7 +2409,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1517",
+      "source_location": "L1547",
       "weight": 1.0
     },
     {
@@ -2349,7 +2421,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1557",
+      "source_location": "L1587",
       "weight": 1.0
     },
     {
@@ -2361,7 +2433,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1559",
+      "source_location": "L1589",
       "weight": 1.0
     },
     {
@@ -2373,7 +2445,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1560",
+      "source_location": "L1590",
       "weight": 1.0
     },
     {
@@ -2385,7 +2457,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1588",
+      "source_location": "L1618",
       "weight": 1.0
     },
     {
@@ -2397,7 +2469,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1603",
+      "source_location": "L1633",
       "weight": 1.0
     },
     {
@@ -2409,7 +2481,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1612",
+      "source_location": "L1642",
       "weight": 1.0
     },
     {
@@ -2421,7 +2493,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1707",
+      "source_location": "L1737",
       "weight": 1.0
     },
     {
@@ -2433,7 +2505,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1462",
+      "source_location": "L1492",
       "weight": 1.0
     },
     {
@@ -2445,7 +2517,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "3M/js/app.js",
-      "source_location": "L1810",
+      "source_location": "L1840",
       "weight": 1.0
     },
     {
@@ -2458,6 +2530,18 @@
       "context": "call",
       "source_file": "3M/js/app.js",
       "source_location": "L284",
+      "weight": 1.0
+    },
+    {
+      "source": "3m_js_app_savefilters",
+      "target": "3m_js_app_datasignature",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "3M/js/app.js",
+      "source_location": "L1244",
       "weight": 1.0
     },
     {
@@ -2910,7 +2994,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1229",
+      "source_location": "L1235",
       "weight": 1.0
     },
     {
@@ -2921,18 +3005,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1242",
-      "weight": 1.0
-    },
-    {
-      "source": "3m_js_app",
-      "target": "3m_js_app_initfilters",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "3M/js/app.js",
-      "source_location": "L1255",
+      "source_location": "L1249",
       "weight": 1.0
     },
     {
@@ -2948,13 +3021,46 @@
     },
     {
       "source": "3m_js_app",
+      "target": "3m_js_app_datadates",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "3M/js/app.js",
+      "source_location": "L1263",
+      "weight": 1.0
+    },
+    {
+      "source": "3m_js_app",
+      "target": "3m_js_app_datasignature",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "3M/js/app.js",
+      "source_location": "L1274",
+      "weight": 1.0
+    },
+    {
+      "source": "3m_js_app",
+      "target": "3m_js_app_initfilters",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "3M/js/app.js",
+      "source_location": "L1281",
+      "weight": 1.0
+    },
+    {
+      "source": "3m_js_app",
       "target": "3m_js_app_clearallfilters",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1303",
+      "source_location": "L1333",
       "weight": 1.0
     },
     {
@@ -2965,7 +3071,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1324",
+      "source_location": "L1354",
       "weight": 1.0
     },
     {
@@ -2976,7 +3082,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1328",
+      "source_location": "L1358",
       "weight": 1.0
     },
     {
@@ -2987,29 +3093,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1378",
-      "weight": 1.0
-    },
-    {
-      "source": "3m_js_app",
-      "target": "3m_js_app_forcerendereverything",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "3M/js/app.js",
-      "source_location": "L1404",
-      "weight": 1.0
-    },
-    {
-      "source": "3m_js_app",
-      "target": "3m_js_app_renderall",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "3M/js/app.js",
-      "source_location": "L1414",
+      "source_location": "L1408",
       "weight": 1.0
     },
     {
@@ -3025,13 +3109,35 @@
     },
     {
       "source": "3m_js_app",
+      "target": "3m_js_app_forcerendereverything",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "3M/js/app.js",
+      "source_location": "L1434",
+      "weight": 1.0
+    },
+    {
+      "source": "3m_js_app",
+      "target": "3m_js_app_renderall",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "3M/js/app.js",
+      "source_location": "L1444",
+      "weight": 1.0
+    },
+    {
+      "source": "3m_js_app",
       "target": "3m_js_app_rendersubtable",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1437",
+      "source_location": "L1467",
       "weight": 1.0
     },
     {
@@ -3042,7 +3148,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1487",
+      "source_location": "L1517",
       "weight": 1.0
     },
     {
@@ -3053,7 +3159,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1715",
+      "source_location": "L1745",
       "weight": 1.0
     },
     {
@@ -3064,7 +3170,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L1876",
+      "source_location": "L1906",
       "weight": 1.0
     },
     {
@@ -3240,7 +3346,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L624",
+      "source_location": "L630",
       "weight": 1.0
     },
     {
@@ -3251,7 +3357,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L689",
+      "source_location": "L695",
       "weight": 1.0
     },
     {
@@ -3262,7 +3368,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L694",
+      "source_location": "L700",
       "weight": 1.0
     },
     {
@@ -3273,7 +3379,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L723",
+      "source_location": "L729",
       "weight": 1.0
     },
     {
@@ -3284,7 +3390,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L736",
+      "source_location": "L742",
       "weight": 1.0
     },
     {
@@ -3295,7 +3401,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L754",
+      "source_location": "L760",
       "weight": 1.0
     },
     {
@@ -3306,7 +3412,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L755",
+      "source_location": "L761",
       "weight": 1.0
     },
     {
@@ -3317,7 +3423,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L756",
+      "source_location": "L762",
       "weight": 1.0
     },
     {
@@ -3328,7 +3434,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L757",
+      "source_location": "L763",
       "weight": 1.0
     },
     {
@@ -3339,7 +3445,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L758",
+      "source_location": "L764",
       "weight": 1.0
     },
     {
@@ -3350,7 +3456,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L760",
+      "source_location": "L766",
       "weight": 1.0
     },
     {
@@ -3361,7 +3467,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L765",
+      "source_location": "L771",
       "weight": 1.0
     },
     {
@@ -3372,7 +3478,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L771",
+      "source_location": "L777",
       "weight": 1.0
     },
     {
@@ -3383,7 +3489,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L775",
+      "source_location": "L781",
       "weight": 1.0
     },
     {
@@ -3394,7 +3500,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L779",
+      "source_location": "L785",
       "weight": 1.0
     },
     {
@@ -3405,7 +3511,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L785",
+      "source_location": "L791",
       "weight": 1.0
     },
     {
@@ -3416,7 +3522,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L799",
+      "source_location": "L805",
       "weight": 1.0
     },
     {
@@ -3427,7 +3533,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L819",
+      "source_location": "L825",
       "weight": 1.0
     },
     {
@@ -3438,7 +3544,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L847",
+      "source_location": "L853",
       "weight": 1.0
     },
     {
@@ -3449,7 +3555,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "3M/js/app.js",
-      "source_location": "L908",
+      "source_location": "L914",
       "weight": 1.0
     },
     {
@@ -4461,7 +4567,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L71",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_kpi_grupo_1436_sandra_milena_urbina_gonzalez",
+      "target": "readme_uso_local",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -4473,7 +4590,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "3M/js/app.js",
-      "source_location": "L754",
+      "source_location": "L760",
       "weight": 1.0
     },
     {
@@ -4485,7 +4602,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "3M/js/app.js",
-      "source_location": "L755",
+      "source_location": "L761",
       "weight": 1.0
     },
     {
@@ -4514,5 +4631,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "e882b4356141dc6adf5c21067ed1f3651ef4b709"
+  "built_at_commit": "16d2acd0cdba4fab9c51e9c7e451e0d2721fb9bf"
 }

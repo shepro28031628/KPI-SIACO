@@ -1,14 +1,14 @@
 {
   "3M/js/app.js": {
-    "mtime": 1788753693.6344943,
-    "seen": 1791562872.513733,
-    "ast_hash": "3fbbf0a89bfb1f2e0312b1f1c25109ac",
+    "mtime": 1791570692.3741546,
+    "seen": 1791570755.596429,
+    "ast_hash": "6a912be4c369db9c0256bca1692b2da2",
     "semantic_hash": ""
   },
   "3M/js/default_data.js": {
-    "mtime": 1787326684.2498937,
-    "seen": 1791562872.51374,
-    "ast_hash": "437a99ab7a875281f62fa7a33eefb409",
+    "mtime": 1791570697.467956,
+    "seen": 1791570755.5964355,
+    "ast_hash": "65bf664372422603722baaa7f32c5cae",
     "semantic_hash": ""
   },
   "3M/js/tab_agilidad.js": {
@@ -18,9 +18,9 @@
     "semantic_hash": ""
   },
   "3M/js/tab_clasificacion.js": {
-    "mtime": 1787337759.51793,
-    "seen": 1791562872.5137448,
-    "ast_hash": "c49347b44d66745cc60d33c464b2ed3d",
+    "mtime": 1791570371.1574943,
+    "seen": 1791570406.9745302,
+    "ast_hash": "9c7f83169f70c1277e6f026506884743",
     "semantic_hash": ""
   },
   "3M/js/tab_coo.js": {
@@ -48,15 +48,15 @@
     "semantic_hash": ""
   },
   "3M/js/tab_procesos.js": {
-    "mtime": 1787317710.3982766,
-    "seen": 1791562872.5137532,
-    "ast_hash": "056cdd6f0c5a4274da207ff50408bf9d",
+    "mtime": 1791568301.550473,
+    "seen": 1791570406.9745417,
+    "ast_hash": "88f9d229b92cbb140cd80fcab00d59ab",
     "semantic_hash": ""
   },
   "3M/js/tab_registros.js": {
-    "mtime": 1787337773.0329487,
-    "seen": 1791562872.5137544,
-    "ast_hash": "c742a2311d1af58f1ed862f502a0416a",
+    "mtime": 1791568301.563701,
+    "seen": 1791570406.9745433,
+    "ast_hash": "1e8dca152317db3b9490b081ad20293e",
     "semantic_hash": ""
   },
   "3M/package.json": {
@@ -162,69 +162,69 @@
     "semantic_hash": ""
   },
   "3M/agilidad.html": {
-    "mtime": 1788722359.375149,
-    "seen": 1791562872.5137796,
-    "ast_hash": "d79c310150b3b9dd2f3b45e2c249fb38",
+    "mtime": 1791570701.750679,
+    "seen": 1791570755.5964844,
+    "ast_hash": "3f6e92bcdd5397579f43430752294bdf",
     "semantic_hash": ""
   },
   "3M/clasificacion.html": {
-    "mtime": 1788722360.942217,
-    "seen": 1791562872.5137813,
-    "ast_hash": "2cf77f15dc426bca30b2b9db34bc7cd3",
+    "mtime": 1791570701.7749443,
+    "seen": 1791570755.5964856,
+    "ast_hash": "80ae73e0c6133f3d18e7e88b7460d965",
     "semantic_hash": ""
   },
   "3M/coo.html": {
-    "mtime": 1788722362.1801925,
-    "seen": 1791562872.5137827,
-    "ast_hash": "6e06477c86cd3e5bd0eb6af98fe87838",
+    "mtime": 1791570701.7982347,
+    "seen": 1791570755.5964873,
+    "ast_hash": "ca69dd2998470101ff2fe10f3f7f36ae",
     "semantic_hash": ""
   },
   "3M/dashboard.html": {
-    "mtime": 1788724638.725586,
-    "seen": 1791562872.5137842,
-    "ast_hash": "df0cecedbd20e9d9ffadaaf610737752",
+    "mtime": 1791570701.8216102,
+    "seen": 1791570755.5964882,
+    "ast_hash": "fd9537fd0752291832e70278a455dd6a",
     "semantic_hash": ""
   },
   "3M/datos.html": {
-    "mtime": 1788722363.4802783,
-    "seen": 1791562872.5137856,
-    "ast_hash": "a7987a4143ae7c49d5652c1c48af5078",
+    "mtime": 1791570701.8455982,
+    "seen": 1791570755.5964897,
+    "ast_hash": "403925673e78453dea5e94a1850b7436",
     "semantic_hash": ""
   },
   "3M/dtas.html": {
-    "mtime": 1788722364.9323258,
-    "seen": 1791562872.5137868,
-    "ast_hash": "e64e5e1ba8c15edd2945ca5d187ec7b5",
+    "mtime": 1791570701.8703845,
+    "seen": 1791570755.5964909,
+    "ast_hash": "b39e4fd9e7b2b8984d59560e797c4aca",
     "semantic_hash": ""
   },
   "3M/facturacion.html": {
-    "mtime": 1788722366.192547,
-    "seen": 1791562872.5137885,
-    "ast_hash": "0215296242a2054a48576b76170599cc",
+    "mtime": 1791570701.8990574,
+    "seen": 1791570755.596492,
+    "ast_hash": "0fd2f811db2ee98364ae3d5c61e32e6c",
     "semantic_hash": ""
   },
   "3M/index.html": {
-    "mtime": 1788724638.9087443,
-    "seen": 1791562872.5137897,
-    "ast_hash": "ab45605b6e4cb928695341b28eae5178",
+    "mtime": 1791570701.9227657,
+    "seen": 1791570755.5964932,
+    "ast_hash": "188b9d11279c061c5dcd2265e7786b84",
     "semantic_hash": ""
   },
   "3M/inspeccion.html": {
-    "mtime": 1788722367.7279027,
-    "seen": 1791562872.5137913,
-    "ast_hash": "3cdae32922ea32800a9e31b86e342fd3",
+    "mtime": 1791570701.9441838,
+    "seen": 1791570755.5964947,
+    "ast_hash": "45c959c3b5aa287fa180fb5774b0d21b",
     "semantic_hash": ""
   },
   "3M/procesos.html": {
-    "mtime": 1788722368.9806366,
-    "seen": 1791562872.5138006,
-    "ast_hash": "c0dbbe390ca77ba4a8e3c7c9f0fd8e71",
+    "mtime": 1791570701.9689658,
+    "seen": 1791570755.5964959,
+    "ast_hash": "a3593f0443cbe54b177d48ee1959cdb7",
     "semantic_hash": ""
   },
   "3M/registros.html": {
-    "mtime": 1788722370.3543997,
-    "seen": 1791562872.5138023,
-    "ast_hash": "de38ab726c2cf2ad7f80eac8ec1117ed",
+    "mtime": 1791570701.9968736,
+    "seen": 1791570755.5964973,
+    "ast_hash": "bfdaf0023cd91f6fbb02fbbc30360c81",
     "semantic_hash": ""
   },
   "Grupo Linde/README.md": {
@@ -300,9 +300,9 @@
     "semantic_hash": ""
   },
   "Kpi Grupo/dashboard_operativo.html": {
-    "mtime": 1791563343.3557763,
-    "seen": 1791563412.7359848,
-    "ast_hash": "e60eda6c6fc930ca58e7a75e3e2512ad",
+    "mtime": 1791565704.88639,
+    "seen": 1791570406.9746122,
+    "ast_hash": "6ab2bf0a29510d8e0dd3be27b0ccc07f",
     "semantic_hash": ""
   },
   "README.md": {
@@ -345,6 +345,18 @@
     "mtime": 1785710324.8624318,
     "seen": 1791562872.5138311,
     "ast_hash": "388372e737117c40425463c113979dd9",
+    "semantic_hash": ""
+  },
+  "3M/assets/img/apple-touch-icon.png": {
+    "mtime": 1791568301.2622964,
+    "seen": 1791570406.9746175,
+    "ast_hash": "8a11e2f4bd9d73e6332c793c03a906ed",
+    "semantic_hash": ""
+  },
+  "3M/assets/img/favicon-32.png": {
+    "mtime": 1791568301.263828,
+    "seen": 1791570406.9746192,
+    "ast_hash": "a39cb9bf421a200ae439ae53662446df",
     "semantic_hash": ""
   }
 }

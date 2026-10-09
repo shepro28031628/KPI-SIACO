@@ -581,39 +581,76 @@ function parseDTA(wb) {
     return null;
   };
 
+  // Las columnas se ubican por el NOMBRE del encabezado (la hoja cambia de forma: p. ej. se quitó SHIPMENT
+  // y todo se corrió una columna). Si no se reconocen los encabezados, se usa la disposición anterior.
+  const normHeader = (h) => String(h == null ? '' : h).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Z0-9]+/g, ' ').trim();
+  const headers = (rows[0] || []).map(normHeader);
+  const findCol = (...names) => {
+    for (const n of names) {
+      const idx = headers.indexOf(n);
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  };
+  const found = {
+    linea: findCol('LINEA DE NEGOCIO'),
+    admon: findCol('ADMON', 'ADMINISTRACION'),
+    do: findCol('DO', 'DO NUMERO'),
+    doc: findCol('DOCUMENTO TRANSPORTE', 'DOCUMENTO DE TRANSPORTE'),
+    idop: findCol('IDENTIFICACION OPERACION', 'IDENTIFICACION DE LA OPERACION'),
+    shipment: findCol('SHIPMENT'),
+    proveedor: findCol('PROVEEDOR'),
+    deposito: findCol('DEPOSITO'),
+    ata: findCol('ATA'),
+    finMV: findCol('FINALIZACION MV'),
+    liberacion: findCol('LIBERACION'),
+    retiro: findCol('F RETIRO PUERTO', 'RETIRO PUERTO'),
+    ingresoZF: findCol('F INGRESO ZF', 'INGRESO ZF'),
+    estado: findCol('ESTADO'),
+    manejo: findCol('MANEJO'),
+    levante: findCol('LEVANTE'),
+    etiquetado: findCol('FINALIZACION ETIQUETADO')
+  };
+  // Disposición anterior (con SHIPMENT en la columna F)
+  const legacy = { linea: 0, admon: 1, do: 2, doc: 3, idop: 4, shipment: 5, proveedor: 6, deposito: 7, ata: 8, finMV: 9,
+    liberacion: 10, retiro: 11, ingresoZF: 12, estado: 13, manejo: 14, levante: 15, etiquetado: 16 };
+  const keyCols = ['do', 'ata', 'liberacion', 'ingresoZF', 'levante'];
+  const headersOk = keyCols.every(k => found[k] !== -1);
+  const col = headersOk ? found : legacy;
+  if (!headersOk) console.warn('parseDTA: no se reconocieron los encabezados de la hoja DTA; se usa la disposición anterior.');
+  const cell = (r, k) => (col[k] === -1 || col[k] === undefined ? null : r[col[k]]);
+  const text = (r, k, def = '') => { const v = cell(r, k); return v ? String(v).trim() : def; };
+
   const data = [];
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
-    if (!r || (!r[2] && !r[3])) continue;
+    if (!r || (!cell(r, 'do') && !cell(r, 'doc'))) continue;
 
-    // Encabezados reales de la hoja "DTA 3M 2026" (verificados en data/PLANEACION 3M2.xlsx):
-    // A:LINEA DE NEGOCIO B:ADMON C:DO. D:DOCUMENTO TRANSPORTE E:IDENTIFICACION OPERACION F:SHIPMENT
-    // G:PROVEEDOR H:DEPOSITO I:ATA J:FINALIZACION MV K:LIBERACION L:F.RETIRO PUERTO M:F.INGRESO ZF
-    // N:ESTADO O:MANEJO P:LEVANTE Q:FINALIZACION ETIQUETADO
-    const fLlegada = parseDtaDate(r[8]);      // Col I: ATA / Llegada Real
-    const fFinalizacionMV = parseDtaDate(r[9]); // Col J: Finalización MV
-    const fLiberacion = parseDtaDate(r[10]);  // Col K: Liberación
-    const fRetiroPuerto = parseDtaDate(r[11]);// Col L: Retiro Puerto
-    const fIngresoZF = parseDtaDate(r[12]);   // Col M: Ingreso ZF
-    const fLevante = parseDtaDate(r[15]);     // Col P: Levante
-    const fEtiquetado = parseDtaDate(r[16]);  // Col Q: Finalización Etiquetado
+    const fLlegada = parseDtaDate(cell(r, 'ata'));            // ATA / Llegada Real
+    const fFinalizacionMV = parseDtaDate(cell(r, 'finMV'));   // Finalización MV
+    const fLiberacion = parseDtaDate(cell(r, 'liberacion'));  // Liberación
+    const fRetiroPuerto = parseDtaDate(cell(r, 'retiro'));    // Retiro Puerto
+    const fIngresoZF = parseDtaDate(cell(r, 'ingresoZF'));    // Ingreso ZF
+    const fLevante = parseDtaDate(cell(r, 'levante'));        // Levante
+    const fEtiquetado = parseDtaDate(cell(r, 'etiquetado'));  // Finalización Etiquetado
 
     data.push({
-      lineadenegocio: r[0] ? String(r[0]).trim() : 'PROVEEDORES COMPANY',
-      administracion: r[1] ? String(r[1]).trim() : 'BOG',
-      do: r[2] ? String(r[2]).trim() : '',
-      documentodetransporte: r[3] ? String(r[3]).trim() : '',
-      idoperacion: r[4] ? String(r[4]).trim() : '',
-      shipment: r[5] ? String(r[5]).trim() : '',
-      proveedor: r[6] ? String(r[6]).trim() : '',
-      deposito: r[7] ? String(r[7]).trim() : '',
+      lineadenegocio: text(r, 'linea', 'PROVEEDORES COMPANY'),
+      administracion: text(r, 'admon', 'BOG'),
+      do: text(r, 'do'),
+      documentodetransporte: text(r, 'doc'),
+      idoperacion: text(r, 'idop'),
+      shipment: text(r, 'shipment'),
+      proveedor: text(r, 'proveedor'),
+      deposito: text(r, 'deposito'),
       fecharealdellegada: fLlegada,
       fechafinalizacionmv: fFinalizacionMV,
       fechaliberacion: fLiberacion,
       fecharetiropuerto: fRetiroPuerto,
       fechaingresozf: fIngresoZF,
-      estado: r[13] ? String(r[13]).trim() : '',
-      manejo: r[14] ? String(r[14]).trim() : 'TRANSITO-DTA',
+      estado: text(r, 'estado'),
+      manejo: text(r, 'manejo', 'TRANSITO-DTA'),
       fechadelevante: fLevante,
       fechafinalizacionetiquetado: fEtiquetado,
       // Días métricas solicitadas por el usuario:
@@ -1240,7 +1277,8 @@ window.getYearsForRows = getYearsForRows;
             modo: Array.from(App.filters.modo),
             year: Array.from(App.filters.year),
             dateFrom: document.getElementById('dateFrom') ? document.getElementById('dateFrom').value : null,
-            dateTo: document.getElementById('dateTo') ? document.getElementById('dateTo').value : null
+            dateTo: document.getElementById('dateTo') ? document.getElementById('dateTo').value : null,
+            dataSig: this.dataSignature()
           };
           localStorage.setItem('siaco_3m_filters', JSON.stringify(filtersObj));
         } catch(e) {}
@@ -1257,6 +1295,25 @@ window.getYearsForRows = getYearsForRows;
           }
         } catch(e) {}
         return null;
+      },
+      // Todas las fechas "de calendario" que usan los filtros (indicadores + registros RIM)
+      dataDates() {
+        const out = [];
+        const add = (arr, ...fields) => (arr || []).forEach(r => fields.forEach(f => {
+          const d = r[f];
+          if (d instanceof Date && !isNaN(d)) out.push(d);
+        }));
+        add(App.raw.indicadores, 'fechaaperturado');
+        add(App.raw.registros, 'fechasolicitud', 'fechaaprobacion');
+        return out;
+      },
+      // Identifica la versión de los datos cargados: si cambia, el rango de fechas guardado ya no es válido
+      dataSignature() {
+        const dates = this.dataDates();
+        if (!dates.length) return '';
+        let min = dates[0].getTime(), max = min;
+        dates.forEach(d => { const t = d.getTime(); if (t < min) min = t; if (t > max) max = t; });
+        return [min, max, (App.raw.indicadores || []).length, (App.raw.registros || []).length].join('|');
       },
       initFilters() {
         const admins = uniqueSorted(App.raw.indicadores.map(r => r['administracion']));
@@ -1285,14 +1342,18 @@ window.getYearsForRows = getYearsForRows;
         if (chipModoEl) this.chipRow(chipModoEl, modos, 'modo', savedFilters ? savedFilters.modo : null);
         if (chipYearEl) this.chipRow(chipYearEl, years, 'year', savedFilters ? savedFilters.year : null);
 
-        const dates = App.raw.indicadores.map(r => r['fechaaperturado']).filter(d => d instanceof Date && !isNaN(d));
+        const dates = this.dataDates();
         if (dates.length) {
-          const min = new Date(Math.min(...dates));
-          const max = new Date(Math.max(...dates));
+          const times = dates.map(d => d.getTime());
+          const min = new Date(Math.min(...times));
+          const max = new Date(Math.max(...times));
+          // El rango guardado solo se reutiliza si los datos no han cambiado desde que se guardó
+          const keepSavedRange = !!(savedFilters && savedFilters.dataSig && savedFilters.dataSig === this.dataSignature());
           const elFrom = document.getElementById('dateFrom');
           const elTo = document.getElementById('dateTo');
-          if (elFrom) elFrom.value = (savedFilters && savedFilters.dateFrom) ? savedFilters.dateFrom : fmtDateUTC(min);
-          if (elTo) elTo.value = (savedFilters && savedFilters.dateTo) ? savedFilters.dateTo : fmtDateUTC(max);
+          if (elFrom) elFrom.value = (keepSavedRange && savedFilters.dateFrom) ? savedFilters.dateFrom : fmtDateUTC(min);
+          if (elTo) elTo.value = (keepSavedRange && savedFilters.dateTo) ? savedFilters.dateTo : fmtDateUTC(max);
+          if (savedFilters && !keepSavedRange) this.saveFilters();
         }
 
         if (!this._listenersInit) {
@@ -1319,7 +1380,7 @@ window.getYearsForRows = getYearsForRows;
           }
         }
         if (App._clasifFilters) {
-          App._clasifFilters = { mes: 'julio', estado: 'TODOS', aplica: 'TODOS', search: '' };
+          App._clasifFilters = null;
         }
         if (App._cooFilters) {
           App._cooFilters = { mes: new Set(), pais: new Set(), sub: new Set() };

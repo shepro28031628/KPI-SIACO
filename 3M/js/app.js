@@ -1280,12 +1280,24 @@ window.getYearsForRows = getYearsForRows;
             dateTo: document.getElementById('dateTo') ? document.getElementById('dateTo').value : null,
             dataSig: this.dataSignature()
           };
-          localStorage.setItem('siaco_3m_filters', JSON.stringify(filtersObj));
+          sessionStorage.setItem(this.storageKey(), JSON.stringify(filtersObj));
         } catch(e) {}
+      },
+      // Cada módulo (Procesos, Agilidad, DTAS...) tiene sus propios filtros: lo que se filtra en uno no afecta a los demás.
+      // Al abrir el dashboard de nuevo o recargar con F5 se parte siempre del período completo.
+      storageKey() {
+        const page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+        return 'siaco_3m_filters:' + page;
       },
       loadFilters() {
         try {
-          const saved = JSON.parse(localStorage.getItem('siaco_3m_filters'));
+          if (!this._sessionChecked) {
+            this._sessionChecked = true;
+            try { localStorage.removeItem('siaco_3m_filters'); } catch (e) {}   // versión anterior: persistía para siempre
+            const nav = (performance.getEntriesByType && performance.getEntriesByType('navigation') || [])[0];
+            if (nav && nav.type === 'reload') sessionStorage.removeItem(this.storageKey());
+          }
+          const saved = JSON.parse(sessionStorage.getItem(this.storageKey()));
           if (saved) {
             App.filters.admin = new Set(saved.admin || []);
             App.filters.linea = new Set(saved.linea || []);
@@ -1411,7 +1423,7 @@ window.getYearsForRows = getYearsForRows;
         this.updateBadge();
       },
       clearAllFilters() {
-        try { localStorage.removeItem('siaco_3m_filters'); } catch(e) {}
+        try { sessionStorage.removeItem(this.storageKey()); } catch(e) {}
         App.filters.admin = new Set();
         App.filters.linea = new Set();
         App.filters.modo = new Set();

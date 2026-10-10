@@ -1,8 +1,53 @@
 // ==========================================
 // MÓDULO DTAS (PLANEACIÓN 2026)
 // ==========================================
+// DTAs que cumplen los filtros globales (Año, Administración, Línea, Modo y rango de fechas).
+// La fecha de referencia es la de LEVANTE (igual que la gráfica 1 "por Mes de Levante").
+// Las DTAs sin levante solo se muestran mientras el filtro de fechas/año abarque todo el período.
+ChartManager.filteredDtas = function() {
+  const all = App.raw.dtas || [];
+  const f = App.filters || {};
+  const has = (set) => set && set.size > 0;
+
+  // Modo de transporte: las DTAs son operaciones de Zona Franca
+  if (has(f.modo) && !f.modo.has('ZF')) return [];
+
+  const fromEl = document.getElementById('dateFrom');
+  const toEl = document.getElementById('dateTo');
+  const from = fromEl && fromEl.value ? parseUTCDate(fromEl.value) : null;
+  const to = toEl && toEl.value ? parseUTCDate(toEl.value) : null;
+  const toExclusive = to ? new Date(to.getTime() + 86400000) : null;
+
+  // ¿El rango de fechas elegido cubre todos los datos? (entonces no se descarta nada por fecha)
+  let fullRange = true;
+  const bounds = (FilterEngine.dataDates ? FilterEngine.dataDates() : []).map(d => d.getTime());
+  if (bounds.length) {
+    const min = Math.min(...bounds), max = Math.max(...bounds);
+    if (from && from.getTime() > min) fullRange = false;
+    if (toExclusive && toExclusive.getTime() <= max) fullRange = false;
+  }
+  // Un filtro cuenta como activo solo si deja fuera algún valor (por defecto todos los chips están marcados)
+  const yearsInData = new Set((App.raw.indicadores || []).map(r => r.fechaaperturado instanceof Date ? r.fechaaperturado.getFullYear().toString() : null).filter(Boolean));
+  const yearFilterOn = has(f.year) && [...yearsInData].some(y => !f.year.has(y));
+
+  return all.filter(r => {
+    if (has(f.admin) && !f.admin.has(r.administracion)) return false;
+    if (has(f.linea) && !f.linea.has(r.lineadenegocio)) return false;
+
+    const d = r.fechadelevante;
+    if (d instanceof Date && !isNaN(d)) {
+      if (yearFilterOn && !f.year.has(d.getFullYear().toString())) return false;
+      if (from && d < from) return false;
+      if (toExclusive && d >= toExclusive) return false;
+      return true;
+    }
+    // Sin fecha de levante: solo cuando no se está acotando por fecha ni por año
+    return fullRange && !yearFilterOn;
+  });
+};
+
 ChartManager.renderDTAS = function() {
-  const rows = App.raw.dtas || [];
+  const rows = this.filteredDtas();
   
   // 1. KPIs Superiores
   const totalOps = rows.length;
@@ -44,7 +89,11 @@ ChartManager.renderDTAS = function() {
     });
   }
 
-  if (!rows.length) return;
+  if (!rows.length) {
+    ['chartDtaDocTrans', 'chartDtaLlegadaLiberacion', 'chartDtaLlegadaIngresoZF',
+     'chartDtaZfLevante', 'chartDtaIngresoEtiquetado', 'chartDtaFinalEtiquetadoZF'].forEach(destroyChart);
+    return;
+  }
 
   // Agrupar datos por Documento de Transporte para los análisis detallados
   const docGroups = {};
